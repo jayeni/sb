@@ -401,13 +401,12 @@ def mission():
                 <label for="color-picker">Change Color:</label>
                 <input type="color" id="color-picker" value="#00ff00">
                 <input type="text" id="hex-input" placeholder="#00ff00" value="#00ff00" maxlength="7">
-                <label for="zoom-number">Zoom Level:</label>
-                <input type="number" id="zoom-number" min="2" max="10" value="5" step="0.1">
-                <select id="zoom-dropdown">
-                    <option value="2">2</option>
-                    <option value="5" selected>5</option>
-                    <option value="10">10</option>
-                </select>
+                
+                <label for="zoom-input">Zoom:</label>
+                <button id="zoom-out">-</button>
+                <input type="number" id="zoom-input" min="1" max="100" value="20" step="1">
+                <button id="zoom-in">+</button>
+                
                 <button id="rotate-left">Rotate Left</button>
                 <button id="rotate-right">Rotate Right</button>
                 <button id="pause-rotation">Pause</button>
@@ -427,13 +426,12 @@ def mission():
                 <label for="glb-color-picker">Change Color:</label>
                 <input type="color" id="glb-color-picker" value="#00ff00">
                 <input type="text" id="glb-hex-input" placeholder="#00ff00" value="#00ff00" maxlength="7">
-                <label for="glb-zoom-number">Zoom Level:</label>
-                <input type="number" id="glb-zoom-number" min="2" max="10" value="7" step="0.1">
-                <select id="glb-zoom-dropdown">
-                    <option value="5">5</option>
-                    <option value="7" selected>7</option>
-                    <option value="10">10</option>
-                </select>
+                
+                <label for="glb-zoom-input">Zoom:</label>
+                <button id="glb-zoom-out">-</button>
+                <input type="number" id="glb-zoom-input" min="1" max="100" value="25" step="1">
+                <button id="glb-zoom-in">+</button>
+                
                 <button id="glb-rotate-left">Rotate Left</button>
                 <button id="glb-rotate-right">Rotate Right</button>
                 <button id="glb-pause-rotation">Pause</button>
@@ -464,7 +462,6 @@ def mission():
 
                 // Create camera
                 camera = new THREE.PerspectiveCamera(30, 1000 / 600, 0.1, 1000);
-                camera.position.set(0, 0, 5.0);
 
                 // Create renderer
                 renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -485,15 +482,16 @@ def mission():
                 controls.screenSpacePanning = true;
 
                 // Load OBJ file
-                loadOBJFile('/assets/pk4.obj');
+                loadOBJFile('/assets/parkwood3.obj');
 
                 // Start animation loop
                 animate();
 
                 // Add event listeners for controls
                 document.getElementById('color-picker').addEventListener('input', changeColor);
-                document.getElementById('zoom-number').addEventListener('input', changeZoom);
-                document.getElementById('zoom-dropdown').addEventListener('change', changeZoomFromDropdown);
+                document.getElementById('zoom-input').addEventListener('input', changeZoom);
+                document.getElementById('zoom-in').addEventListener('click', zoomIn);
+                document.getElementById('zoom-out').addEventListener('click', zoomOut);
                 document.getElementById('rotate-left').addEventListener('click', () => setRotation(-1));
                 document.getElementById('rotate-right').addEventListener('click', () => setRotation(1));
                 document.getElementById('pause-rotation').addEventListener('click', pauseRotation);
@@ -536,14 +534,15 @@ def mission():
                     currentModel = object;
 
                     // Reset camera position
-                    camera.position.set(0, 0, 5.0);
+                    camera.position.set(0, 0, 20.0);
                     controls.target.set(0, 0, 0);
                     controls.update();
 
-                    // Set default color to green
+                    // Set default color to green by forcing a basic green material
+                    const greenMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
                     object.traverse((child) => {
                         if (child.isMesh) {
-                            child.material.color.set('#00ff00');
+                            child.material = greenMaterial;
                         }
                     });
                 });
@@ -567,15 +566,29 @@ def mission():
 
             function changeZoom(event) {
                 const zoomLevel = parseFloat(event.target.value);
+                console.log('Zoom level changed via slider to:', zoomLevel);
                 camera.position.z = zoomLevel;
                 controls.update();
             }
 
-            function changeZoomFromDropdown(event) {
-                const zoomLevel = parseFloat(event.target.value);
-                document.getElementById('zoom-number').value = zoomLevel;
-                camera.position.z = zoomLevel;
+            function zoomIn() {
+                const slider = document.getElementById('zoom-input');
+                let currentZoom = parseFloat(slider.value);
+                let newZoom = Math.max(parseFloat(slider.min), currentZoom - 2); // Decrease z for zoom in
+                slider.value = newZoom;
+                camera.position.z = newZoom;
                 controls.update();
+                console.log('Zoom In clicked, new zoom:', newZoom);
+            }
+
+            function zoomOut() {
+                const slider = document.getElementById('zoom-input');
+                let currentZoom = parseFloat(slider.value);
+                let newZoom = Math.min(parseFloat(slider.max), currentZoom + 2); // Increase z for zoom out
+                slider.value = newZoom;
+                camera.position.z = newZoom;
+                controls.update();
+                console.log('Zoom Out clicked, new zoom:', newZoom);
             }
 
             function changeColorFromHex(event) {
@@ -600,7 +613,7 @@ def mission():
 
                 // Create camera
                 glbCamera = new THREE.PerspectiveCamera(30, 1200 / 800, 0.1, 1000);
-                glbCamera.position.set(0, 0, 15.0);
+                // Don't set initial position here, set it after model loads
 
                 // Create renderer
                 glbRenderer = new THREE.WebGLRenderer({ antialias: true });
@@ -629,8 +642,9 @@ def mission():
                 // Add event listeners for controls
                 document.getElementById('glb-color-picker').addEventListener('input', changeGLBColor);
                 document.getElementById('glb-hex-input').addEventListener('input', changeGLBColorFromHex);
-                document.getElementById('glb-zoom-number').addEventListener('input', changeGLBZoom);
-                document.getElementById('glb-zoom-dropdown').addEventListener('change', changeGLBZoomFromDropdown);
+                document.getElementById('glb-zoom-input').addEventListener('input', changeGLBZoom);
+                document.getElementById('glb-zoom-in').addEventListener('click', zoomGLBIn);
+                document.getElementById('glb-zoom-out').addEventListener('click', zoomGLBOut);
                 document.getElementById('glb-rotate-left').addEventListener('click', () => setGLBRotation(-1));
                 document.getElementById('glb-rotate-right').addEventListener('click', () => setGLBRotation(1));
                 document.getElementById('glb-pause-rotation').addEventListener('click', pauseGLBRotation);
@@ -663,6 +677,11 @@ def mission():
 
                     glbScene.add(object);
                     glbCurrentModel = object;
+
+                    // Set default camera position AFTER model loads
+                    glbCamera.position.set(0, 0, 25.0);
+                    glbControls.target.set(0, 0, 0);
+                    glbControls.update();
 
                     // Set default color to green
                     object.traverse((child) => {
@@ -706,15 +725,29 @@ def mission():
 
             function changeGLBZoom(event) {
                 const zoomLevel = parseFloat(event.target.value);
+                console.log('GLB zoom level changed to:', zoomLevel);
                 glbCamera.position.z = zoomLevel;
                 glbControls.update();
             }
 
-            function changeGLBZoomFromDropdown(event) {
-                const zoomLevel = parseFloat(event.target.value);
-                document.getElementById('glb-zoom-number').value = zoomLevel;
-                glbCamera.position.z = zoomLevel;
+            function zoomGLBIn() {
+                const input = document.getElementById('glb-zoom-input');
+                let currentZoom = parseFloat(input.value);
+                let newZoom = Math.max(parseFloat(input.min), currentZoom - 2); // Decrease z for zoom in
+                input.value = newZoom;
+                glbCamera.position.z = newZoom;
                 glbControls.update();
+                console.log('GLB Zoom In clicked, new zoom:', newZoom);
+            }
+
+            function zoomGLBOut() {
+                const input = document.getElementById('glb-zoom-input');
+                let currentZoom = parseFloat(input.value);
+                let newZoom = Math.min(parseFloat(input.max), currentZoom + 2); // Increase z for zoom out
+                input.value = newZoom;
+                glbCamera.position.z = newZoom;
+                glbControls.update();
+                console.log('GLB Zoom Out clicked, new zoom:', newZoom);
             }
 
             function setGLBRotation(direction) {
@@ -773,6 +806,15 @@ def mission():
                 padding: 5px;
                 margin: 0 10px;
                 font-family: 'Oswald', sans-serif;
+            }
+
+            .controls input[type="number"]#zoom-input {
+                width: 70px;
+                text-align: center;
+                font-weight: bold;
+                background-color: #f0f0f0;
+                border: 2px solid #000080;
+                border-radius: 4px;
             }
 
             .controls button {
