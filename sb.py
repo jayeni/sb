@@ -291,6 +291,17 @@ def mission():
                 min-width: 60px;
                 text-align: center;
             }
+
+            body {
+                font-family: 'Oswald', sans-serif;
+                background-image: url('/assets/background-babyblue.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                margin: 0;
+                padding: 0;
+            }
         </style>
     </head>
     <body>
@@ -862,6 +873,13 @@ def adidas_project():
             
             body {
                 font-family: 'Oswald', sans-serif;
+                background-image: url('/assets/background-babyblue.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                margin: 0;
+                padding: 0;
             }
             
             spline-viewer {
@@ -1120,6 +1138,13 @@ def iphone_project():
             
             body {
                 font-family: 'Oswald', sans-serif;
+                background-image: url('/assets/background-babyblue.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                margin: 0;
+                padding: 0;
             }
             
             spline-viewer {
