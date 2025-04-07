@@ -446,6 +446,7 @@ def mission():
             import { OrbitControls } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/controls/OrbitControls.js';
             import { OBJLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/OBJLoader.js';
             import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
+            import { MTLLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/MTLLoader.js';
 
             let scene, camera, renderer, controls, currentModel;
             let isRotating = false;
@@ -482,7 +483,7 @@ def mission():
                 controls.screenSpacePanning = true;
 
                 // Load OBJ file
-                loadOBJFile('/assets/parkwood3.obj');
+                loadOBJFile('/assets/pk4.obj');
 
                 // Start animation loop
                 animate();
@@ -517,33 +518,34 @@ def mission():
             }
 
             function loadOBJFile(path) {
+                const mtlLoader = new MTLLoader();
                 const objLoader = new OBJLoader();
-                objLoader.load(path, function(object) {
-                    // Center and scale the model
-                    const box = new THREE.Box3().setFromObject(object);
-                    const center = box.getCenter(new THREE.Vector3());
-                    const size = box.getSize(new THREE.Vector3());
+                
+                // First load the material file
+                mtlLoader.load('/assets/pk4.mtl', function(materials) {
+                    materials.preload();
+                    objLoader.setMaterials(materials);
+                    
+                    // Then load the OBJ file
+                    objLoader.load('/assets/pk4.obj', function(object) {
+                        // Center and scale the model
+                        const box = new THREE.Box3().setFromObject(object);
+                        const center = box.getCenter(new THREE.Vector3());
+                        const size = box.getSize(new THREE.Vector3());
 
-                    const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 7 / maxDim;
-                    object.scale.multiplyScalar(scale);
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const scale = 7 / maxDim;
+                        object.scale.multiplyScalar(scale);
 
-                    object.position.sub(center.multiplyScalar(scale));
+                        object.position.sub(center.multiplyScalar(scale));
 
-                    scene.add(object);
-                    currentModel = object;
+                        scene.add(object);
+                        currentModel = object;
 
-                    // Reset camera position
-                    camera.position.set(0, 0, 20.0);
-                    controls.target.set(0, 0, 0);
-                    controls.update();
-
-                    // Set default color to green by forcing a basic green material
-                    const greenMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                    object.traverse((child) => {
-                        if (child.isMesh) {
-                            child.material = greenMaterial;
-                        }
+                        // Reset camera position
+                        camera.position.set(0, 0, 20.0);
+                        controls.target.set(0, 0, 0);
+                        controls.update();
                     });
                 });
             }
