@@ -64,7 +64,7 @@ def mission():
 
             .description-text {
                 font-family: 'Oswald', sans-serif;
-                font-size: 16px;
+                font-size: 18px;
                 line-height: 1.6;
                 max-width: 800px;
                 margin: 40px auto;
@@ -93,7 +93,7 @@ def mission():
                 position: absolute;
                 width: 600px;
                 height: 600px;
-                border: 4px dotted #FFD700;
+                border: 4px dotted #000080;
                 border-radius: 50%;
                 top: 50%;
                 left: 50%;
@@ -200,7 +200,7 @@ def mission():
             .interactive-note {
                 text-align: center;
                 font-family: 'Oswald', sans-serif;
-                font-size: 16px;
+                font-size: 24px;
                 color: #000080;
                 margin-top: 10px;
             }
@@ -275,6 +275,7 @@ def mission():
                 border-radius: 5px;
                 cursor: pointer;
                 font-family: 'Oswald', sans-serif;
+                font-size: 18px;
                 transition: all 0.3s ease;
             }
             
@@ -286,7 +287,7 @@ def mission():
             .gallery-counter {
                 font-family: 'Oswald', sans-serif;
                 color: #000080;
-                font-size: 18px;
+                font-size: 20px;
                 font-weight: bold;
                 min-width: 60px;
                 text-align: center;
@@ -400,6 +401,11 @@ def mission():
                     <h3>Customized Iphone 6</h3>
                 </div>
             </a>
+            <a href="/projects/repair-estimator" class="project-card">
+                <div class="project-content">
+                    <h3>Repair Estimator</h3>
+                </div>
+            </a>
         </div>
 
         <div class="subtitle" style="margin-top: 60px;">
@@ -415,7 +421,7 @@ def mission():
                 
                 <label for="zoom-input">Zoom:</label>
                 <button id="zoom-out">-</button>
-                <input type="number" id="zoom-input" min="1" max="100" value="20" step="1">
+                <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
                 <button id="zoom-in">+</button>
                 
                 <button id="rotate-left">Rotate Left</button>
@@ -425,7 +431,6 @@ def mission():
         </div>
 
         <div class="interactive-note">This viewer is interactive. Click and drag to explore!</div>
-        <div class="interactive-note">Use two fingers on mobile to interact with 3D objects in all viewers.</div>
 
         <div class="subtitle" style="margin-top: 60px;">
             <span class="combined-bubble-text gold" data-text="3D MODEL VIEWER - GLB(WIP)">3D MODEL VIEWER - GLB(WIP)</span>
@@ -450,7 +455,6 @@ def mission():
         </div>
 
         <div class="interactive-note">This viewer is interactive. Click and drag to explore!</div>
-        <div class="interactive-note">Use two fingers on mobile to interact with 3D objects in all viewers.</div>
 
         <script type="module">
             import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
@@ -553,10 +557,18 @@ def mission():
                         scene.add(object);
                         currentModel = object;
 
-                        // Reset camera position
-                        camera.position.set(0, 0, 20.0);
+                        // Reset camera position with closer zoom
+                        camera.position.set(0, 0, 8.0);
                         controls.target.set(0, 0, 0);
                         controls.update();
+
+                        // Set default color to green
+                        object.traverse((child) => {
+                            if (child.isMesh) {
+                                child.material.color.set('#00ff00');
+                                child.material.needsUpdate = true;
+                            }
+                        });
                     });
                 });
             }
@@ -571,6 +583,7 @@ def mission():
                     currentModel.traverse((child) => {
                         if (child.isMesh) {
                             child.material.color.set(color);
+                            child.material.needsUpdate = true;
                         }
                     });
                 }
@@ -803,7 +816,7 @@ def mission():
             }
 
             .controls label, .controls button {
-                font-size: 24px;
+                font-size: 26px;
                 margin: 0 10px;
                 font-family: 'Oswald', sans-serif;
                 font-weight: bold;
@@ -815,7 +828,7 @@ def mission():
             }
 
             .controls input[type="text"], .controls input[type="number"], .controls select {
-                font-size: 20px;
+                font-size: 22px;
                 padding: 5px;
                 margin: 0 10px;
                 font-family: 'Oswald', sans-serif;
@@ -832,7 +845,7 @@ def mission():
 
             .controls button {
                 padding: 8px 16px;
-                font-size: 22px;
+                font-size: 24px;
             }
 
             #glb-viewer {
@@ -927,7 +940,7 @@ def adidas_project():
             .interactive-note {
                 text-align: center;
                 font-family: 'Oswald', sans-serif;
-                font-size: 16px;
+                font-size: 24px;
                 color: #000080;
                 margin-top: 10px;
             }
@@ -940,7 +953,7 @@ def adidas_project():
             
             .description-text {
                 font-family: 'Oswald', sans-serif;
-                font-size: 16px;
+                font-size: 18px;
                 line-height: 1.6;
                 max-width: 800px;
                 margin: 40px auto;
@@ -962,6 +975,7 @@ def adidas_project():
                 border-radius: 5px;
                 cursor: pointer;
                 font-family: 'Oswald', sans-serif;
+                font-size: 18px;
                 text-decoration: none;
                 transition: all 0.3s ease;
                 z-index: 1000;
@@ -1078,6 +1092,7 @@ def adidas_project():
                 border-radius: 5px;
                 cursor: pointer;
                 font-family: 'Oswald', sans-serif;
+                font-size: 18px;
                 transition: all 0.3s ease;
             }
             
@@ -1089,7 +1104,7 @@ def adidas_project():
             .gallery-counter {
                 font-family: 'Oswald', sans-serif;
                 color: #000080;
-                font-size: 18px;
+                font-size: 20px;
                 font-weight: bold;
                 min-width: 60px;
                 text-align: center;
@@ -1104,7 +1119,7 @@ def adidas_project():
             <span class="combined-bubble-text gold" data-text="DESIGN IDEA 2">DESIGN IDEA 2</span>
         </div>
         
-        <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.82/build/spline-viewer.js"></script>
+        <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.82/build/spline-viewer.js" defer></script>
         <spline-viewer url="https://prod.spline.design/tSdyENphxBvsK4DK/scene.splinecode"></spline-viewer>
         <div class="interactive-note">This viewer is interactive. Click and drag to explore!</div>
         <div class="interactive-note">Use two fingers on mobile to interact with 3D objects in all viewers.</div>
@@ -1192,7 +1207,7 @@ def iphone_project():
             .interactive-note {
                 text-align: center;
                 font-family: 'Oswald', sans-serif;
-                font-size: 16px;
+                font-size: 24px;
                 color: #000080;
                 margin-top: 10px;
             }
@@ -1205,7 +1220,7 @@ def iphone_project():
             
             .description-text {
                 font-family: 'Oswald', sans-serif;
-                font-size: 16px;
+                font-size: 18px;
                 line-height: 1.6;
                 max-width: 800px;
                 margin: 40px auto;
@@ -1227,6 +1242,7 @@ def iphone_project():
                 border-radius: 5px;
                 cursor: pointer;
                 font-family: 'Oswald', sans-serif;
+                font-size: 18px;
                 text-decoration: none;
                 transition: all 0.3s ease;
                 z-index: 1000;
@@ -1279,6 +1295,417 @@ def iphone_project():
         <div class="description-text">
             For my second design idea, I want to load the iPhone 6 with custom apps tailored for sports lovers and financial literacy. These are apps I plan to build myself, inspired by my passion for sharing knowledge and my love for data science. The goal is to create tools that are both useful and personal, apps that help people track stats, stay motivated, and learn how to better manage their money, all from a device that feels like a custom built experience.
         </div>
+
+    </body>
+    </html>
+    '''
+    return render_template_string(html)
+
+@app.route("/projects/repair-estimator")
+def repair_estimator_project():
+    html = '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Repair Estimator - Serene Build</title>
+        <style>
+            @font-face {
+                font-family: 'BubbleStreetFill';
+                src: url('/assets/BubbleStreetFill.ttf') format('truetype');
+            }
+
+            @font-face {
+                font-family: 'BubbleStreetOutline';
+                src: url('/assets/BubbleStreetOutline.ttf') format('truetype');
+            }
+            
+            body {
+                font-family: 'Oswald', sans-serif;
+                background-image: url('/assets/background-babyblue.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .combined-bubble-text {
+                position: relative;
+                display: inline-block;
+            }
+            
+            .combined-bubble-text::before {
+                content: attr(data-text);
+                position: absolute;
+                left: 0;
+                top: 0;
+                font-family: 'BubbleStreetOutline', sans-serif;
+                color: #000000;
+                z-index: 1;
+            }
+            
+            .combined-bubble-text {
+                font-family: 'BubbleStreetFill', sans-serif;
+                color: #ec128c;
+                z-index: 2;
+            }
+            
+            .combined-bubble-text.gold {
+                color: #FFD700;
+            }
+            
+            .project-title {
+                font-size: 72px;
+                text-align: center;
+                margin: 40px 0;
+            }
+
+            .interactive-note {
+                text-align: center;
+                font-family: 'Oswald', sans-serif;
+                font-size: 24px;
+                color: #000080;
+                margin-top: 10px;
+            }
+
+            .subtitle {
+                font-size: 48px;
+                text-align: center;
+                margin: 60px 0 20px 0;
+            }
+            
+            .description-text {
+                font-family: 'Oswald', sans-serif;
+                font-size: 18px;
+                line-height: 1.6;
+                max-width: 800px;
+                margin: 40px auto;
+                padding: 0 20px;
+                text-align: justify;
+                font-weight: bold;
+                white-space: normal;
+                word-spacing: normal;
+            }
+
+            .back-button {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                background: #000080;
+                color: #FFD700;
+                border: 2px solid #FFD700;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-family: 'Oswald', sans-serif;
+                font-size: 18px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .back-button:hover {
+                background: #FFD700;
+                color: #000080;
+                transform: translateX(-5px);
+            }
+        </style>
+    </head>
+    <body>
+        <a href="/" class="back-button">← Back to Home</a>
+        
+        <div class="project-title">
+            <span class="combined-bubble-text" data-text="Repair Estimator">Repair Estimator</span>
+            <span class="coming-soon-text">(Coming Soon)</span>
+        </div>
+
+        <div class="subtitle">
+            <span class="combined-bubble-text gold" data-text="QUICK & ACCURATE RENOVATION COST ESTIMATES">QUICK & ACCURATE RENOVATION COST ESTIMATES</span>
+        </div>
+        
+        <div class="description-text">
+            Repair Estimator is a tool that shows a 3D model of different rooms in a house. Users can look at each room by itself or view the whole house together. In each room, users can change the type of floor by picking from a list that includes hardwood, tile, carpet, and more. Each flooring option shows how much it costs, so users can see how their choices affect the total price.
+            <br><br>
+            Users can also change the color of the walls using different paint options. Each paint color will have a cost, which helps users plan their budget. In the future, the tool may also let users add furniture to the rooms. Each piece of furniture will have a price too. This will help users see what their space could look like when it's fully set up, with all costs included.
+        </div>
+
+        <div class="threejs-container">
+            <div id="threejs-viewer"></div>
+            <div class="controls">
+                <label for="color-picker">Change Color:</label>
+                <input type="color" id="color-picker" value="#00ff00">
+                <input type="text" id="hex-input" placeholder="#00ff00" value="#00ff00" maxlength="7">
+                
+                <label for="zoom-input">Zoom:</label>
+                <button id="zoom-out">-</button>
+                <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
+                <button id="zoom-in">+</button>
+                
+                <button id="rotate-left">Rotate Left</button>
+                <button id="rotate-right">Rotate Right</button>
+                <button id="pause-rotation">Pause</button>
+            </div>
+        </div>
+
+        <div class="interactive-note">This viewer is interactive. Click and drag to explore!</div>
+
+        <style>
+            .threejs-container {
+                width: 1000px;
+                margin: 40px auto;
+                padding: 20px;
+                background: #f5f5f5;
+                border-radius: 10px;
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            }
+
+            #threejs-viewer {
+                width: 1000px;
+                height: 600px;
+                border: 4px solid #FFD700;
+                border-radius: 10px;
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+                outline: 4px solid #ec128c;
+                overflow: hidden;
+            }
+
+            .controls {
+                margin-top: 20px;
+                text-align: center;
+            }
+
+            .controls label, .controls button {
+                font-size: 26px;
+                margin: 0 10px;
+                font-family: 'Oswald', sans-serif;
+                font-weight: bold;
+            }
+
+            .controls input[type="color"], .controls input[type="range"] {
+                margin: 0 10px;
+                transform: scale(1.2);
+            }
+
+            .controls input[type="text"], .controls input[type="number"], .controls select {
+                font-size: 22px;
+                padding: 5px;
+                margin: 0 10px;
+                font-family: 'Oswald', sans-serif;
+            }
+
+            .controls input[type="number"]#zoom-input {
+                width: 70px;
+                text-align: center;
+                font-weight: bold;
+                background-color: #f0f0f0;
+                border: 2px solid #000080;
+                border-radius: 4px;
+            }
+
+            .controls button {
+                padding: 8px 16px;
+                font-size: 24px;
+            }
+
+            .coming-soon-text {
+                position: relative;
+                display: inline-block;
+                font-family: 'BubbleStreetFill', sans-serif;
+                font-size: 42px;
+                color: #228B22;
+                margin-left: 20px;
+                vertical-align: middle;
+                position: relative;
+                top: -10px;
+            }
+
+            .coming-soon-text::before {
+                content: "(Coming Soon)";
+                position: absolute;
+                left: 0;
+                top: 0;
+                font-family: 'BubbleStreetOutline', sans-serif;
+                color: #000000;
+                z-index: 1;
+            }
+
+            .coming-soon-text {
+                z-index: 2;
+            }
+        </style>
+
+        <script type="module">
+            import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
+            import { OrbitControls } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/controls/OrbitControls.js';
+            import { OBJLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/OBJLoader.js';
+            import { MTLLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/MTLLoader.js';
+
+            let scene, camera, renderer, controls, currentModel;
+            let isRotating = false;
+            let rotationDirection = 0;
+
+            function init() {
+                // Create scene
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0xffffff);
+
+                // Create camera
+                camera = new THREE.PerspectiveCamera(30, 1000 / 600, 0.1, 1000);
+
+                // Create renderer
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(1000, 600);
+                document.getElementById('threejs-viewer').appendChild(renderer.domElement);
+
+                // Add lights
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(1, 1, 1);
+                scene.add(directionalLight);
+
+                // Add controls
+                controls = new OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controls.screenSpacePanning = true;
+
+                // Load OBJ file
+                loadOBJFile('/assets/pk4.obj');
+
+                // Start animation loop
+                animate();
+
+                // Add event listeners for controls
+                document.getElementById('color-picker').addEventListener('input', changeColor);
+                document.getElementById('zoom-input').addEventListener('input', changeZoom);
+                document.getElementById('zoom-in').addEventListener('click', zoomIn);
+                document.getElementById('zoom-out').addEventListener('click', zoomOut);
+                document.getElementById('rotate-left').addEventListener('click', () => setRotation(-1));
+                document.getElementById('rotate-right').addEventListener('click', () => setRotation(1));
+                document.getElementById('pause-rotation').addEventListener('click', pauseRotation);
+                document.getElementById('hex-input').addEventListener('input', changeColorFromHex);
+            }
+
+            function setRotation(direction) {
+                rotationDirection = direction;
+                isRotating = true;
+            }
+
+            function pauseRotation() {
+                isRotating = false;
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                if (isRotating && currentModel) {
+                    currentModel.rotation.y += rotationDirection * 0.01;
+                }
+                controls.update();
+                renderer.render(scene, camera);
+            }
+
+            function loadOBJFile(path) {
+                const mtlLoader = new MTLLoader();
+                const objLoader = new OBJLoader();
+                
+                // First load the material file
+                mtlLoader.load('/assets/pk4.mtl', function(materials) {
+                    materials.preload();
+                    objLoader.setMaterials(materials);
+                    
+                    // Then load the OBJ file
+                    objLoader.load('/assets/pk4.obj', function(object) {
+                        // Center and scale the model
+                        const box = new THREE.Box3().setFromObject(object);
+                        const center = box.getCenter(new THREE.Vector3());
+                        const size = box.getSize(new THREE.Vector3());
+
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const scale = 7 / maxDim;
+                        object.scale.multiplyScalar(scale);
+
+                        object.position.sub(center.multiplyScalar(scale));
+
+                        scene.add(object);
+                        currentModel = object;
+
+                        // Reset camera position with closer zoom
+                        camera.position.set(0, 0, 8.0);
+                        controls.target.set(0, 0, 0);
+                        controls.update();
+
+                        // Set default color to green
+                        object.traverse((child) => {
+                            if (child.isMesh) {
+                                child.material.color.set('#00ff00');
+                                child.material.needsUpdate = true;
+                            }
+                        });
+                    });
+                });
+            }
+
+            function updateHexInput(color) {
+                document.getElementById('hex-input').value = `#${color.getHexString()}`;
+            }
+
+            function changeColor(event) {
+                const color = new THREE.Color(event.target.value);
+                if (currentModel) {
+                    currentModel.traverse((child) => {
+                        if (child.isMesh) {
+                            child.material.color.set(color);
+                            child.material.needsUpdate = true;
+                        }
+                    });
+                }
+                updateHexInput(color);
+            }
+
+            function changeZoom(event) {
+                const zoomLevel = parseFloat(event.target.value);
+                camera.position.z = zoomLevel;
+                controls.update();
+            }
+
+            function zoomIn() {
+                const slider = document.getElementById('zoom-input');
+                let currentZoom = parseFloat(slider.value);
+                let newZoom = Math.max(parseFloat(slider.min), currentZoom - 2);
+                slider.value = newZoom;
+                camera.position.z = newZoom;
+                controls.update();
+            }
+
+            function zoomOut() {
+                const slider = document.getElementById('zoom-input');
+                let currentZoom = parseFloat(slider.value);
+                let newZoom = Math.min(parseFloat(slider.max), currentZoom + 2);
+                slider.value = newZoom;
+                camera.position.z = newZoom;
+                controls.update();
+            }
+
+            function changeColorFromHex(event) {
+                const hexValue = event.target.value;
+                if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
+                    const color = new THREE.Color(hexValue);
+                    if (currentModel) {
+                        currentModel.traverse((child) => {
+                            if (child.isMesh) {
+                                child.material.color.set(color);
+                            }
+                        });
+                    }
+                    updateHexInput(color);
+                }
+            }
+
+            // Initialize viewer
+            init();
+        </script>
 
     </body>
     </html>
