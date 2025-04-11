@@ -739,49 +739,49 @@ def mission():
             <span class="combined-bubble-text gold" data-text="3D MODEL VIEWER - OBJ(WIP)">3D MODEL VIEWER - OBJ(WIP)</span>
         </div>
 
-        <div class="threejs-container">
-            <div id="threejs-viewer"></div>
+            <div class="threejs-container">
+                <div id="threejs-viewer"></div>
         </div>
-        <div class="controls">
+                <div class="controls">
             <h4>Customize Materials:</h4>
-            <div class="material-controls">
-                <div class="material-control">
-                    <label for="outside-walls-color">Outside Walls:</label>
-                    <input type="color" id="outside-walls-color" value="#FFFFFF">
-                </div>
-                <div class="material-control">
-                    <label for="interior-walls-color">Interior Walls:</label>
-                    <input type="color" id="interior-walls-color" value="#FFFFFF">
-                </div>
-                <div class="material-control">
-                    <label for="garage-door-color">Garage Door:</label>
-                    <input type="color" id="garage-door-color" value="#FFFFFF">
-                </div>
-                <div class="material-control">
-                    <label for="interior-floor-color">Interior Floor:</label>
-                    <input type="color" id="interior-floor-color" value="#FFFFFF">
-                    <label for="interior-floor-texture" style="margin-top: 8px;">Floor Texture:</label> <!-- Added label for dropdown -->
-                    <select id="interior-floor-texture" class="texture-dropdown">
-                        <option value="wood">Wooden Tile</option>
-                        <option value="carpet">Carpet</option>
-                        <option value="porcelain">Porcelain Tile</option>  <!-- Added porcelain option -->
-                    </select>
-                </div>
-            </div>
-            
-            <div class="control-section">
-                <h4>Camera Controls:</h4>
-                <div class="camera-controls">
-                    <label for="zoom-input">Zoom:</label>
-                    <button id="zoom-out">-</button>
-                    <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
-                    <button id="zoom-in">+</button>
+                    <div class="material-controls">
+                        <div class="material-control">
+                            <label for="outside-walls-color">Outside Walls:</label>
+                            <input type="color" id="outside-walls-color" value="#FFFFFF">
+                        </div>
+                        <div class="material-control">
+                            <label for="interior-walls-color">Interior Walls:</label>
+                            <input type="color" id="interior-walls-color" value="#FFFFFF">
+                        </div>
+                        <div class="material-control">
+                            <label for="garage-door-color">Garage Door:</label>
+                            <input type="color" id="garage-door-color" value="#FFFFFF">
+                        </div>
+                        <div class="material-control">
+                            <label for="interior-floor-color">Interior Floor:</label>
+                            <input type="color" id="interior-floor-color" value="#FFFFFF">
+                            <label for="interior-floor-texture" style="margin-top: 8px;">Floor Texture:</label> <!-- Added label for dropdown -->
+                            <select id="interior-floor-texture" class="texture-dropdown">
+                                <option value="wood">Wooden Tile</option>
+                                <option value="carpet">Carpet</option>
+                                <option value="porcelain">Porcelain Tile</option>  <!-- Added porcelain option -->
+                            </select>
+                        </div>
+                    </div>
                     
-                    <button id="rotate-left">Rotate Left</button>
-                    <button id="rotate-right">Rotate Right</button>
-                    <button id="pause-rotation">Pause</button>
-                </div>
-            </div>
+                    <div class="control-section">
+                        <h4>Camera Controls:</h4>
+                        <div class="camera-controls">
+                            <label for="zoom-input">Zoom:</label>
+                            <button id="zoom-out">-</button>
+                            <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
+                            <button id="zoom-in">+</button>
+                            
+                            <button id="rotate-left">Rotate Left</button>
+                            <button id="rotate-right">Rotate Right</button>
+                            <button id="pause-rotation">Pause</button>
+                        </div>
+                    </div>
             
             <!-- Added Environment Controls -->
             <div class="control-section">
@@ -791,39 +791,46 @@ def mission():
                      <input type="range" id="lighting-intensity" min="0.1" max="2.5" step="0.1" value="1.0">
                      <label for="background-color">Background:</label>
                      <input type="color" id="background-color" value="#000000">
-                 </div>
+                </div>
             </div>
         </div>
         <div class="viewer-instructions">
             <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
             <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
         </div>
+        <div id="object-interaction-area" style="text-align: center; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+            <span id="clicked-object-display" style="font-family: 'Oswald', sans-serif; color: #000080; font-weight: bold;">
+                Clicked: (None)
+            </span>
+            <input type="color" id="selected-object-color-picker" style="display: none; width: 40px; height: 30px; border: 1px solid #ccc; padding: 2px; cursor: pointer;">
+            <button id="toggle-object-visibility" style="display: none; padding: 4px 8px; font-size: 12px;">Hide</button> 
+        </div>
 
         <div class="subtitle" style="margin-top: 60px;">
             <span class="combined-bubble-text gold" data-text="3D MODEL VIEWER - GLB(WIP)">3D MODEL VIEWER - GLB(WIP)</span>
         </div>
 
-        <div class="threejs-container">
-            <div id="glb-viewer"></div>
+            <div class="threejs-container">
+                <div id="glb-viewer"></div>
         </div>
-        <div class="controls">
-            <h4>Customize Materials:</h4>
-            <div class="material-controls">
-                <div class="material-control">
-                    <label for="glb-shoe-color">Shoe Color:</label>
-                    <input type="color" id="glb-shoe-color" value="#FFFFFF">
+                <div class="controls">
+                    <h4>Customize Materials:</h4>
+                    <div class="material-controls">
+                        <div class="material-control">
+                            <label for="glb-shoe-color">Shoe Color:</label>
+                            <input type="color" id="glb-shoe-color" value="#FFFFFF">
+                        </div>
+                    </div>
+                    
+                    <label for="glb-zoom-input">Zoom:</label>
+                    <button id="glb-zoom-out">-</button>
+                    <input type="number" id="glb-zoom-input" min="1" max="100" value="25" step="1">
+                    <button id="glb-zoom-in">+</button>
+                    
+                    <button id="glb-rotate-left">Rotate Left</button>
+                    <button id="glb-rotate-right">Rotate Right</button>
+                    <button id="glb-pause-rotation">Pause</button>
                 </div>
-            </div>
-            
-            <label for="glb-zoom-input">Zoom:</label>
-            <button id="glb-zoom-out">-</button>
-            <input type="number" id="glb-zoom-input" min="1" max="100" value="25" step="1">
-            <button id="glb-zoom-in">+</button>
-            
-            <button id="glb-rotate-left">Rotate Left</button>
-            <button id="glb-rotate-right">Rotate Right</button>
-            <button id="glb-pause-rotation">Pause</button>
-        </div>
         <div class="viewer-instructions">
             <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
             <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
@@ -861,16 +868,16 @@ def mission():
                 text-align: center;
                 width: 95%; /* Slightly less than 100% for padding */
                 display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
+                    flex-wrap: wrap;
+                    justify-content: center;
                 align-items: center;
-                gap: 10px;
-            }
-            
+                    gap: 10px;
+                }
+                
             .material-controls {
                 display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
+                    flex-wrap: wrap;
+                    justify-content: center;
                 gap: 15px;
                 margin-bottom: 15px;
                 width: 100%;
@@ -889,7 +896,7 @@ def mission():
             .viewer-instructions {
                 max-width: 1200px; /* Match container width */
                 margin: 10px auto 30px auto; /* Spacing below controls */
-                padding: 10px;
+                    padding: 10px;
                 background-color: rgba(240, 240, 240, 0.9);
                 border-radius: 8px;
                 border: 1px solid #ccc;
@@ -911,6 +918,9 @@ def mission():
             import { OBJLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/OBJLoader.js';
             import { MTLLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/MTLLoader.js';
             import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
+            import { EffectComposer } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/EffectComposer.js';
+            import { RenderPass } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/RenderPass.js';
+            import { OutlinePass } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/OutlinePass.js';
 
             let scene, camera, renderer, controls, currentModel;
             let isRotating = false;
@@ -939,8 +949,18 @@ def mission():
             let textureLoader; // Declare texture loader
             let allLights = []; // Array to store references to lights
             let initialIntensities = {}; // Store initial light intensities
+            let raycaster; // Re-add for detecting clicks
+            let mouse;     // Re-add for mouse coordinates
+            let selectedMaterialForEditing = null; // Variable to hold the clicked material
+            let selectedMeshForEditing = null; // Variable to hold the clicked mesh
+            let composer; // For post-processing
+            let outlinePass; // For highlighting
 
             function init() {
+                raycaster = new THREE.Raycaster(); // Initialize Raycaster
+                mouse = new THREE.Vector2();     // Initialize mouse vector
+                selectedMaterialForEditing = null; // Ensure it's null on init
+                selectedMeshForEditing = null; // Ensure mesh is null on init
                 // Create scene
                 scene = new THREE.Scene();
                 scene.background = new THREE.Color(0x000000); // Changed to black background
@@ -961,7 +981,26 @@ def mission():
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
                 container.appendChild(renderer.domElement);
 
-                // Add enhanced lighting setup 
+                // Post-processing Composer Setup
+                composer = new EffectComposer(renderer);
+                const renderPass = new RenderPass(scene, camera);
+                composer.addPass(renderPass);
+
+                // Set up the outline pass
+                outlinePass = new OutlinePass(
+                    new THREE.Vector2(container.clientWidth, container.clientWidth / aspect), 
+                    scene, 
+                    camera
+                );
+                outlinePass.edgeStrength = 3.0;
+                outlinePass.edgeGlow = 0.5;
+                outlinePass.edgeThickness = 1.0;
+                outlinePass.pulsePeriod = 0;
+                outlinePass.visibleEdgeColor.set('#ffff00');
+                outlinePass.hiddenEdgeColor.set('#ffff00');
+                composer.addPass(outlinePass);
+
+                // Add enhanced lighting setup
                 const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
                 scene.add(ambientLight);
                 allLights.push(ambientLight);
@@ -1030,6 +1069,15 @@ def mission():
                 // Add event listeners for NEW controls
                 document.getElementById('lighting-intensity').addEventListener('input', changeLightingIntensity);
                 document.getElementById('background-color').addEventListener('input', changeBackgroundColor);
+
+                // Add click listener for object identification and selection
+                renderer.domElement.addEventListener('click', onModelClick);
+
+                // Add listener for the new color picker
+                document.getElementById('selected-object-color-picker').addEventListener('input', onSelectedColorChange);
+                
+                // Add listener for the visibility toggle button
+                document.getElementById('toggle-object-visibility').addEventListener('click', onToggleVisibilityClick);
             }
 
             // Function to change only the Kd value of a specific material
@@ -1069,7 +1117,7 @@ def mission():
                     currentModel.rotation.y += rotationDirection * 0.01; // Continuous rotation based on direction
                 }
                 controls.update();
-                renderer.render(scene, camera);
+                composer.render(); // Use composer instead of renderer
             }
 
             function loadOBJFile(path, isReload = false) {
@@ -1450,23 +1498,170 @@ def mission():
                 scene.background = color;
             }
 
+            // Updated Click handler function
+            function onModelClick(event) {
+                const displayElement = document.getElementById('clicked-object-display');
+                const colorPicker = document.getElementById('selected-object-color-picker');
+                const visibilityButton = document.getElementById('toggle-object-visibility');
+                
+                // Reset selection state
+                selectedMaterialForEditing = null;
+                selectedMeshForEditing = null;
+                colorPicker.style.display = 'none';
+                visibilityButton.style.display = 'none'; 
+
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+
+                let intersects = [];
+                if (currentModel) {
+                    intersects = raycaster.intersectObject(currentModel, true);
+                }
+
+                if (intersects.length > 0) {
+                    const intersection = intersects[0];
+                    const object = intersection.object; // This is the mesh
+                    
+                    if (object instanceof THREE.Mesh) {
+                        selectedMeshForEditing = object; // Store the selected mesh
+                        let targetMaterial;
+                        // Handle multi-materials used on a single mesh
+                        if (Array.isArray(object.material)) {
+                            if (intersection.face && object.material[intersection.face.materialIndex]) {
+                                targetMaterial = object.material[intersection.face.materialIndex];
+                            } else {
+                                // Fallback or decide how to handle if materialIndex is invalid
+                                targetMaterial = object.material[0]; // Default to first material?
+                                console.warn("Clicked mesh has multiple materials, but face index was invalid. Targeting first material.");
+                            }
+                        } else {
+                            // Single material
+                            targetMaterial = object.material;
+                        }
+
+                        if (targetMaterial) {
+                            selectedMaterialForEditing = targetMaterial;
+                            const objectName = object.name || 'Unnamed Mesh';
+                            displayElement.textContent = `Editing: ${objectName}`;
+                            
+                            // Set picker color and show controls
+                            colorPicker.value = `#${selectedMaterialForEditing.color.getHexString()}`;
+                            colorPicker.style.display = 'inline-block';
+                            
+                            // Update and show visibility button
+                            visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
+                            visibilityButton.style.display = 'inline-block';
+                            
+                            console.log("Selected mesh:", selectedMeshForEditing);
+                            console.log("Selected material:", selectedMaterialForEditing);
+                        } else {
+                             displayElement.textContent = 'Clicked: (No material found)';
+                        }
+                    } else {
+                         displayElement.textContent = 'Clicked: (Not a mesh)';
+                    }        
+                } else {
+                    displayElement.textContent = 'Clicked: (None)';
+                }
+
+                // Clear previous outline selection
+                outlinePass.selectedObjects = [];
+
+                if (intersects.length > 0) {
+                    const object = intersects[0].object;
+                    
+                    if (object instanceof THREE.Mesh) {
+                        selectedMeshForEditing = object;
+                        // Highlight selected mesh with yellow outline
+                        outlinePass.selectedObjects = [selectedMeshForEditing];
+                        
+                        let targetMaterial;
+                        // Handle multi-materials used on a single mesh
+                        if (Array.isArray(object.material)) {
+                            if (intersection.face && object.material[intersection.face.materialIndex]) {
+                                targetMaterial = object.material[intersection.face.materialIndex];
+                            } else {
+                                // Fallback or decide how to handle if materialIndex is invalid
+                                targetMaterial = object.material[0]; // Default to first material?
+                                console.warn("Clicked mesh has multiple materials, but face index was invalid. Targeting first material.");
+                            }
+                        } else {
+                            // Single material
+                            targetMaterial = object.material;
+                        }
+
+                        if (targetMaterial) {
+                            selectedMaterialForEditing = targetMaterial;
+                            const objectName = object.name || 'Unnamed Mesh';
+                            displayElement.textContent = `Editing: ${objectName}`;
+                            
+                            // Set picker color and show controls
+                            colorPicker.value = `#${selectedMaterialForEditing.color.getHexString()}`;
+                            colorPicker.style.display = 'inline-block';
+                            
+                            // Update and show visibility button
+                            visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
+                            visibilityButton.style.display = 'inline-block';
+                            
+                            console.log("Selected mesh:", selectedMeshForEditing);
+                            console.log("Selected material:", selectedMaterialForEditing);
+                        } else {
+                             displayElement.textContent = 'Clicked: (No material found)';
+                        }
+                    } else {
+                         displayElement.textContent = 'Clicked: (Not a mesh)';
+                    }
+                } else {
+                    displayElement.textContent = 'Clicked: (None)';
+                    // Clear outline when nothing is clicked
+                    outlinePass.selectedObjects = [];
+                }
+            }
+
+            // NEW function to handle color change from the selected object picker
+            function onSelectedColorChange(event) {
+                if (selectedMaterialForEditing) {
+                    selectedMaterialForEditing.color.set(event.target.value);
+                    selectedMaterialForEditing.needsUpdate = true;
+                    console.log(`Tinted selected material with color ${event.target.value}`);
+                } else {
+                     console.warn("Color changed but no material selected for editing.");
+                }
+            }
+
+            // NEW function to toggle visibility
+            function onToggleVisibilityClick() {
+                if (selectedMeshForEditing) {
+                    selectedMeshForEditing.visible = !selectedMeshForEditing.visible;
+                    // Update button text
+                    const visibilityButton = document.getElementById('toggle-object-visibility');
+                    visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
+                    console.log(`Toggled visibility for ${selectedMeshForEditing.name}. Now visible: ${selectedMeshForEditing.visible}`);
+                } else {
+                    console.warn("Toggle visibility clicked, but no mesh selected.");
+                }
+            }
+
             // Initialize both viewers when the DOM is loaded
             document.addEventListener('DOMContentLoaded', function() {
-                init();
-                initGLBViewer();
+            init();
+            initGLBViewer();
                 
                 // Add window resize event listener for both viewers
                 window.addEventListener('resize', function() {
                     // Handle OBJ viewer resize
                     const objContainer = document.getElementById('threejs-viewer');
-                    if (objContainer && renderer) {
+                    if (objContainer && renderer && composer) {
                         const aspect = 16 / 12;
                         camera.aspect = aspect;
                         camera.updateProjectionMatrix();
                         renderer.setSize(objContainer.clientWidth, objContainer.clientWidth / aspect);
+                        composer.setSize(objContainer.clientWidth, objContainer.clientWidth / aspect);
                     }
                     
-                    // Handle GLB viewer resize
+                    // Handle GLB viewer resize if it exists
                     const glbContainer = document.getElementById('glb-viewer');
                     if (glbContainer && glbRenderer) {
                         const aspect = 16 / 12;
@@ -2311,7 +2506,7 @@ def repair_estimator_project():
                 color: #000080;
                 transform: scale(1.05);
             }
-            
+
             .material-controls {
                 display: flex;
                 flex-wrap: wrap;
@@ -2424,12 +2619,12 @@ def repair_estimator_project():
                     width: 70px;
                     height: 40px;
                 }
-
+                
                 .texture-dropdown {
                     width: 100px;
                     font-size: 12px;
                 }
-
+                
                 .interactive-note {
                     font-size: 16px;
                 }
@@ -2545,49 +2740,49 @@ def repair_estimator_project():
             Users can also change the color of the walls using different paint options. Each paint color will have a cost, which helps users plan their budget. In the future, the tool may also let users add furniture to the rooms. Each piece of furniture will have a price too. This will help users see what their space could look like when it's fully set up, with all costs included.
         </div>
 
-        <div class="threejs-container">
-            <div id="threejs-viewer"></div>
+            <div class="threejs-container">
+                <div id="threejs-viewer"></div>
         </div>
-        <div class="controls">
+                <div class="controls">
             <h4>Customize Materials:</h4>
-            <div class="material-controls">
-                <div class="material-control">
-                    <label for="outside-walls-color">Outside Walls:</label>
-                    <input type="color" id="outside-walls-color" value="#FFFFFF">
-                </div>
-                <div class="material-control">
-                    <label for="interior-walls-color">Interior Walls:</label>
-                    <input type="color" id="interior-walls-color" value="#FFFFFF">
-                </div>
-                <div class="material-control">
-                    <label for="garage-door-color">Garage Door:</label>
-                    <input type="color" id="garage-door-color" value="#FFFFFF">
-                </div>
-                <div class="material-control">
-                    <label for="interior-floor-color">Interior Floor:</label>
-                    <input type="color" id="interior-floor-color" value="#FFFFFF">
-                    <label for="interior-floor-texture" style="margin-top: 8px;">Floor Texture:</label> <!-- Added label for dropdown -->
-                    <select id="interior-floor-texture" class="texture-dropdown">
-                        <option value="wood">Wooden Tile</option>
-                        <option value="carpet">Carpet</option>
-                        <option value="porcelain">Porcelain Tile</option>  <!-- Added porcelain option -->
-                    </select>
-                </div>
-            </div>
-            
-            <div class="control-section">
-                <h4>Camera Controls:</h4>
-                <div class="camera-controls">
-                    <label for="zoom-input">Zoom:</label>
-                    <button id="zoom-out">-</button>
-                    <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
-                    <button id="zoom-in">+</button>
+                    <div class="material-controls">
+                        <div class="material-control">
+                            <label for="outside-walls-color">Outside Walls:</label>
+                            <input type="color" id="outside-walls-color" value="#FFFFFF">
+                        </div>
+                        <div class="material-control">
+                            <label for="interior-walls-color">Interior Walls:</label>
+                            <input type="color" id="interior-walls-color" value="#FFFFFF">
+                        </div>
+                        <div class="material-control">
+                            <label for="garage-door-color">Garage Door:</label>
+                            <input type="color" id="garage-door-color" value="#FFFFFF">
+                        </div>
+                        <div class="material-control">
+                            <label for="interior-floor-color">Interior Floor:</label>
+                            <input type="color" id="interior-floor-color" value="#FFFFFF">
+                            <label for="interior-floor-texture" style="margin-top: 8px;">Floor Texture:</label> <!-- Added label for dropdown -->
+                            <select id="interior-floor-texture" class="texture-dropdown">
+                                <option value="wood">Wooden Tile</option>
+                                <option value="carpet">Carpet</option>
+                                <option value="porcelain">Porcelain Tile</option>  <!-- Added porcelain option -->
+                            </select>
+                        </div>
+                    </div>
                     
-                    <button id="rotate-left">Rotate Left</button>
-                    <button id="rotate-right">Rotate Right</button>
-                    <button id="pause-rotation">Pause</button>
-                </div>
-            </div>
+                    <div class="control-section">
+                        <h4>Camera Controls:</h4>
+                        <div class="camera-controls">
+                            <label for="zoom-input">Zoom:</label>
+                            <button id="zoom-out">-</button>
+                            <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
+                            <button id="zoom-in">+</button>
+                            
+                            <button id="rotate-left">Rotate Left</button>
+                            <button id="rotate-right">Rotate Right</button>
+                            <button id="pause-rotation">Pause</button>
+                        </div>
+                    </div>
             
             <!-- Added Environment Controls -->
             <div class="control-section">
@@ -2597,12 +2792,19 @@ def repair_estimator_project():
                      <input type="range" id="lighting-intensity" min="0.1" max="2.5" step="0.1" value="1.0">
                      <label for="background-color">Background:</label>
                      <input type="color" id="background-color" value="#000000">
-                 </div>
+                </div>
             </div>
         </div>
         <div class="viewer-instructions">
             <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
             <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
+        </div>
+        <div id="object-interaction-area" style="text-align: center; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+            <span id="clicked-object-display" style="font-family: 'Oswald', sans-serif; color: #000080; font-weight: bold;">
+                Clicked: (None)
+            </span>
+            <input type="color" id="selected-object-color-picker" style="display: none; width: 40px; height: 30px; border: 1px solid #ccc; padding: 2px; cursor: pointer;">
+            <button id="toggle-object-visibility" style="display: none; padding: 4px 8px; font-size: 12px;">Hide</button> 
         </div>
 
         <script type="module">
@@ -2611,6 +2813,9 @@ def repair_estimator_project():
             import { OBJLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/OBJLoader.js';
             import { MTLLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/MTLLoader.js';
             import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
+            import { EffectComposer } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/EffectComposer.js';
+            import { RenderPass } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/RenderPass.js';
+            import { OutlinePass } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/OutlinePass.js';
 
             let scene, camera, renderer, controls, currentModel;
             let isRotating = false;
@@ -2630,8 +2835,18 @@ def repair_estimator_project():
             let textureLoader; // Declare texture loader
             let allLights = []; // Array to store references to lights
             let initialIntensities = {}; // Store initial light intensities
+            let raycaster; // Re-add for detecting clicks
+            let mouse;     // Re-add for mouse coordinates
+            let selectedMaterialForEditing = null; // Variable to hold the clicked material
+            let selectedMeshForEditing = null; // Variable to hold the clicked mesh
+            let composer; // For post-processing
+            let outlinePass; // For highlighting
 
             function init() {
+                raycaster = new THREE.Raycaster(); // Initialize Raycaster
+                mouse = new THREE.Vector2();     // Initialize mouse vector
+                selectedMaterialForEditing = null; // Ensure it's null on init
+                selectedMeshForEditing = null; // Ensure mesh is null on init
                 // Create scene
                 scene = new THREE.Scene();
                 scene.background = new THREE.Color(0x000000); // Changed to black background
@@ -2652,7 +2867,26 @@ def repair_estimator_project():
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
                 container.appendChild(renderer.domElement);
 
-                // Add enhanced lighting setup 
+                // Post-processing Composer Setup
+                composer = new EffectComposer(renderer);
+                const renderPass = new RenderPass(scene, camera);
+                composer.addPass(renderPass);
+
+                // Set up the outline pass
+                outlinePass = new OutlinePass(
+                    new THREE.Vector2(container.clientWidth, container.clientWidth / aspect), 
+                    scene, 
+                    camera
+                );
+                outlinePass.edgeStrength = 3.0;
+                outlinePass.edgeGlow = 0.5;
+                outlinePass.edgeThickness = 1.0;
+                outlinePass.pulsePeriod = 0;
+                outlinePass.visibleEdgeColor.set('#ffff00');
+                outlinePass.hiddenEdgeColor.set('#ffff00');
+                composer.addPass(outlinePass);
+
+                // Add enhanced lighting setup
                 const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
                 scene.add(ambientLight);
                 allLights.push(ambientLight);
@@ -2721,6 +2955,15 @@ def repair_estimator_project():
                 // Add event listeners for NEW controls
                 document.getElementById('lighting-intensity').addEventListener('input', changeLightingIntensity);
                 document.getElementById('background-color').addEventListener('input', changeBackgroundColor);
+
+                // Add click listener for object identification and selection
+                renderer.domElement.addEventListener('click', onModelClick);
+
+                // Add listener for the new color picker
+                document.getElementById('selected-object-color-picker').addEventListener('input', onSelectedColorChange);
+                
+                // Add listener for the visibility toggle button
+                document.getElementById('toggle-object-visibility').addEventListener('click', onToggleVisibilityClick);
             }
 
             // Function to change only the Kd value of a specific material
@@ -2760,7 +3003,7 @@ def repair_estimator_project():
                     currentModel.rotation.y += rotationDirection * 0.01; // Continuous rotation based on direction
                 }
                 controls.update();
-                renderer.render(scene, camera);
+                composer.render(); // Use composer instead of renderer
             }
 
             function loadOBJFile(path, isReload = false) {
@@ -2959,6 +3202,152 @@ def repair_estimator_project():
             function changeBackgroundColor(event) {
                 const color = new THREE.Color(event.target.value);
                 scene.background = color;
+            }
+
+            // Updated Click handler function
+            function onModelClick(event) {
+                const displayElement = document.getElementById('clicked-object-display');
+                const colorPicker = document.getElementById('selected-object-color-picker');
+                const visibilityButton = document.getElementById('toggle-object-visibility');
+                
+                // Reset selection state
+                selectedMaterialForEditing = null;
+                selectedMeshForEditing = null;
+                colorPicker.style.display = 'none';
+                visibilityButton.style.display = 'none'; 
+
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+
+                let intersects = [];
+                if (currentModel) {
+                    intersects = raycaster.intersectObject(currentModel, true);
+                }
+
+                if (intersects.length > 0) {
+                    const intersection = intersects[0];
+                    const object = intersection.object; // This is the mesh
+                    
+                    if (object instanceof THREE.Mesh) {
+                        selectedMeshForEditing = object; // Store the selected mesh
+                        let targetMaterial;
+                        // Handle multi-materials used on a single mesh
+                        if (Array.isArray(object.material)) {
+                            if (intersection.face && object.material[intersection.face.materialIndex]) {
+                                targetMaterial = object.material[intersection.face.materialIndex];
+                            } else {
+                                // Fallback or decide how to handle if materialIndex is invalid
+                                targetMaterial = object.material[0]; // Default to first material?
+                                console.warn("Clicked mesh has multiple materials, but face index was invalid. Targeting first material.");
+                            }
+                        } else {
+                            // Single material
+                            targetMaterial = object.material;
+                        }
+
+                        if (targetMaterial) {
+                            selectedMaterialForEditing = targetMaterial;
+                            const objectName = object.name || 'Unnamed Mesh';
+                            displayElement.textContent = `Editing: ${objectName}`;
+                            
+                            // Set picker color and show controls
+                            colorPicker.value = `#${selectedMaterialForEditing.color.getHexString()}`;
+                            colorPicker.style.display = 'inline-block';
+                            
+                            // Update and show visibility button
+                            visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
+                            visibilityButton.style.display = 'inline-block';
+                            
+                            console.log("Selected mesh:", selectedMeshForEditing);
+                            console.log("Selected material:", selectedMaterialForEditing);
+                        } else {
+                             displayElement.textContent = 'Clicked: (No material found)';
+                        }
+                    } else {
+                         displayElement.textContent = 'Clicked: (Not a mesh)';
+                    }        
+                } else {
+                    displayElement.textContent = 'Clicked: (None)';
+                }
+
+                // Clear previous outline selection
+                outlinePass.selectedObjects = [];
+
+                if (intersects.length > 0) {
+                    const object = intersects[0].object;
+                    
+                    if (object instanceof THREE.Mesh) {
+                        selectedMeshForEditing = object;
+                        // Highlight selected mesh with yellow outline
+                        outlinePass.selectedObjects = [selectedMeshForEditing];
+                        
+                        let targetMaterial;
+                        // Handle multi-materials used on a single mesh
+                        if (Array.isArray(object.material)) {
+                            if (intersection.face && object.material[intersection.face.materialIndex]) {
+                                targetMaterial = object.material[intersection.face.materialIndex];
+                            } else {
+                                // Fallback or decide how to handle if materialIndex is invalid
+                                targetMaterial = object.material[0]; // Default to first material?
+                                console.warn("Clicked mesh has multiple materials, but face index was invalid. Targeting first material.");
+                            }
+                        } else {
+                            // Single material
+                            targetMaterial = object.material;
+                        }
+
+                        if (targetMaterial) {
+                            selectedMaterialForEditing = targetMaterial;
+                            const objectName = object.name || 'Unnamed Mesh';
+                            displayElement.textContent = `Editing: ${objectName}`;
+                            
+                            // Set picker color and show controls
+                            colorPicker.value = `#${selectedMaterialForEditing.color.getHexString()}`;
+                            colorPicker.style.display = 'inline-block';
+                            
+                            // Update and show visibility button
+                            visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
+                            visibilityButton.style.display = 'inline-block';
+                            
+                            console.log("Selected mesh:", selectedMeshForEditing);
+                            console.log("Selected material:", selectedMaterialForEditing);
+                        } else {
+                             displayElement.textContent = 'Clicked: (No material found)';
+                        }
+                    } else {
+                         displayElement.textContent = 'Clicked: (Not a mesh)';
+                    }
+                } else {
+                    displayElement.textContent = 'Clicked: (None)';
+                    // Clear outline when nothing is clicked
+                    outlinePass.selectedObjects = [];
+                }
+            }
+
+            // NEW function to handle color change from the selected object picker
+            function onSelectedColorChange(event) {
+                if (selectedMaterialForEditing) {
+                    selectedMaterialForEditing.color.set(event.target.value);
+                    selectedMaterialForEditing.needsUpdate = true;
+                    console.log(`Tinted selected material with color ${event.target.value}`);
+                } else {
+                     console.warn("Color changed but no material selected for editing.");
+                }
+            }
+
+            // NEW function to toggle visibility
+            function onToggleVisibilityClick() {
+                if (selectedMeshForEditing) {
+                    selectedMeshForEditing.visible = !selectedMeshForEditing.visible;
+                    // Update button text
+                    const visibilityButton = document.getElementById('toggle-object-visibility');
+                    visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
+                    console.log(`Toggled visibility for ${selectedMeshForEditing.name}. Now visible: ${selectedMeshForEditing.visible}`);
+                } else {
+                    console.warn("Toggle visibility clicked, but no mesh selected.");
+                }
             }
 
             // Initialize viewer
