@@ -9,7 +9,12 @@ def mission():
     <html>
     <head>
         <title>Serene Build</title>
+        <!-- Font Awesome for social icons -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
+            html { 
+                height: 100%; /* Ensure html element takes full height */
+            }
             @font-face {
                 font-family: 'BubbleStreetFill';
                 src: url('/assets/BubbleStreetFill.ttf') format('truetype');
@@ -247,7 +252,8 @@ def mission():
 
             .gallery-container {
                 position: relative;
-                width: 1000px;
+                width: 100%;
+                max-width: 1000px;
                 margin: 0 auto;
             }
             
@@ -265,6 +271,7 @@ def mission():
                 align-items: center;
                 gap: 20px;
                 margin: 20px auto;
+                flex-wrap: wrap;
             }
             
             .gallery-button {
@@ -277,6 +284,7 @@ def mission():
                 font-family: 'Oswald', sans-serif;
                 font-size: 18px;
                 transition: all 0.3s ease;
+                margin: 5px;
             }
             
             .gallery-button:hover {
@@ -295,13 +303,332 @@ def mission():
 
             body {
                 font-family: 'Oswald', sans-serif;
-                background-image: url('/assets/background-babyblue.png');
+                background-color: #ffffff;
+                background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)), url('/assets/background-babyblue.png');
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
                 background-attachment: fixed;
+                min-height: 100vh;
                 margin: 0;
                 padding: 0;
+                overflow-x: hidden;
+            }
+
+            .threejs-container {
+                width: 100%;
+                max-width: 1200px;
+                margin: 30px auto;
+                padding: 0;
+                background: transparent;
+                border-radius: 0;
+                box-shadow: none;
+                aspect-ratio: 16 / 12;
+            }
+
+            #threejs-viewer, #glb-viewer {
+                width: 100%;
+                max-width: 100%;
+                height: 100%;
+                display: block;
+                margin: 0 auto;
+                border: 4px solid #FFD700;
+                border-radius: 10px;
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+                outline: 4px solid #ec128c;
+                overflow: hidden;
+            }
+
+            #glb-viewer {
+                margin: 0 auto 30px auto;
+            }
+
+            .controls {
+                margin-top: 25px;
+                margin-bottom: 20px;
+                text-align: center;
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+            }
+
+            /* Title styling for controls section */
+            .controls h4 {
+                width: 100%;
+                text-align: center;
+                font-family: 'Oswald', sans-serif;
+                color: #000080;
+                margin-bottom: 15px;
+                font-size: 22px;
+                display: block;
+            }
+
+            .controls label, .controls button {
+                font-size: 20px;
+                margin: 0 5px;
+                font-family: 'Oswald', sans-serif;
+                font-weight: bold;
+                color: #000080;
+            }
+
+            .controls input[type="range"] {
+                margin: 0 10px;
+                transform: scale(1.2);
+            }
+
+            .controls input[type="number"], .controls select {
+                font-size: 18px;
+                padding: 5px;
+                margin: 0 5px;
+                font-family: 'Oswald', sans-serif;
+            }
+
+            .controls input[type="number"]#zoom-input {
+                width: 60px;
+                text-align: center;
+                font-weight: bold;
+                background-color: #f0f0f0;
+                border: 2px solid #000080;
+                border-radius: 4px;
+            }
+
+            .controls button {
+                padding: 8px 16px;
+                font-size: 16px;
+                background: #000080;
+                color: #FFD700;
+                border: 2px solid #FFD700;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin: 5px;
+            }
+            
+            .controls button:hover {
+                background: #FFD700;
+                color: #000080;
+                transform: scale(1.05);
+            }
+
+            .material-controls {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+                margin-bottom: 15px;
+                width: 100%;
+            }
+            
+            .material-control {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 10px;
+                background-color: rgba(240, 240, 240, 0.7);
+                border: 1px solid #ccc;
+                border-radius: 8px;
+            }
+            
+            .material-control:hover {
+                box-shadow: 0 0 10px rgba(0, 0, 128, 0.3);
+                transform: translateY(-2px);
+            }
+            
+            .material-control label {
+                font-size: 16px;
+                margin-bottom: 8px;
+                font-weight: bold;
+                color: #000080;
+                text-align: center;
+            }
+            
+            .material-control input[type="color"] {
+                width: 80px;
+                height: 50px;
+                cursor: pointer;
+                border: 3px solid #FFD700;
+                border-radius: 6px;
+                background: none;
+                margin-bottom: 12px;
+                padding: 2px;
+            }
+            
+            .texture-dropdown {
+                margin-top: 5px;
+                padding: 5px;
+                border: 2px solid #000080;
+                border-radius: 4px;
+                background-color: white;
+                color: #000080;
+                font-family: 'Oswald', sans-serif;
+                font-size: 14px;
+                cursor: pointer;
+                width: 120px;
+                transition: all 0.2s ease;
+            }
+            
+            .texture-dropdown:hover {
+                border-color: #FFD700;
+            }
+
+            .coming-soon-text {
+                position: relative;
+                display: inline-block;
+                font-family: 'BubbleStreetFill', sans-serif;
+                font-size: 42px;
+                color: #228B22;
+                margin-left: 20px;
+                vertical-align: middle;
+                position: relative;
+                top: -10px;
+            }
+
+            .coming-soon-text::before {
+                content: "(Coming Soon)";
+                position: absolute;
+                left: 0;
+                top: 0;
+                font-family: 'BubbleStreetOutline', sans-serif;
+                color: #000000;
+                z-index: 1;
+            }
+
+            .coming-soon-text {
+                z-index: 2;
+            }
+
+            /* Global styles for all color pickers */
+            input[type="color"] {
+                width: 80px !important;
+                height: 50px !important;
+                cursor: pointer !important;
+                border: 3px solid #FFD700 !important;
+                border-radius: 6px !important;
+                padding: 2px !important;
+                margin: 5px !important;
+            }
+            
+            /* Footer styles */
+            .footer {
+                background-color: #000080;
+                color: white;
+                text-align: center;
+                padding: 20px 10px;
+                margin-top: 60px;
+                border-top: 4px solid #FFD700;
+                font-family: 'Oswald', sans-serif;
+            }
+            
+            .footer-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            
+            .footer-logo {
+                font-size: 24px;
+                margin-bottom: 15px;
+                color: #FFD700;
+            }
+            
+            .footer-links {
+                display: flex;
+                gap: 30px;
+                margin: 15px 0;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .footer-links a {
+                color: white;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+            
+            .footer-links a:hover {
+                color: #FFD700;
+            }
+            
+            .footer-social {
+                margin: 15px 0;
+            }
+            
+            .footer-social a {
+                color: white;
+                font-size: 24px;
+                margin: 0 10px;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+            
+            .footer-social a:hover {
+                color: #FFD700;
+            }
+            
+            .footer-copyright {
+                margin-top: 15px;
+                font-size: 14px;
+                color: #cccccc;
+            }
+
+            .viewer-instructions {
+                margin-top: 20px;
+                padding: 10px;
+                background-color: rgba(240, 240, 240, 0.9);
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                clear: both;
+                width: 100%;
+            }
+            
+            .interactive-note {
+                text-align: center;
+                font-family: 'Oswald', sans-serif;
+                font-size: 18px;
+                color: #000080;
+                margin: 5px 0;
+            }
+            
+            /* Add responsive styles for smaller screens */
+            @media (max-width: 768px) {
+                .controls {
+                    flex-direction: column;
+                    gap: 5px;
+                }
+                
+                .controls button {
+                    margin: 3px;
+                    font-size: 14px;
+                    padding: 6px 10px;
+                }
+                
+                .controls label {
+                    font-size: 16px;
+                    margin: 3px;
+                }
+                
+                .controls input[type="number"] {
+                    width: 50px;
+                    font-size: 14px;
+                    padding: 3px;
+                }
+                
+                .project-title {
+                    font-size: 40px;
+                }
+                
+                .subtitle {
+                    font-size: 32px;
+                }
+                
+                .interactive-note {
+                    font-size: 16px;
+                }
             }
         </style>
     </head>
@@ -414,23 +741,52 @@ def mission():
 
         <div class="threejs-container">
             <div id="threejs-viewer"></div>
-            <div class="controls">
-                <label for="color-picker">Change Color:</label>
-                <input type="color" id="color-picker" value="#00ff00">
-                <input type="text" id="hex-input" placeholder="#00ff00" value="#00ff00" maxlength="7">
-                
-                <label for="zoom-input">Zoom:</label>
-                <button id="zoom-out">-</button>
-                <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
-                <button id="zoom-in">+</button>
-                
-                <button id="rotate-left">Rotate Left</button>
-                <button id="rotate-right">Rotate Right</button>
-                <button id="pause-rotation">Pause</button>
+        </div>
+        <div class="controls">
+            <h4>Customize Materials:</h4>
+            <div class="material-controls">
+                <div class="material-control">
+                    <label for="outside-walls-color">Outside Walls:</label>
+                    <input type="color" id="outside-walls-color" value="#FFFFFF">
+                </div>
+                <div class="material-control">
+                    <label for="interior-walls-color">Interior Walls:</label>
+                    <input type="color" id="interior-walls-color" value="#FFFFFF">
+                </div>
+                <div class="material-control">
+                    <label for="garage-door-color">Garage Door:</label>
+                    <input type="color" id="garage-door-color" value="#FFFFFF">
+                </div>
+                <div class="material-control">
+                    <label for="interior-floor-color">Interior Floor:</label>
+                    <input type="color" id="interior-floor-color" value="#FFFFFF">
+                    <label for="interior-floor-texture" style="margin-top: 8px;">Floor Texture:</label> <!-- Added label for dropdown -->
+                    <select id="interior-floor-texture" class="texture-dropdown">
+                        <option value="wood">Wooden Tile</option>
+                        <option value="carpet">Carpet</option>
+                        <option value="porcelain">Porcelain Tile</option>  <!-- Added porcelain option -->
+                    </select>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h4>Camera Controls:</h4>
+                <div class="camera-controls">
+                    <label for="zoom-input">Zoom:</label>
+                    <button id="zoom-out">-</button>
+                    <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
+                    <button id="zoom-in">+</button>
+                    
+                    <button id="rotate-left">Rotate Left</button>
+                    <button id="rotate-right">Rotate Right</button>
+                    <button id="pause-rotation">Pause</button>
+                </div>
             </div>
         </div>
-
-        <div class="interactive-note">This viewer is interactive. Click and drag to explore!</div>
+        <div class="viewer-instructions">
+            <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
+            <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
+        </div>
 
         <div class="subtitle" style="margin-top: 60px;">
             <span class="combined-bubble-text gold" data-text="3D MODEL VIEWER - GLB(WIP)">3D MODEL VIEWER - GLB(WIP)</span>
@@ -438,58 +794,188 @@ def mission():
 
         <div class="threejs-container">
             <div id="glb-viewer"></div>
-            <div class="controls">
-                <label for="glb-color-picker">Change Color:</label>
-                <input type="color" id="glb-color-picker" value="#00ff00">
-                <input type="text" id="glb-hex-input" placeholder="#00ff00" value="#00ff00" maxlength="7">
-                
-                <label for="glb-zoom-input">Zoom:</label>
-                <button id="glb-zoom-out">-</button>
-                <input type="number" id="glb-zoom-input" min="1" max="100" value="25" step="1">
-                <button id="glb-zoom-in">+</button>
-                
-                <button id="glb-rotate-left">Rotate Left</button>
-                <button id="glb-rotate-right">Rotate Right</button>
-                <button id="glb-pause-rotation">Pause</button>
+        </div>
+        <div class="controls">
+            <h4>Customize Materials:</h4>
+            <div class="material-controls">
+                <div class="material-control">
+                    <label for="glb-shoe-color">Shoe Color:</label>
+                    <input type="color" id="glb-shoe-color" value="#FFFFFF">
+                </div>
             </div>
+            
+            <label for="glb-zoom-input">Zoom:</label>
+            <button id="glb-zoom-out">-</button>
+            <input type="number" id="glb-zoom-input" min="1" max="100" value="25" step="1">
+            <button id="glb-zoom-in">+</button>
+            
+            <button id="glb-rotate-left">Rotate Left</button>
+            <button id="glb-rotate-right">Rotate Right</button>
+            <button id="glb-pause-rotation">Pause</button>
+        </div>
+        <div class="viewer-instructions">
+            <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
+            <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
         </div>
 
-        <div class="interactive-note">This viewer is interactive. Click and drag to explore!</div>
+        <style>
+            .threejs-container {
+                width: 100%;
+                max-width: 1200px;
+                margin: 30px auto 0 auto; /* Adjust margin */
+                padding: 0;
+                background: transparent;
+                aspect-ratio: 16 / 12; /* Keep aspect ratio for the viewer box */
+            }
+
+            #threejs-viewer, #glb-viewer {
+                width: 100%;
+                height: 100%;
+                display: block;
+                margin: 0 auto;
+                border: 4px solid #FFD700;
+                border-radius: 10px;
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+                outline: 4px solid #ec128c;
+                overflow: hidden;
+            }
+
+            #glb-viewer {
+                /* No specific margin needed here anymore */
+            }
+
+            .controls {
+                max-width: 1200px; /* Match container width */
+                margin: 20px auto 10px auto; /* Spacing below viewer, above instructions */
+                text-align: center;
+                width: 95%; /* Slightly less than 100% for padding */
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .material-controls {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+                margin-bottom: 15px;
+                width: 100%;
+            }
+            
+            .material-control {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 10px;
+                background-color: rgba(240, 240, 240, 0.7);
+                border: 1px solid #ccc;
+                border-radius: 8px;
+            }
+
+            .viewer-instructions {
+                max-width: 1200px; /* Match container width */
+                margin: 10px auto 30px auto; /* Spacing below controls */
+                padding: 10px;
+                background-color: rgba(240, 240, 240, 0.9);
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                width: 95%; /* Slightly less than 100% for padding */
+            }
+            
+            .interactive-note {
+                text-align: center;
+                font-family: 'Oswald', sans-serif;
+                font-size: 18px;
+                color: #000080;
+                margin: 5px 0;
+            }
+        </style>
 
         <script type="module">
             import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
             import { OrbitControls } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/controls/OrbitControls.js';
             import { OBJLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/OBJLoader.js';
-            import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
             import { MTLLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/MTLLoader.js';
+            import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
 
             let scene, camera, renderer, controls, currentModel;
             let isRotating = false;
             let rotationDirection = 0;
+            
+            let glbScene, glbCamera, glbRenderer, glbControls, glbCurrentModel; // Added for GLB viewer
+            let glbIsRotating = false; // Added for GLB viewer
+            let glbRotationDirection = 0; // Added for GLB viewer
+            
+            // Store references to GLB materials
+            let glbMaterials = {
+                'shoe': null
+            };
 
-            let glbScene, glbCamera, glbRenderer, glbControls, glbCurrentModel;
-            let glbIsRotating = false;
-            let glbRotationDirection = 0;
+            // Store material references for easy access
+            let materials = {
+                'outside_walls': null,
+                'interior_walls': null,
+                'Garage_door': null,
+                'window_glass': null,
+                'interior_floor': null
+            };
+
+            // Store current texture selection globally
+            let currentFloorTexture = 'wood'; // Default to wood
+            let textureLoader; // Declare texture loader
 
             function init() {
                 // Create scene
                 scene = new THREE.Scene();
-                scene.background = new THREE.Color(0xffffff);
+                scene.background = new THREE.Color(0x000000); // Changed to black background
 
-                // Create camera
-                camera = new THREE.PerspectiveCamera(30, 1000 / 600, 0.1, 1000);
+                // Create camera with fixed aspect ratio
+                const container = document.getElementById('threejs-viewer');
+                const aspect = 16 / 12; // Match the container's aspect ratio
+                camera = new THREE.PerspectiveCamera(30, aspect, 0.1, 1000);
+                
+                // Initialize Texture Loader
+                textureLoader = new THREE.TextureLoader();
 
-                // Create renderer
+                // Create renderer with responsive sizing
                 renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setSize(1000, 600);
-                document.getElementById('threejs-viewer').appendChild(renderer.domElement);
+                renderer.setSize(container.clientWidth, container.clientWidth / aspect);
+                renderer.physicallyCorrectLights = true; // Enable physically correct lighting
+                renderer.shadowMap.enabled = true; // Enable shadow mapping
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+                container.appendChild(renderer.domElement);
 
-                // Add lights
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                // Add enhanced lighting setup (increased intensity)
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased from 0.6
                 scene.add(ambientLight);
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                
+                // Main directional light (like sunlight)
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Increased from 1.0
                 directionalLight.position.set(1, 1, 1);
+                directionalLight.castShadow = true;
                 scene.add(directionalLight);
+                
+                // Add a second directional light from opposite direction
+                const backLight = new THREE.DirectionalLight(0xffffff, 0.8); // Increased from 0.6
+                backLight.position.set(-1, 0.5, -1);
+                scene.add(backLight);
+                
+                // Add point lights to enhance reflections
+                const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 50); // Increased from 0.8
+                pointLight1.position.set(5, 5, 5);
+                scene.add(pointLight1);
+                
+                const pointLight2 = new THREE.PointLight(0xffffff, 0.8, 50); // Increased from 0.6
+                pointLight2.position.set(-5, 3, -5);
+                scene.add(pointLight2);
+                
+                // Add additional point light from below
+                const pointLight3 = new THREE.PointLight(0xffffff, 0.7, 50); // Increased from 0.5
+                pointLight3.position.set(0, -5, 0);
+                scene.add(pointLight3);
 
                 // Add controls
                 controls = new OrbitControls(camera, renderer.domElement);
@@ -504,14 +990,43 @@ def mission():
                 animate();
 
                 // Add event listeners for controls
-                document.getElementById('color-picker').addEventListener('input', changeColor);
                 document.getElementById('zoom-input').addEventListener('input', changeZoom);
                 document.getElementById('zoom-in').addEventListener('click', zoomIn);
                 document.getElementById('zoom-out').addEventListener('click', zoomOut);
                 document.getElementById('rotate-left').addEventListener('click', () => setRotation(-1));
                 document.getElementById('rotate-right').addEventListener('click', () => setRotation(1));
                 document.getElementById('pause-rotation').addEventListener('click', pauseRotation);
-                document.getElementById('hex-input').addEventListener('input', changeColorFromHex);
+                
+                // Add material color change listeners
+                document.getElementById('outside-walls-color').addEventListener('input', (e) => changeMaterialKd('outside_walls', e.target.value));
+                document.getElementById('interior-walls-color').addEventListener('input', (e) => changeMaterialKd('interior_walls', e.target.value));
+                document.getElementById('garage-door-color').addEventListener('input', (e) => changeMaterialKd('Garage_door', e.target.value));
+                document.getElementById('interior-floor-color').addEventListener('input', (e) => changeMaterialKd('interior_floor', e.target.value));
+                
+                // Add texture change listener
+                document.getElementById('interior-floor-texture').addEventListener('change', changeFloorTexture);
+            }
+
+            // Function to change only the Kd value of a specific material
+            function changeMaterialKd(materialName, colorHex) {
+                if (materials[materialName]) {
+                    const color = new THREE.Color(colorHex);
+                    
+                    // Update the material's Kd value
+                    materials[materialName].color.set(color);
+                    materials[materialName].needsUpdate = true;
+                    
+                    // For glass, we need to adjust opacity and specular properties when color changes
+                    if (materialName === 'window_glass') {
+                        // Keep glass properties like reflectivity when changing color
+                        materials[materialName].specular = new THREE.Color(0xffffff);
+                        materials[materialName].shininess = 100;
+                        
+                        // Adjust transparency based on how dark the color is
+                        const brightness = (color.r + color.g + color.b) / 3;
+                        materials[materialName].opacity = Math.max(0.5, Math.min(0.9, brightness));
+                    }
+                }
             }
 
             function setRotation(direction) {
@@ -532,14 +1047,76 @@ def mission():
                 renderer.render(scene, camera);
             }
 
-            function loadOBJFile(path) {
+            function loadOBJFile(path, isReload = false) {
                 const mtlLoader = new MTLLoader();
                 const objLoader = new OBJLoader();
                 
                 // First load the material file
-                mtlLoader.load('/assets/pk4.mtl', function(materials) {
-                    materials.preload();
-                    objLoader.setMaterials(materials);
+                mtlLoader.load('/assets/pk4.mtl', function(mtlMaterials) {
+                    mtlMaterials.preload();
+                    
+                    // Store references to the materials we want to modify
+                    for (const materialName in materials) {
+                        if (mtlMaterials.materials[materialName]) {
+                            materials[materialName] = mtlMaterials.materials[materialName];
+                            
+                            // Set initial color picker values based on material's Kd value
+                            const color = mtlMaterials.materials[materialName].color;
+                            const hexColor = '#' + color.getHexString();
+                            const elementId = materialName.replace('_', '-').toLowerCase() + '-color';
+                            const colorPicker = document.getElementById(elementId);
+                            if (colorPicker) {
+                                colorPicker.value = hexColor;
+                            }
+                            
+                            // Enhance glass material properties specifically
+                            if (materialName === 'window_glass') {
+                                materials[materialName].transparent = true;
+                                materials[materialName].opacity = 0.8;
+                                materials[materialName].shininess = 100; // Higher shininess for more focused reflections
+                                materials[materialName].specular = new THREE.Color(0xffffff); // Add specular highlights
+                                materials[materialName].refractionRatio = 0.98; // Add refraction for glass effect
+                            }
+                            
+                            // For interior_floor, add some additional properties
+                            if (materialName === 'interior_floor') {
+                                // Set basic material properties
+                                materials[materialName].shininess = 30;
+                                materials[materialName].specular = new THREE.Color(0x222222);
+
+                                // Load and apply the default texture ('wood') initially
+                                const defaultTexturePath = '/assets/floor.jpg';
+                                textureLoader.load(defaultTexturePath, (texture) => {
+                                    console.log('Initial texture loaded:', texture); // Log texture object
+                                    if (texture.image) {
+                                        console.log('Initial texture image dimensions:', texture.image.width, texture.image.height);
+                                    } else {
+                                        console.warn('Initial texture image not loaded.');
+                                    }
+                                    // Configure texture wrapping and repetition
+                                    texture.wrapS = THREE.RepeatWrapping;
+                                    texture.wrapT = THREE.RepeatWrapping;
+                                    texture.repeat.set( 1, 1 ); // Repeat texture 1 time (make pattern larger)
+
+                                    materials[materialName].map = texture;
+                                    materials[materialName].color.set(0xFFFFFF); // Ensure base color is white
+                                    materials[materialName].needsUpdate = true;
+                                    console.log(`Initial floor texture set. Material map:`, materials[materialName].map); // Log map property
+                                    console.log('Initial floor material FULL:', JSON.stringify(materials[materialName].toJSON(), null, 2)); // Log the full material state
+                                }, undefined, (error) => { // Add error callback
+                                     console.error(`Error loading initial texture: ${defaultTexturePath}`, error);
+                                });
+
+                                // Update the texture dropdown to match the current texture
+                                const floorTextureDropdown = document.getElementById('interior-floor-texture');
+                                if (floorTextureDropdown) {
+                                    floorTextureDropdown.value = currentFloorTexture;
+                                }
+                            }
+                        }
+                    }
+                    
+                    objLoader.setMaterials(mtlMaterials);
                     
                     // Then load the OBJ file
                     objLoader.load('/assets/pk4.obj', function(object) {
@@ -561,38 +1138,12 @@ def mission():
                         camera.position.set(0, 0, 8.0);
                         controls.target.set(0, 0, 0);
                         controls.update();
-
-                        // Set default color to green
-                        object.traverse((child) => {
-                            if (child.isMesh) {
-                                child.material.color.set('#00ff00');
-                                child.material.needsUpdate = true;
-                            }
-                        });
                     });
                 });
             }
 
-            function updateHexInput(color) {
-                document.getElementById('hex-input').value = `#${color.getHexString()}`;
-            }
-
-            function changeColor(event) {
-                const color = new THREE.Color(event.target.value);
-                if (currentModel) {
-                    currentModel.traverse((child) => {
-                        if (child.isMesh) {
-                            child.material.color.set(color);
-                            child.material.needsUpdate = true;
-                        }
-                    });
-                }
-                updateHexInput(color);
-            }
-
             function changeZoom(event) {
                 const zoomLevel = parseFloat(event.target.value);
-                console.log('Zoom level changed via slider to:', zoomLevel);
                 camera.position.z = zoomLevel;
                 controls.update();
             }
@@ -604,7 +1155,6 @@ def mission():
                 slider.value = newZoom;
                 camera.position.z = newZoom;
                 controls.update();
-                console.log('Zoom In clicked, new zoom:', newZoom);
             }
 
             function zoomOut() {
@@ -614,44 +1164,55 @@ def mission():
                 slider.value = newZoom;
                 camera.position.z = newZoom;
                 controls.update();
-                console.log('Zoom Out clicked, new zoom:', newZoom);
-            }
-
-            function changeColorFromHex(event) {
-                const hexValue = event.target.value;
-                if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
-                    const color = new THREE.Color(hexValue);
-                    if (currentModel) {
-                        currentModel.traverse((child) => {
-                            if (child.isMesh) {
-                                child.material.color.set(color);
-                            }
-                        });
-                    }
-                    updateHexInput(color);
-                }
             }
 
             function initGLBViewer() {
                 // Create scene
                 glbScene = new THREE.Scene();
-                glbScene.background = new THREE.Color(0xffffff);
+                glbScene.background = new THREE.Color(0x000000); // Changed to black background
 
-                // Create camera
-                glbCamera = new THREE.PerspectiveCamera(30, 1200 / 800, 0.1, 1000);
+                // Create camera with matching aspect ratio
+                const container = document.getElementById('glb-viewer');
+                const aspect = 16 / 12; // Match the container's aspect ratio
+                glbCamera = new THREE.PerspectiveCamera(30, aspect, 0.1, 1000);
                 // Don't set initial position here, set it after model loads
 
-                // Create renderer
+                // Create renderer with responsive sizing
                 glbRenderer = new THREE.WebGLRenderer({ antialias: true });
-                glbRenderer.setSize(1200, 800);
-                document.getElementById('glb-viewer').appendChild(glbRenderer.domElement);
+                glbRenderer.setSize(container.clientWidth, container.clientWidth / aspect);
+                glbRenderer.physicallyCorrectLights = true; // Enable physically correct lighting
+                glbRenderer.shadowMap.enabled = true; // Enable shadow mapping
+                glbRenderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+                container.appendChild(glbRenderer.domElement);
 
-                // Add lights
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-                glbScene.add(ambientLight);
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                directionalLight.position.set(1, 1, 1);
-                glbScene.add(directionalLight);
+                // Add enhanced lighting setup with increased brightness
+                const ambientLightGLB = new THREE.AmbientLight(0xffffff, 1.5); // Increased from 0.8 to 1.5
+                glbScene.add(ambientLightGLB);
+                
+                // Main directional light (like sunlight)
+                const directionalLightGLB = new THREE.DirectionalLight(0xffffff, 2.5); // Increased from 1.5 to 2.5
+                directionalLightGLB.position.set(1, 1, 1);
+                directionalLightGLB.castShadow = true;
+                glbScene.add(directionalLightGLB);
+                
+                // Add a second directional light from opposite direction
+                const backLightGLB = new THREE.DirectionalLight(0xffffff, 1.5); // Increased from 0.8 to 1.5
+                backLightGLB.position.set(-1, 0.5, -1);
+                glbScene.add(backLightGLB);
+                
+                // Add point lights to enhance reflections
+                const pointLight1GLB = new THREE.PointLight(0xffffff, 2.0, 50); // Increased from 1.2 to 2.0
+                pointLight1GLB.position.set(5, 5, 5);
+                glbScene.add(pointLight1GLB);
+                
+                const pointLight2GLB = new THREE.PointLight(0xffffff, 1.5, 50); // Increased from 1.0 to 1.5
+                pointLight2GLB.position.set(-5, 3, -5);
+                glbScene.add(pointLight2GLB);
+                
+                // Add additional point light from below
+                const pointLight3GLB = new THREE.PointLight(0xffffff, 1.5, 50);
+                pointLight3GLB.position.set(0, -5, 0);
+                glbScene.add(pointLight3GLB);
 
                 // Add controls
                 glbControls = new OrbitControls(glbCamera, glbRenderer.domElement);
@@ -666,14 +1227,15 @@ def mission():
                 animateGLB();
 
                 // Add event listeners for controls
-                document.getElementById('glb-color-picker').addEventListener('input', changeGLBColor);
-                document.getElementById('glb-hex-input').addEventListener('input', changeGLBColorFromHex);
                 document.getElementById('glb-zoom-input').addEventListener('input', changeGLBZoom);
                 document.getElementById('glb-zoom-in').addEventListener('click', zoomGLBIn);
                 document.getElementById('glb-zoom-out').addEventListener('click', zoomGLBOut);
                 document.getElementById('glb-rotate-left').addEventListener('click', () => setGLBRotation(-1));
                 document.getElementById('glb-rotate-right').addEventListener('click', () => setGLBRotation(1));
                 document.getElementById('glb-pause-rotation').addEventListener('click', pauseGLBRotation);
+                
+                // Add color change listeners for GLB model
+                document.getElementById('glb-shoe-color').addEventListener('input', (e) => changeGLBMaterialColor('shoe', e.target.value));
             }
 
             function animateGLB() {
@@ -701,6 +1263,29 @@ def mission():
 
                     object.position.sub(center.multiplyScalar(scale));
 
+                    // Store references to materials for color changing
+                    object.traverse((node) => {
+                        if (node.isMesh) {
+                            // Assign all meshes to 'shoe' material for uniform coloring
+                            if (node.material && node.material.color) {
+                                glbMaterials.shoe = node.material;
+                            }
+                            
+                            // Make all materials responsive to lighting
+                            if (node.material) {
+                                if (Array.isArray(node.material)) {
+                                    node.material.forEach(mat => {
+                                        mat.metalness = 0.3;
+                                        mat.roughness = 0.7;
+                                    });
+                                } else {
+                                    node.material.metalness = 0.3;
+                                    node.material.roughness = 0.7;
+                                }
+                            }
+                        }
+                    });
+
                     glbScene.add(object);
                     glbCurrentModel = object;
 
@@ -708,45 +1293,21 @@ def mission():
                     glbCamera.position.set(0, 0, 25.0);
                     glbControls.target.set(0, 0, 0);
                     glbControls.update();
-
-                    // Set default color to green
-                    object.traverse((child) => {
-                        if (child.isMesh) {
-                            child.material.color.set('#00ff00');
-                        }
-                    });
                 });
             }
 
-            function changeGLBColor(event) {
-                const color = new THREE.Color(event.target.value);
-                if (glbCurrentModel) {
-                    glbCurrentModel.traverse((child) => {
-                        if (child.isMesh) {
-                            child.material.color.set(color);
-                        }
-                    });
+            function changeGLBMaterialColor(materialName, colorHex) {
+                const material = glbMaterials[materialName];
+                if (material) {
+                    const color = new THREE.Color(colorHex);
+                    
+                    // Update the material's color
+                    material.color = color;
+                    material.needsUpdate = true;
+                    console.log(`Changed ${materialName} color to ${colorHex}`);
+                } else {
+                    console.warn(`Material '${materialName}' not found for color change`);
                 }
-                updateGLBHexInput(color);
-            }
-
-            function changeGLBColorFromHex(event) {
-                const hexValue = event.target.value;
-                if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
-                    const color = new THREE.Color(hexValue);
-                    if (glbCurrentModel) {
-                        glbCurrentModel.traverse((child) => {
-                            if (child.isMesh) {
-                                child.material.color.set(color);
-                            }
-                        });
-                    }
-                    updateGLBHexInput(color);
-                }
-            }
-
-            function updateGLBHexInput(color) {
-                document.getElementById('glb-hex-input').value = `#${color.getHexString()}`;
             }
 
             function changeGLBZoom(event) {
@@ -785,82 +1346,102 @@ def mission():
                 glbIsRotating = false;
             }
 
-            // Initialize viewer
-            init();
-            initGLBViewer();
+            // Function to change floor texture using TextureLoader
+            function changeFloorTexture(event) {
+                const textureType = event.target.value;
+                currentFloorTexture = textureType; // Store the selection globally
+                
+                // Reset color picker to default white
+                const colorPicker = document.getElementById('interior-floor-color');
+                if (colorPicker) {
+                    colorPicker.value = "#FFFFFF";
+                }
+                
+                if (materials['interior_floor']) {
+                    const floorMaterial = materials['interior_floor'];
+                    let texturePath = '';
+
+                    if (textureType === 'wood') {
+                        texturePath = '/assets/floor.jpg';
+                    } else if (textureType === 'carpet') {
+                        texturePath = '/assets/carpet.jpg';
+                    } else if (textureType === 'porcelain') { // Added condition for porcelain
+                        texturePath = '/assets/porcelain.jpg';
+                    } else {
+                        console.error("Unknown texture type:", textureType);
+                        return; // Exit if texture type is unknown
+                    }
+
+                    console.log(`Attempting to load texture: ${texturePath}`);
+
+                    // Load the new texture
+                    textureLoader.load(
+                        texturePath,
+                        // onLoad callback
+                        (texture) => {
+                            console.log(`Texture loaded successfully: ${texturePath}`, texture); // Log texture object
+                             if (texture.image) {
+                                 console.log('Texture image dimensions:', texture.image.width, texture.image.height);
+                            } else {
+                                 console.warn('Texture image not loaded.');
+                            }
+                            // Configure texture wrapping and repetition
+                            texture.wrapS = THREE.RepeatWrapping;
+                            texture.wrapT = THREE.RepeatWrapping;
+                            texture.repeat.set( 1, 1 ); // Repeat texture 1 time (make pattern larger)
+
+                            floorMaterial.map = texture; // Assign the loaded texture to the material's map property
+                            floorMaterial.color.set(0xFFFFFF); // Set color to white to show texture directly
+                            floorMaterial.needsUpdate = true; // Signal Three.js to update the material
+                            console.log(`Changed floor texture to ${textureType}. Material map:`, floorMaterial.map); // Log map property
+                            console.log('Updated floor material color:', floorMaterial.color); // Log color
+                            console.log('Updated floor material FULL:', JSON.stringify(floorMaterial.toJSON(), null, 2)); // Log the full material state
+                        },
+                        // onProgress callback (optional)
+                        undefined,
+                        // onError callback
+                        (error) => {
+                            console.error(`Error loading texture: ${texturePath}`, error);
+                        }
+                    );
+                } else {
+                    console.warn("Interior floor material not found yet.");
+                }
+            }
+
+            // Initialize both viewers when the DOM is loaded
+            document.addEventListener('DOMContentLoaded', function() {
+                init();
+                initGLBViewer();
+                
+                // Add window resize event listener for both viewers
+                window.addEventListener('resize', function() {
+                    // Handle OBJ viewer resize
+                    const objContainer = document.getElementById('threejs-viewer');
+                    if (objContainer && renderer) {
+                        const aspect = 16 / 12;
+                        camera.aspect = aspect;
+                        camera.updateProjectionMatrix();
+                        renderer.setSize(objContainer.clientWidth, objContainer.clientWidth / aspect);
+                    }
+                    
+                    // Handle GLB viewer resize
+                    const glbContainer = document.getElementById('glb-viewer');
+                    if (glbContainer && glbRenderer) {
+                        const aspect = 16 / 12;
+                        glbCamera.aspect = aspect;
+                        glbCamera.updateProjectionMatrix();
+                        glbRenderer.setSize(glbContainer.clientWidth, glbContainer.clientWidth / aspect);
+                    }
+                });
+            });
         </script>
 
-        <style>
-            .threejs-container {
-                width: 1000px;
-                margin: 40px auto;
-                padding: 20px;
-                background: #f5f5f5;
-                border-radius: 10px;
-                box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            }
-
-            #threejs-viewer {
-                width: 1000px;
-                height: 600px;
-                border: 4px solid #FFD700;
-                border-radius: 10px;
-                box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-                outline: 4px solid #ec128c;
-                overflow: hidden;
-            }
-
-            .controls {
-                margin-top: 20px;
-                text-align: center;
-            }
-
-            .controls label, .controls button {
-                font-size: 26px;
-                margin: 0 10px;
-                font-family: 'Oswald', sans-serif;
-                font-weight: bold;
-            }
-
-            .controls input[type="color"], .controls input[type="range"] {
-                margin: 0 10px;
-                transform: scale(1.2);
-            }
-
-            .controls input[type="text"], .controls input[type="number"], .controls select {
-                font-size: 22px;
-                padding: 5px;
-                margin: 0 10px;
-                font-family: 'Oswald', sans-serif;
-            }
-
-            .controls input[type="number"]#zoom-input {
-                width: 70px;
-                text-align: center;
-                font-weight: bold;
-                background-color: #f0f0f0;
-                border: 2px solid #000080;
-                border-radius: 4px;
-            }
-
-            .controls button {
-                padding: 8px 16px;
-                font-size: 24px;
-            }
-
-            #glb-viewer {
-                width: 1000px;
-                height: 600px;
-                border: 4px solid #FFD700;
-                border-radius: 10px;
-                box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-                outline: 4px solid #ec128c;
-                overflow: hidden;
-                margin: 20px auto;
-                display: block;
-            }
-        </style>
-
+        <div class="footer">
+            <div class="footer-content">
+                <div class="footer-copyright">SERENE BUILD - IREOLUWA</div>
+            </div>
+        </div>
     </body>
     </html>
     '''
@@ -873,7 +1454,12 @@ def adidas_project():
     <html>
     <head>
         <title>Adidas Mundial Reborn - Serene Build</title>
+        <!-- Font Awesome for social icons -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
+            html { 
+                height: 100%; /* Ensure html element takes full height */
+            }
             @font-face {
                 font-family: 'BubbleStreetFill';
                 src: url('/assets/BubbleStreetFill.ttf') format('truetype');
@@ -886,13 +1472,17 @@ def adidas_project():
             
             body {
                 font-family: 'Oswald', sans-serif;
-                background-image: url('/assets/background-babyblue.png');
+                /* Faded background: white base + semi-transparent overlay + image */
+                background-color: #ffffff; /* Added white background color */
+                background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)), url('/assets/background-babyblue.png'); /* Specific property */
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
-                background-attachment: fixed;
+                background-attachment: fixed; /* Re-added fixed attachment */
+                min-height: 100vh; /* Ensure body is at least viewport height */
                 margin: 0;
                 padding: 0;
+                overflow-x: hidden; /* Prevent horizontal overflow */
             }
             
             spline-viewer {
@@ -985,6 +1575,71 @@ def adidas_project():
                 background: #FFD700;
                 color: #000080;
                 transform: translateX(-5px);
+            }
+            
+            /* Footer styles */
+            .footer {
+                background-color: #000080;
+                color: white;
+                text-align: center;
+                padding: 20px 10px;
+                margin-top: 60px;
+                border-top: 4px solid #FFD700;
+                font-family: 'Oswald', sans-serif;
+            }
+            
+            .footer-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            
+            .footer-logo {
+                font-size: 24px;
+                margin-bottom: 15px;
+                color: #FFD700;
+            }
+            
+            .footer-links {
+                display: flex;
+                gap: 30px;
+                margin: 15px 0;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .footer-links a {
+                color: white;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+            
+            .footer-links a:hover {
+                color: #FFD700;
+            }
+            
+            .footer-social {
+                margin: 15px 0;
+            }
+            
+            .footer-social a {
+                color: white;
+                font-size: 24px;
+                margin: 0 10px;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+            
+            .footer-social a:hover {
+                color: #FFD700;
+            }
+            
+            .footer-copyright {
+                margin-top: 15px;
+                font-size: 14px;
+                color: #cccccc;
             }
         </style>
     </head>
@@ -1061,12 +1716,14 @@ def adidas_project():
         <style>
             .gallery-container {
                 position: relative;
-                width: 1000px;
+                width: 100%;
+                max-width: 1000px;
                 margin: 0 auto;
             }
             
             #viewer-container spline-viewer {
-                width: 1000px;
+                width: 100%;
+                max-width: 1000px;
                 height: 300px;
                 display: block;
                 margin: 0 auto;
@@ -1082,6 +1739,7 @@ def adidas_project():
                 align-items: center;
                 gap: 20px;
                 margin: 20px auto;
+                flex-wrap: wrap;
             }
             
             .gallery-button {
@@ -1094,6 +1752,7 @@ def adidas_project():
                 font-family: 'Oswald', sans-serif;
                 font-size: 18px;
                 transition: all 0.3s ease;
+                margin: 5px;
             }
             
             .gallery-button:hover {
@@ -1108,6 +1767,27 @@ def adidas_project():
                 font-weight: bold;
                 min-width: 60px;
                 text-align: center;
+            }
+            
+            /* Add responsive styles for smaller screens */
+            @media (max-width: 768px) {
+                .gallery-container {
+                    width: 95%;
+                }
+                
+                #viewer-container spline-viewer {
+                    height: 250px;
+                }
+                
+                .gallery-button {
+                    padding: 8px 15px;
+                    font-size: 16px;
+                }
+                
+                .gallery-counter {
+                    font-size: 18px;
+                    min-width: 50px;
+                }
             }
         </style>
 
@@ -1128,6 +1808,11 @@ def adidas_project():
             Another idea I have is to make the sneaker completely black. I think an all black colorway would give it a clean and bold look that works well for everyday wear. It would make the shoe easier to style with different outfits and keep it looking fresh even after a lot of use.
         </div>
 
+        <div class="footer">
+            <div class="footer-content">
+                <div class="footer-copyright">SERENE BUILD - IREOLUWA</div>
+            </div>
+        </div>
     </body>
     </html>
     '''
@@ -1141,6 +1826,9 @@ def iphone_project():
     <head>
         <title>Customized Iphone 6 - Serene Build</title>
         <style>
+            html { 
+                height: 100%; /* Ensure html element takes full height */
+            }
             @font-face {
                 font-family: 'BubbleStreetFill';
                 src: url('/assets/BubbleStreetFill.ttf') format('truetype');
@@ -1153,13 +1841,17 @@ def iphone_project():
             
             body {
                 font-family: 'Oswald', sans-serif;
-                background-image: url('/assets/background-babyblue.png');
+                /* Faded background: white base + semi-transparent overlay + image */
+                background-color: #ffffff; /* Added white background color */
+                background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)), url('/assets/background-babyblue.png'); /* Specific property */
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
-                background-attachment: fixed;
+                background-attachment: fixed; /* Re-added fixed attachment */
+                min-height: 100vh; /* Ensure body is at least viewport height */
                 margin: 0;
                 padding: 0;
+                overflow-x: hidden; /* Prevent horizontal overflow */
             }
             
             spline-viewer {
@@ -1253,6 +1945,71 @@ def iphone_project():
                 color: #000080;
                 transform: translateX(-5px);
             }
+            
+            /* Footer styles */
+            .footer {
+                background-color: #000080;
+                color: white;
+                text-align: center;
+                padding: 20px 10px;
+                margin-top: 60px;
+                border-top: 4px solid #FFD700;
+                font-family: 'Oswald', sans-serif;
+            }
+            
+            .footer-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            
+            .footer-logo {
+                font-size: 24px;
+                margin-bottom: 15px;
+                color: #FFD700;
+            }
+            
+            .footer-links {
+                display: flex;
+                gap: 30px;
+                margin: 15px 0;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .footer-links a {
+                color: white;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+            
+            .footer-links a:hover {
+                color: #FFD700;
+            }
+            
+            .footer-social {
+                margin: 15px 0;
+            }
+            
+            .footer-social a {
+                color: white;
+                font-size: 24px;
+                margin: 0 10px;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+            
+            .footer-social a:hover {
+                color: #FFD700;
+            }
+            
+            .footer-copyright {
+                margin-top: 15px;
+                font-size: 14px;
+                color: #cccccc;
+            }
         </style>
     </head>
     <body>
@@ -1296,6 +2053,11 @@ def iphone_project():
             For my second design idea, I want to load the iPhone 6 with custom apps tailored for sports lovers and financial literacy. These are apps I plan to build myself, inspired by my passion for sharing knowledge and my love for data science. The goal is to create tools that are both useful and personal, apps that help people track stats, stay motivated, and learn how to better manage their money, all from a device that feels like a custom built experience.
         </div>
 
+        <div class="footer">
+            <div class="footer-content">
+                <div class="footer-copyright">SERENE BUILD - IREOLUWA</div>
+            </div>
+        </div>
     </body>
     </html>
     '''
@@ -1309,6 +2071,9 @@ def repair_estimator_project():
     <head>
         <title>Repair Estimator - Serene Build</title>
         <style>
+            html { 
+                height: 100%; /* Ensure html element takes full height */
+            }
             @font-face {
                 font-family: 'BubbleStreetFill';
                 src: url('/assets/BubbleStreetFill.ttf') format('truetype');
@@ -1321,13 +2086,17 @@ def repair_estimator_project():
             
             body {
                 font-family: 'Oswald', sans-serif;
-                background-image: url('/assets/background-babyblue.png');
+                /* Faded background: white base + semi-transparent overlay + image */
+                background-color: #ffffff; /* Added white background color */
+                background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)), url('/assets/background-babyblue.png'); /* Specific property */
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
-                background-attachment: fixed;
+                background-attachment: fixed; /* Added fixed background attachment like iPhone page */
+                min-height: 100vh; /* Ensure body is at least viewport height */
                 margin: 0;
                 padding: 0;
+                overflow-x: hidden; /* Prevent horizontal overflow like iPhone page */
             }
             
             .combined-bubble-text {
@@ -1410,59 +2179,21 @@ def repair_estimator_project():
                 color: #000080;
                 transform: translateX(-5px);
             }
-        </style>
-    </head>
-    <body>
-        <a href="/" class="back-button">← Back to Home</a>
-        
-        <div class="project-title">
-            <span class="combined-bubble-text" data-text="Repair Estimator">Repair Estimator</span>
-            <span class="coming-soon-text">(Coming Soon)</span>
-        </div>
 
-        <div class="subtitle">
-            <span class="combined-bubble-text gold" data-text="QUICK & ACCURATE RENOVATION COST ESTIMATES">QUICK & ACCURATE RENOVATION COST ESTIMATES</span>
-        </div>
-        
-        <div class="description-text">
-            Repair Estimator is a tool that shows a 3D model of different rooms in a house. Users can look at each room by itself or view the whole house together. In each room, users can change the type of floor by picking from a list that includes hardwood, tile, carpet, and more. Each flooring option shows how much it costs, so users can see how their choices affect the total price.
-            <br><br>
-            Users can also change the color of the walls using different paint options. Each paint color will have a cost, which helps users plan their budget. In the future, the tool may also let users add furniture to the rooms. Each piece of furniture will have a price too. This will help users see what their space could look like when it's fully set up, with all costs included.
-        </div>
-
-        <div class="threejs-container">
-            <div id="threejs-viewer"></div>
-            <div class="controls">
-                <label for="color-picker">Change Color:</label>
-                <input type="color" id="color-picker" value="#00ff00">
-                <input type="text" id="hex-input" placeholder="#00ff00" value="#00ff00" maxlength="7">
-                
-                <label for="zoom-input">Zoom:</label>
-                <button id="zoom-out">-</button>
-                <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
-                <button id="zoom-in">+</button>
-                
-                <button id="rotate-left">Rotate Left</button>
-                <button id="rotate-right">Rotate Right</button>
-                <button id="pause-rotation">Pause</button>
-            </div>
-        </div>
-
-        <div class="interactive-note">This viewer is interactive. Click and drag to explore!</div>
-
-        <style>
             .threejs-container {
-                width: 1000px;
-                margin: 40px auto;
-                padding: 20px;
-                background: #f5f5f5;
-                border-radius: 10px;
-                box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                max-width: 1200px;
+                margin: 30px auto 0 auto; /* Adjust margin for spacing */
+                padding: 0;
+                background: transparent;
+                aspect-ratio: 16 / 12; /* Keep aspect ratio for the viewer box */
             }
 
             #threejs-viewer {
-                width: 1000px;
-                height: 600px;
+                width: 100%;
+                height: 100%;
+                display: block;
+                margin: 0 auto;
                 border: 4px solid #FFD700;
                 border-radius: 10px;
                 box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
@@ -1470,32 +2201,51 @@ def repair_estimator_project():
                 overflow: hidden;
             }
 
+            /* Apply consistent control styles from main page */
             .controls {
-                margin-top: 20px;
+                max-width: 1200px;
+                margin: 20px auto 10px auto;
                 text-align: center;
+                width: 95%;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .controls h4 {
+                width: 100%;
+                text-align: center;
+                font-family: 'Oswald', sans-serif;
+                color: #000080;
+                margin-bottom: 15px;
+                font-size: 22px;
+                display: block;
             }
 
             .controls label, .controls button {
-                font-size: 26px;
-                margin: 0 10px;
+                font-size: 20px;
+                margin: 0 5px;
                 font-family: 'Oswald', sans-serif;
                 font-weight: bold;
+                color: #000080;
             }
 
-            .controls input[type="color"], .controls input[type="range"] {
+            .controls input[type="range"] {
                 margin: 0 10px;
                 transform: scale(1.2);
             }
 
-            .controls input[type="text"], .controls input[type="number"], .controls select {
-                font-size: 22px;
+            .controls input[type="number"], .controls select {
+                font-size: 18px;
                 padding: 5px;
-                margin: 0 10px;
+                margin: 0 5px;
                 font-family: 'Oswald', sans-serif;
             }
 
             .controls input[type="number"]#zoom-input {
-                width: 70px;
+                width: 60px;
                 text-align: center;
                 font-weight: bold;
                 background-color: #f0f0f0;
@@ -1505,7 +2255,143 @@ def repair_estimator_project():
 
             .controls button {
                 padding: 8px 16px;
-                font-size: 24px;
+                font-size: 16px;
+                background: #000080;
+                color: #FFD700;
+                border: 2px solid #FFD700;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin: 5px;
+            }
+            
+            .controls button:hover {
+                background: #FFD700;
+                color: #000080;
+                transform: scale(1.05);
+            }
+            
+            .material-controls {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+                margin-bottom: 15px;
+                width: 100%;
+            }
+            
+            .material-control {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 10px;
+                background-color: rgba(240, 240, 240, 0.7);
+                border: 1px solid #ccc;
+                border-radius: 8px;
+            }
+            
+            .material-control:hover {
+                box-shadow: 0 0 10px rgba(0, 0, 128, 0.3);
+                transform: translateY(-2px);
+            }
+            
+            .material-control label {
+                font-size: 16px;
+                margin-bottom: 8px;
+                font-weight: bold;
+                color: #000080;
+                text-align: center;
+            }
+            
+            .material-control input[type="color"] {
+                width: 80px;
+                height: 50px;
+                cursor: pointer;
+                border: 3px solid #FFD700;
+                border-radius: 6px;
+                background: none;
+                margin-bottom: 12px;
+                padding: 2px;
+            }
+            
+            .texture-dropdown {
+                margin-top: 5px;
+                padding: 5px;
+                border: 2px solid #000080;
+                border-radius: 4px;
+                background-color: white;
+                color: #000080;
+                font-family: 'Oswald', sans-serif;
+                font-size: 14px;
+                cursor: pointer;
+                width: 120px;
+                transition: all 0.2s ease;
+            }
+            
+            .texture-dropdown:hover {
+                border-color: #FFD700;
+            }
+
+            .viewer-instructions {
+                max-width: 1200px; /* Match container width */
+                margin: 10px auto 30px auto; /* Spacing below controls */
+                padding: 10px;
+                background-color: rgba(240, 240, 240, 0.9);
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                width: 95%; /* Slightly less than 100% for padding */
+            }
+            
+            .interactive-note {
+                text-align: center;
+                font-family: 'Oswald', sans-serif;
+                font-size: 18px;
+                color: #000080;
+                margin: 5px 0;
+            }
+
+            /* Ensure responsive styles apply correctly */
+            @media (max-width: 768px) {
+                .controls {
+                    flex-direction: column;
+                    gap: 5px;
+                }
+                
+                .controls button {
+                    margin: 3px;
+                    font-size: 14px;
+                    padding: 6px 10px;
+                }
+                
+                .controls label {
+                    font-size: 16px;
+                    margin: 3px;
+                }
+                
+                .controls input[type="number"] {
+                    width: 50px;
+                    font-size: 14px;
+                    padding: 3px;
+                }
+                
+                /* Add responsive styles for material controls if needed */
+                .material-control {
+                    min-width: 110px;
+                }
+
+                .material-control input[type="color"] {
+                    width: 70px;
+                    height: 40px;
+                }
+
+                .texture-dropdown {
+                    width: 100px;
+                    font-size: 12px;
+                }
+
+                .interactive-note {
+                    font-size: 16px;
+                }
             }
 
             .coming-soon-text {
@@ -1533,37 +2419,213 @@ def repair_estimator_project():
             .coming-soon-text {
                 z-index: 2;
             }
+
+            /* Footer styles - Copied from main page */
+            .footer {
+                background-color: #000080;
+                color: white;
+                text-align: center;
+                padding: 20px 10px;
+                margin-top: 60px;
+                border-top: 4px solid #FFD700;
+                font-family: 'Oswald', sans-serif;
+            }
+            
+            .footer-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            
+            .footer-logo {
+                font-size: 24px;
+                margin-bottom: 15px;
+                color: #FFD700;
+            }
+            
+            .footer-links {
+                display: flex;
+                gap: 30px;
+                margin: 15px 0;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .footer-links a {
+                color: white;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+            
+            .footer-links a:hover {
+                color: #FFD700;
+            }
+            
+            .footer-social {
+                margin: 15px 0;
+            }
+            
+            .footer-social a {
+                color: white;
+                font-size: 24px;
+                margin: 0 10px;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+            
+            .footer-social a:hover {
+                color: #FFD700;
+            }
+            
+            .footer-copyright {
+                margin-top: 15px;
+                font-size: 14px;
+                color: #cccccc;
+            }
         </style>
+    </head>
+    <body>
+        <a href="/" class="back-button">← Back to Home</a>
+        
+        <div class="project-title">
+            <span class="combined-bubble-text" data-text="Repair Estimator">Repair Estimator</span>
+            <span class="coming-soon-text">(Coming Soon)</span>
+        </div>
+
+        <div class="subtitle">
+            <span class="combined-bubble-text gold" data-text="QUICK & ACCURATE RENOVATION COST ESTIMATES">QUICK & ACCURATE RENOVATION COST ESTIMATES</span>
+        </div>
+        
+        <div class="description-text">
+            Repair Estimator is a tool that shows a 3D model of different rooms in a house. Users can look at each room by itself or view the whole house together. In each room, users can change the type of floor by picking from a list that includes hardwood, tile, carpet, and more. Each flooring option shows how much it costs, so users can see how their choices affect the total price.
+            <br><br>
+            Users can also change the color of the walls using different paint options. Each paint color will have a cost, which helps users plan their budget. In the future, the tool may also let users add furniture to the rooms. Each piece of furniture will have a price too. This will help users see what their space could look like when it's fully set up, with all costs included.
+        </div>
+
+        <div class="threejs-container">
+            <div id="threejs-viewer"></div>
+        </div>
+        <div class="controls">
+            <h4>Customize Materials:</h4>
+            <div class="material-controls">
+                <div class="material-control">
+                    <label for="outside-walls-color">Outside Walls:</label>
+                    <input type="color" id="outside-walls-color" value="#FFFFFF">
+                </div>
+                <div class="material-control">
+                    <label for="interior-walls-color">Interior Walls:</label>
+                    <input type="color" id="interior-walls-color" value="#FFFFFF">
+                </div>
+                <div class="material-control">
+                    <label for="garage-door-color">Garage Door:</label>
+                    <input type="color" id="garage-door-color" value="#FFFFFF">
+                </div>
+                <div class="material-control">
+                    <label for="interior-floor-color">Interior Floor:</label>
+                    <input type="color" id="interior-floor-color" value="#FFFFFF">
+                    <label for="interior-floor-texture" style="margin-top: 8px;">Floor Texture:</label> <!-- Added label for dropdown -->
+                    <select id="interior-floor-texture" class="texture-dropdown">
+                        <option value="wood">Wooden Tile</option>
+                        <option value="carpet">Carpet</option>
+                        <option value="porcelain">Porcelain Tile</option>  <!-- Added porcelain option -->
+                    </select>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h4>Camera Controls:</h4>
+                <div class="camera-controls">
+                    <label for="zoom-input">Zoom:</label>
+                    <button id="zoom-out">-</button>
+                    <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
+                    <button id="zoom-in">+</button>
+                    
+                    <button id="rotate-left">Rotate Left</button>
+                    <button id="rotate-right">Rotate Right</button>
+                    <button id="pause-rotation">Pause</button>
+                </div>
+            </div>
+        </div>
+        <div class="viewer-instructions">
+            <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
+            <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
+        </div>
 
         <script type="module">
             import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
             import { OrbitControls } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/controls/OrbitControls.js';
             import { OBJLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/OBJLoader.js';
             import { MTLLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/MTLLoader.js';
+            import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
 
             let scene, camera, renderer, controls, currentModel;
             let isRotating = false;
             let rotationDirection = 0;
 
+            // Store material references for easy access
+            let materials = {
+                'outside_walls': null,
+                'interior_walls': null,
+                'Garage_door': null,
+                'window_glass': null,
+                'interior_floor': null
+            };
+
+            // Store current texture selection globally
+            let currentFloorTexture = 'wood'; // Default to wood
+            let textureLoader; // Declare texture loader
+
             function init() {
                 // Create scene
                 scene = new THREE.Scene();
-                scene.background = new THREE.Color(0xffffff);
+                scene.background = new THREE.Color(0x000000); // Changed to black background
 
-                // Create camera
-                camera = new THREE.PerspectiveCamera(30, 1000 / 600, 0.1, 1000);
+                // Create camera with fixed aspect ratio
+                const container = document.getElementById('threejs-viewer');
+                const aspect = 16 / 12; // Match the container's aspect ratio
+                camera = new THREE.PerspectiveCamera(30, aspect, 0.1, 1000);
+                
+                // Initialize Texture Loader
+                textureLoader = new THREE.TextureLoader();
 
-                // Create renderer
+                // Create renderer with responsive sizing
                 renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setSize(1000, 600);
-                document.getElementById('threejs-viewer').appendChild(renderer.domElement);
+                renderer.setSize(container.clientWidth, container.clientWidth / aspect);
+                renderer.physicallyCorrectLights = true; // Enable physically correct lighting
+                renderer.shadowMap.enabled = true; // Enable shadow mapping
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+                container.appendChild(renderer.domElement);
 
-                // Add lights
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                // Add enhanced lighting setup (increased intensity)
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased from 0.6
                 scene.add(ambientLight);
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                
+                // Main directional light (like sunlight)
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Increased from 1.0
                 directionalLight.position.set(1, 1, 1);
+                directionalLight.castShadow = true;
                 scene.add(directionalLight);
+                
+                // Add a second directional light from opposite direction
+                const backLight = new THREE.DirectionalLight(0xffffff, 0.8); // Increased from 0.6
+                backLight.position.set(-1, 0.5, -1);
+                scene.add(backLight);
+                
+                // Add point lights to enhance reflections
+                const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 50); // Increased from 0.8
+                pointLight1.position.set(5, 5, 5);
+                scene.add(pointLight1);
+                
+                const pointLight2 = new THREE.PointLight(0xffffff, 0.8, 50); // Increased from 0.6
+                pointLight2.position.set(-5, 3, -5);
+                scene.add(pointLight2);
+                
+                // Add additional point light from below
+                const pointLight3 = new THREE.PointLight(0xffffff, 0.7, 50); // Increased from 0.5
+                pointLight3.position.set(0, -5, 0);
+                scene.add(pointLight3);
 
                 // Add controls
                 controls = new OrbitControls(camera, renderer.domElement);
@@ -1578,14 +2640,54 @@ def repair_estimator_project():
                 animate();
 
                 // Add event listeners for controls
-                document.getElementById('color-picker').addEventListener('input', changeColor);
                 document.getElementById('zoom-input').addEventListener('input', changeZoom);
                 document.getElementById('zoom-in').addEventListener('click', zoomIn);
                 document.getElementById('zoom-out').addEventListener('click', zoomOut);
                 document.getElementById('rotate-left').addEventListener('click', () => setRotation(-1));
                 document.getElementById('rotate-right').addEventListener('click', () => setRotation(1));
                 document.getElementById('pause-rotation').addEventListener('click', pauseRotation);
-                document.getElementById('hex-input').addEventListener('input', changeColorFromHex);
+                
+                // Add material color change listeners
+                document.getElementById('outside-walls-color').addEventListener('input', (e) => changeMaterialKd('outside_walls', e.target.value));
+                document.getElementById('interior-walls-color').addEventListener('input', (e) => changeMaterialKd('interior_walls', e.target.value));
+                document.getElementById('garage-door-color').addEventListener('input', (e) => changeMaterialKd('Garage_door', e.target.value));
+                document.getElementById('interior-floor-color').addEventListener('input', (e) => changeMaterialKd('interior_floor', e.target.value));
+                
+                // Add texture change listener
+                document.getElementById('interior-floor-texture').addEventListener('change', changeFloorTexture);
+                
+                // Handle window resize
+                window.addEventListener('resize', onWindowResize);
+            }
+            
+            function onWindowResize() {
+                const container = document.getElementById('threejs-viewer');
+                const aspect = 16 / 12;
+                camera.aspect = aspect;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientWidth / aspect);
+            }
+
+            // Function to change only the Kd value of a specific material
+            function changeMaterialKd(materialName, colorHex) {
+                if (materials[materialName]) {
+                    const color = new THREE.Color(colorHex);
+                    
+                    // Update the material's Kd value
+                    materials[materialName].color.set(color);
+                    materials[materialName].needsUpdate = true;
+                    
+                    // For glass, we need to adjust opacity and specular properties when color changes
+                    if (materialName === 'window_glass') {
+                        // Keep glass properties like reflectivity when changing color
+                        materials[materialName].specular = new THREE.Color(0xffffff);
+                        materials[materialName].shininess = 100;
+                        
+                        // Adjust transparency based on how dark the color is
+                        const brightness = (color.r + color.g + color.b) / 3;
+                        materials[materialName].opacity = Math.max(0.5, Math.min(0.9, brightness));
+                    }
+                }
             }
 
             function setRotation(direction) {
@@ -1600,20 +2702,82 @@ def repair_estimator_project():
             function animate() {
                 requestAnimationFrame(animate);
                 if (isRotating && currentModel) {
-                    currentModel.rotation.y += rotationDirection * 0.01;
+                    currentModel.rotation.y += rotationDirection * 0.01; // Continuous rotation based on direction
                 }
                 controls.update();
                 renderer.render(scene, camera);
             }
 
-            function loadOBJFile(path) {
+            function loadOBJFile(path, isReload = false) {
                 const mtlLoader = new MTLLoader();
                 const objLoader = new OBJLoader();
                 
                 // First load the material file
-                mtlLoader.load('/assets/pk4.mtl', function(materials) {
-                    materials.preload();
-                    objLoader.setMaterials(materials);
+                mtlLoader.load('/assets/pk4.mtl', function(mtlMaterials) {
+                    mtlMaterials.preload();
+                    
+                    // Store references to the materials we want to modify
+                    for (const materialName in materials) {
+                        if (mtlMaterials.materials[materialName]) {
+                            materials[materialName] = mtlMaterials.materials[materialName];
+                            
+                            // Set initial color picker values based on material's Kd value
+                            const color = mtlMaterials.materials[materialName].color;
+                            const hexColor = '#' + color.getHexString();
+                            const elementId = materialName.replace('_', '-').toLowerCase() + '-color';
+                            const colorPicker = document.getElementById(elementId);
+                            if (colorPicker) {
+                                colorPicker.value = hexColor;
+                            }
+                            
+                            // Enhance glass material properties specifically
+                            if (materialName === 'window_glass') {
+                                materials[materialName].transparent = true;
+                                materials[materialName].opacity = 0.8;
+                                materials[materialName].shininess = 100; // Higher shininess for more focused reflections
+                                materials[materialName].specular = new THREE.Color(0xffffff); // Add specular highlights
+                                materials[materialName].refractionRatio = 0.98; // Add refraction for glass effect
+                            }
+                            
+                            // For interior_floor, add some additional properties
+                            if (materialName === 'interior_floor') {
+                                // Set basic material properties
+                                materials[materialName].shininess = 30;
+                                materials[materialName].specular = new THREE.Color(0x222222);
+
+                                // Load and apply the default texture ('wood') initially
+                                const defaultTexturePath = '/assets/floor.jpg';
+                                textureLoader.load(defaultTexturePath, (texture) => {
+                                    console.log('Initial texture loaded:', texture); // Log texture object
+                                    if (texture.image) {
+                                        console.log('Initial texture image dimensions:', texture.image.width, texture.image.height);
+                                    } else {
+                                        console.warn('Initial texture image not loaded.');
+                                    }
+                                    // Configure texture wrapping and repetition
+                                    texture.wrapS = THREE.RepeatWrapping;
+                                    texture.wrapT = THREE.RepeatWrapping;
+                                    texture.repeat.set( 1, 1 ); // Repeat texture 1 time (make pattern larger)
+
+                                    materials[materialName].map = texture;
+                                    materials[materialName].color.set(0xFFFFFF); // Ensure base color is white
+                                    materials[materialName].needsUpdate = true;
+                                    console.log(`Initial floor texture set. Material map:`, materials[materialName].map); // Log map property
+                                    console.log('Initial floor material FULL:', JSON.stringify(materials[materialName].toJSON(), null, 2)); // Log the full material state
+                                }, undefined, (error) => { // Add error callback
+                                     console.error(`Error loading initial texture: ${defaultTexturePath}`, error);
+                                });
+
+                                // Update the texture dropdown to match the current texture
+                                const floorTextureDropdown = document.getElementById('interior-floor-texture');
+                                if (floorTextureDropdown) {
+                                    floorTextureDropdown.value = currentFloorTexture;
+                                }
+                            }
+                        }
+                    }
+                    
+                    objLoader.setMaterials(mtlMaterials);
                     
                     // Then load the OBJ file
                     objLoader.load('/assets/pk4.obj', function(object) {
@@ -1635,33 +2799,8 @@ def repair_estimator_project():
                         camera.position.set(0, 0, 8.0);
                         controls.target.set(0, 0, 0);
                         controls.update();
-
-                        // Set default color to green
-                        object.traverse((child) => {
-                            if (child.isMesh) {
-                                child.material.color.set('#00ff00');
-                                child.material.needsUpdate = true;
-                            }
-                        });
                     });
                 });
-            }
-
-            function updateHexInput(color) {
-                document.getElementById('hex-input').value = `#${color.getHexString()}`;
-            }
-
-            function changeColor(event) {
-                const color = new THREE.Color(event.target.value);
-                if (currentModel) {
-                    currentModel.traverse((child) => {
-                        if (child.isMesh) {
-                            child.material.color.set(color);
-                            child.material.needsUpdate = true;
-                        }
-                    });
-                }
-                updateHexInput(color);
             }
 
             function changeZoom(event) {
@@ -1673,7 +2812,7 @@ def repair_estimator_project():
             function zoomIn() {
                 const slider = document.getElementById('zoom-input');
                 let currentZoom = parseFloat(slider.value);
-                let newZoom = Math.max(parseFloat(slider.min), currentZoom - 2);
+                let newZoom = Math.max(parseFloat(slider.min), currentZoom - 2); // Decrease z for zoom in
                 slider.value = newZoom;
                 camera.position.z = newZoom;
                 controls.update();
@@ -1682,24 +2821,72 @@ def repair_estimator_project():
             function zoomOut() {
                 const slider = document.getElementById('zoom-input');
                 let currentZoom = parseFloat(slider.value);
-                let newZoom = Math.min(parseFloat(slider.max), currentZoom + 2);
+                let newZoom = Math.min(parseFloat(slider.max), currentZoom + 2); // Increase z for zoom out
                 slider.value = newZoom;
                 camera.position.z = newZoom;
                 controls.update();
             }
 
-            function changeColorFromHex(event) {
-                const hexValue = event.target.value;
-                if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
-                    const color = new THREE.Color(hexValue);
-                    if (currentModel) {
-                        currentModel.traverse((child) => {
-                            if (child.isMesh) {
-                                child.material.color.set(color);
-                            }
-                        });
+            // Function to change floor texture using TextureLoader
+            function changeFloorTexture(event) {
+                const textureType = event.target.value;
+                currentFloorTexture = textureType; // Store the selection globally
+                
+                // Reset color picker to default white
+                const colorPicker = document.getElementById('interior-floor-color');
+                if (colorPicker) {
+                    colorPicker.value = "#FFFFFF";
+                }
+                
+                if (materials['interior_floor']) {
+                    const floorMaterial = materials['interior_floor'];
+                    let texturePath = '';
+
+                    if (textureType === 'wood') {
+                        texturePath = '/assets/floor.jpg';
+                    } else if (textureType === 'carpet') {
+                        texturePath = '/assets/carpet.jpg';
+                    } else if (textureType === 'porcelain') { // Added condition for porcelain
+                        texturePath = '/assets/porcelain.jpg';
+                    } else {
+                        console.error("Unknown texture type:", textureType);
+                        return; // Exit if texture type is unknown
                     }
-                    updateHexInput(color);
+
+                    console.log(`Attempting to load texture: ${texturePath}`);
+
+                    // Load the new texture
+                    textureLoader.load(
+                        texturePath,
+                        // onLoad callback
+                        (texture) => {
+                            console.log(`Texture loaded successfully: ${texturePath}`, texture); // Log texture object
+                             if (texture.image) {
+                                 console.log('Texture image dimensions:', texture.image.width, texture.image.height);
+                            } else {
+                                 console.warn('Texture image not loaded.');
+                            }
+                            // Configure texture wrapping and repetition
+                            texture.wrapS = THREE.RepeatWrapping;
+                            texture.wrapT = THREE.RepeatWrapping;
+                            texture.repeat.set( 1, 1 ); // Repeat texture 1 time (make pattern larger)
+
+                            floorMaterial.map = texture; // Assign the loaded texture to the material's map property
+                            floorMaterial.color.set(0xFFFFFF); // Set color to white to show texture directly
+                            floorMaterial.needsUpdate = true; // Signal Three.js to update the material
+                            console.log(`Changed floor texture to ${textureType}. Material map:`, floorMaterial.map); // Log map property
+                            console.log('Updated floor material color:', floorMaterial.color); // Log color
+                            console.log('Updated floor material FULL:', JSON.stringify(floorMaterial.toJSON(), null, 2)); // Log the full material state
+                        },
+                        // onProgress callback (optional)
+                        undefined,
+                        // onError callback
+                        (error) => {
+                            console.error(`Error loading texture: ${texturePath}`, error);
+                        }
+                    );
+                } else {
+                    console.warn("Interior floor material not found yet.");
                 }
             }
 
@@ -1707,6 +2894,11 @@ def repair_estimator_project():
             init();
         </script>
 
+        <div class="footer">
+            <div class="footer-content">
+                <div class="footer-copyright">SERENE BUILD - IREOLUWA</div>
+            </div>
+        </div>
     </body>
     </html>
     '''
