@@ -742,7 +742,16 @@ def mission():
             <div class="threejs-container">
                 <div id="threejs-viewer"></div>
         </div>
-                <div class="controls">
+        
+        <div id="object-interaction-area" style="text-align: center; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+            <span id="clicked-object-display" style="font-family: 'Oswald', sans-serif; color: #000080; font-weight: bold;">
+                Clicked: (None)
+            </span>
+            <input type="color" id="selected-object-color-picker" style="display: none; width: 40px; height: 30px; border: 1px solid #ccc; padding: 2px; cursor: pointer;">
+            <button id="toggle-object-visibility" style="display: none; padding: 4px 8px; font-size: 12px;">Hide</button> 
+        </div>
+        
+        <div class="controls">
             <h4>Customize Materials:</h4>
                     <div class="material-controls">
                         <div class="material-control">
@@ -798,13 +807,6 @@ def mission():
             <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
             <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
         </div>
-        <div id="object-interaction-area" style="text-align: center; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
-            <span id="clicked-object-display" style="font-family: 'Oswald', sans-serif; color: #000080; font-weight: bold;">
-                Clicked: (None)
-            </span>
-            <input type="color" id="selected-object-color-picker" style="display: none; width: 40px; height: 30px; border: 1px solid #ccc; padding: 2px; cursor: pointer;">
-            <button id="toggle-object-visibility" style="display: none; padding: 4px 8px; font-size: 12px;">Hide</button> 
-        </div>
 
         <div class="subtitle" style="margin-top: 60px;">
             <span class="combined-bubble-text gold" data-text="3D MODEL VIEWER - GLB(WIP)">3D MODEL VIEWER - GLB(WIP)</span>
@@ -813,8 +815,17 @@ def mission():
             <div class="threejs-container">
                 <div id="glb-viewer"></div>
         </div>
-                <div class="controls">
-                    <h4>Customize Materials:</h4>
+        
+        <div id="object-interaction-area" style="text-align: center; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+            <span id="clicked-object-display" style="font-family: 'Oswald', sans-serif; color: #000080; font-weight: bold;">
+                Clicked: (None)
+            </span>
+            <input type="color" id="selected-object-color-picker" style="display: none; width: 40px; height: 30px; border: 1px solid #ccc; padding: 2px; cursor: pointer;">
+            <button id="toggle-object-visibility" style="display: none; padding: 4px 8px; font-size: 12px;">Hide</button> 
+        </div>
+        
+        <div class="controls">
+            <h4>Customize Materials:</h4>
                     <div class="material-controls">
                         <div class="material-control">
                             <label for="glb-shoe-color">Shoe Color:</label>
@@ -2743,7 +2754,16 @@ def repair_estimator_project():
             <div class="threejs-container">
                 <div id="threejs-viewer"></div>
         </div>
-                <div class="controls">
+        
+        <div id="object-interaction-area" style="text-align: center; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+            <span id="clicked-object-display" style="font-family: 'Oswald', sans-serif; color: #000080; font-weight: bold;">
+                Clicked: (None)
+            </span>
+            <input type="color" id="selected-object-color-picker" style="display: none; width: 40px; height: 30px; border: 1px solid #ccc; padding: 2px; cursor: pointer;">
+            <button id="toggle-object-visibility" style="display: none; padding: 4px 8px; font-size: 12px;">Hide</button> 
+        </div>
+        
+        <div class="controls">
             <h4>Customize Materials:</h4>
                     <div class="material-controls">
                         <div class="material-control">
@@ -2799,6 +2819,11 @@ def repair_estimator_project():
             <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
             <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
         </div>
+
+        <div class="threejs-container">
+                <div id="glb-viewer"></div>
+        </div>
+        
         <div id="object-interaction-area" style="text-align: center; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
             <span id="clicked-object-display" style="font-family: 'Oswald', sans-serif; color: #000080; font-weight: bold;">
                 Clicked: (None)
@@ -2806,6 +2831,105 @@ def repair_estimator_project():
             <input type="color" id="selected-object-color-picker" style="display: none; width: 40px; height: 30px; border: 1px solid #ccc; padding: 2px; cursor: pointer;">
             <button id="toggle-object-visibility" style="display: none; padding: 4px 8px; font-size: 12px;">Hide</button> 
         </div>
+        
+        <div class="controls">
+            <h4>Customize Materials:</h4>
+                    <div class="material-controls">
+                        <div class="material-control">
+                            <label for="glb-shoe-color">Shoe Color:</label>
+                            <input type="color" id="glb-shoe-color" value="#FFFFFF">
+                        </div>
+                    </div>
+                    
+                    <label for="glb-zoom-input">Zoom:</label>
+                    <button id="glb-zoom-out">-</button>
+                    <input type="number" id="glb-zoom-input" min="1" max="100" value="25" step="1">
+                    <button id="glb-zoom-in">+</button>
+                    
+                    <button id="glb-rotate-left">Rotate Left</button>
+                    <button id="glb-rotate-right">Rotate Right</button>
+                    <button id="glb-pause-rotation">Pause</button>
+                </div>
+        <div class="viewer-instructions">
+            <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
+            <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
+        </div>
+
+        <style>
+            .threejs-container {
+                width: 100%;
+                max-width: 1200px;
+                margin: 30px auto 0 auto; /* Adjust margin */
+                padding: 0;
+                background: transparent;
+                aspect-ratio: 16 / 12; /* Keep aspect ratio for the viewer box */
+            }
+
+            #threejs-viewer, #glb-viewer {
+                width: 100%;
+                height: 100%;
+                display: block;
+                margin: 0 auto;
+                border: 4px solid #FFD700;
+                border-radius: 10px;
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+                outline: 4px solid #ec128c;
+                overflow: hidden;
+            }
+
+            #glb-viewer {
+                /* No specific margin needed here anymore */
+            }
+
+            .controls {
+                max-width: 1200px; /* Match container width */
+                margin: 20px auto 10px auto; /* Spacing below viewer, above instructions */
+                text-align: center;
+                width: 95%; /* Slightly less than 100% for padding */
+                display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                align-items: center;
+                    gap: 10px;
+                }
+                
+            .material-controls {
+                display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                gap: 15px;
+                margin-bottom: 15px;
+                width: 100%;
+            }
+            
+            .material-control {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 10px;
+                background-color: rgba(240, 240, 240, 0.7);
+                border: 1px solid #ccc;
+                border-radius: 8px;
+            }
+
+            .viewer-instructions {
+                max-width: 1200px; /* Match container width */
+                margin: 10px auto 30px auto; /* Spacing below controls */
+                    padding: 10px;
+                background-color: rgba(240, 240, 240, 0.9);
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                width: 95%; /* Slightly less than 100% for padding */
+            }
+            
+            .interactive-note {
+                text-align: center;
+                font-family: 'Oswald', sans-serif;
+                font-size: 18px;
+                color: #000080;
+                margin: 5px 0;
+            }
+        </style>
 
         <script type="module">
             import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
