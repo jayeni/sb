@@ -782,6 +782,17 @@ def mission():
                     <button id="pause-rotation">Pause</button>
                 </div>
             </div>
+            
+            <!-- Added Environment Controls -->
+            <div class="control-section">
+                 <h4>Environment Controls:</h4>
+                 <div class="environment-controls">
+                     <label for="lighting-intensity">Lighting:</label>
+                     <input type="range" id="lighting-intensity" min="0.1" max="2.5" step="0.1" value="1.0">
+                     <label for="background-color">Background:</label>
+                     <input type="color" id="background-color" value="#000000">
+                 </div>
+            </div>
         </div>
         <div class="viewer-instructions">
             <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
@@ -926,6 +937,8 @@ def mission():
             // Store current texture selection globally
             let currentFloorTexture = 'wood'; // Default to wood
             let textureLoader; // Declare texture loader
+            let allLights = []; // Array to store references to lights
+            let initialIntensities = {}; // Store initial light intensities
 
             function init() {
                 // Create scene
@@ -948,34 +961,42 @@ def mission():
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
                 container.appendChild(renderer.domElement);
 
-                // Add enhanced lighting setup (increased intensity)
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased from 0.6
+                // Add enhanced lighting setup 
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
                 scene.add(ambientLight);
+                allLights.push(ambientLight);
+                initialIntensities[ambientLight.uuid] = ambientLight.intensity;
                 
-                // Main directional light (like sunlight)
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Increased from 1.0
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
                 directionalLight.position.set(1, 1, 1);
                 directionalLight.castShadow = true;
                 scene.add(directionalLight);
+                allLights.push(directionalLight);
+                initialIntensities[directionalLight.uuid] = directionalLight.intensity;
                 
-                // Add a second directional light from opposite direction
-                const backLight = new THREE.DirectionalLight(0xffffff, 0.8); // Increased from 0.6
+                const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
                 backLight.position.set(-1, 0.5, -1);
                 scene.add(backLight);
+                allLights.push(backLight);
+                initialIntensities[backLight.uuid] = backLight.intensity;
                 
-                // Add point lights to enhance reflections
-                const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 50); // Increased from 0.8
+                const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 50);
                 pointLight1.position.set(5, 5, 5);
                 scene.add(pointLight1);
+                allLights.push(pointLight1);
+                initialIntensities[pointLight1.uuid] = pointLight1.intensity;
                 
-                const pointLight2 = new THREE.PointLight(0xffffff, 0.8, 50); // Increased from 0.6
+                const pointLight2 = new THREE.PointLight(0xffffff, 0.8, 50);
                 pointLight2.position.set(-5, 3, -5);
                 scene.add(pointLight2);
+                allLights.push(pointLight2);
+                initialIntensities[pointLight2.uuid] = pointLight2.intensity;
                 
-                // Add additional point light from below
-                const pointLight3 = new THREE.PointLight(0xffffff, 0.7, 50); // Increased from 0.5
+                const pointLight3 = new THREE.PointLight(0xffffff, 0.7, 50);
                 pointLight3.position.set(0, -5, 0);
                 scene.add(pointLight3);
+                allLights.push(pointLight3);
+                initialIntensities[pointLight3.uuid] = pointLight3.intensity;
 
                 // Add controls
                 controls = new OrbitControls(camera, renderer.domElement);
@@ -1005,6 +1026,10 @@ def mission():
                 
                 // Add texture change listener
                 document.getElementById('interior-floor-texture').addEventListener('change', changeFloorTexture);
+                
+                // Add event listeners for NEW controls
+                document.getElementById('lighting-intensity').addEventListener('input', changeLightingIntensity);
+                document.getElementById('background-color').addEventListener('input', changeBackgroundColor);
             }
 
             // Function to change only the Kd value of a specific material
@@ -1407,6 +1432,22 @@ def mission():
                 } else {
                     console.warn("Interior floor material not found yet.");
                 }
+            }
+
+            // NEW Function to change lighting intensity
+            function changeLightingIntensity(event) {
+                const multiplier = parseFloat(event.target.value);
+                allLights.forEach(light => {
+                    if (initialIntensities[light.uuid] !== undefined) {
+                        light.intensity = initialIntensities[light.uuid] * multiplier;
+                    }
+                });
+            }
+
+            // NEW Function to change background color
+            function changeBackgroundColor(event) {
+                const color = new THREE.Color(event.target.value);
+                scene.background = color;
             }
 
             // Initialize both viewers when the DOM is loaded
@@ -2547,6 +2588,17 @@ def repair_estimator_project():
                     <button id="pause-rotation">Pause</button>
                 </div>
             </div>
+            
+            <!-- Added Environment Controls -->
+            <div class="control-section">
+                 <h4>Environment Controls:</h4>
+                 <div class="environment-controls">
+                     <label for="lighting-intensity">Lighting:</label>
+                     <input type="range" id="lighting-intensity" min="0.1" max="2.5" step="0.1" value="1.0">
+                     <label for="background-color">Background:</label>
+                     <input type="color" id="background-color" value="#000000">
+                 </div>
+            </div>
         </div>
         <div class="viewer-instructions">
             <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
@@ -2576,6 +2628,8 @@ def repair_estimator_project():
             // Store current texture selection globally
             let currentFloorTexture = 'wood'; // Default to wood
             let textureLoader; // Declare texture loader
+            let allLights = []; // Array to store references to lights
+            let initialIntensities = {}; // Store initial light intensities
 
             function init() {
                 // Create scene
@@ -2598,34 +2652,42 @@ def repair_estimator_project():
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
                 container.appendChild(renderer.domElement);
 
-                // Add enhanced lighting setup (increased intensity)
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased from 0.6
+                // Add enhanced lighting setup 
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
                 scene.add(ambientLight);
+                allLights.push(ambientLight);
+                initialIntensities[ambientLight.uuid] = ambientLight.intensity;
                 
-                // Main directional light (like sunlight)
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Increased from 1.0
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
                 directionalLight.position.set(1, 1, 1);
                 directionalLight.castShadow = true;
                 scene.add(directionalLight);
+                allLights.push(directionalLight);
+                initialIntensities[directionalLight.uuid] = directionalLight.intensity;
                 
-                // Add a second directional light from opposite direction
-                const backLight = new THREE.DirectionalLight(0xffffff, 0.8); // Increased from 0.6
+                const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
                 backLight.position.set(-1, 0.5, -1);
                 scene.add(backLight);
+                allLights.push(backLight);
+                initialIntensities[backLight.uuid] = backLight.intensity;
                 
-                // Add point lights to enhance reflections
-                const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 50); // Increased from 0.8
+                const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 50);
                 pointLight1.position.set(5, 5, 5);
                 scene.add(pointLight1);
+                allLights.push(pointLight1);
+                initialIntensities[pointLight1.uuid] = pointLight1.intensity;
                 
-                const pointLight2 = new THREE.PointLight(0xffffff, 0.8, 50); // Increased from 0.6
+                const pointLight2 = new THREE.PointLight(0xffffff, 0.8, 50);
                 pointLight2.position.set(-5, 3, -5);
                 scene.add(pointLight2);
+                allLights.push(pointLight2);
+                initialIntensities[pointLight2.uuid] = pointLight2.intensity;
                 
-                // Add additional point light from below
-                const pointLight3 = new THREE.PointLight(0xffffff, 0.7, 50); // Increased from 0.5
+                const pointLight3 = new THREE.PointLight(0xffffff, 0.7, 50);
                 pointLight3.position.set(0, -5, 0);
                 scene.add(pointLight3);
+                allLights.push(pointLight3);
+                initialIntensities[pointLight3.uuid] = pointLight3.intensity;
 
                 // Add controls
                 controls = new OrbitControls(camera, renderer.domElement);
@@ -2656,16 +2718,9 @@ def repair_estimator_project():
                 // Add texture change listener
                 document.getElementById('interior-floor-texture').addEventListener('change', changeFloorTexture);
                 
-                // Handle window resize
-                window.addEventListener('resize', onWindowResize);
-            }
-            
-            function onWindowResize() {
-                const container = document.getElementById('threejs-viewer');
-                const aspect = 16 / 12;
-                camera.aspect = aspect;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.clientWidth, container.clientWidth / aspect);
+                // Add event listeners for NEW controls
+                document.getElementById('lighting-intensity').addEventListener('input', changeLightingIntensity);
+                document.getElementById('background-color').addEventListener('input', changeBackgroundColor);
             }
 
             // Function to change only the Kd value of a specific material
@@ -2888,6 +2943,22 @@ def repair_estimator_project():
                 } else {
                     console.warn("Interior floor material not found yet.");
                 }
+            }
+
+            // NEW Function to change lighting intensity
+            function changeLightingIntensity(event) {
+                const multiplier = parseFloat(event.target.value);
+                allLights.forEach(light => {
+                    if (initialIntensities[light.uuid] !== undefined) {
+                        light.intensity = initialIntensities[light.uuid] * multiplier;
+                    }
+                });
+            }
+
+            // NEW Function to change background color
+            function changeBackgroundColor(event) {
+                const color = new THREE.Color(event.target.value);
+                scene.background = color;
             }
 
             // Initialize viewer
