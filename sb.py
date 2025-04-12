@@ -1525,7 +1525,12 @@ def mission():
                 selectedMaterialForEditing = null;
                 selectedMeshForEditing = null;
                 colorPicker.style.display = 'none';
-                visibilityButton.style.display = 'none'; 
+                visibilityButton.style.display = 'none';
+                
+                // Reset menu item backgrounds
+                document.querySelectorAll('.model-group-item').forEach(item => {
+                    item.style.backgroundColor = 'rgba(50, 50, 50, 0.7)';
+                });
 
                 const rect = renderer.domElement.getBoundingClientRect();
                 mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -1537,60 +1542,16 @@ def mission():
                     intersects = raycaster.intersectObject(currentModel, true);
                 }
 
+                // Clear previous outline selection
+                outlinePass.selectedObjects = [];
+
                 if (intersects.length > 0) {
                     const intersection = intersects[0];
                     const object = intersection.object; // This is the mesh
                     
                     if (object instanceof THREE.Mesh) {
                         selectedMeshForEditing = object; // Store the selected mesh
-                        let targetMaterial;
-                        // Handle multi-materials used on a single mesh
-                        if (Array.isArray(object.material)) {
-                            if (intersection.face && object.material[intersection.face.materialIndex]) {
-                                targetMaterial = object.material[intersection.face.materialIndex];
-                            } else {
-                                // Fallback or decide how to handle if materialIndex is invalid
-                                targetMaterial = object.material[0]; // Default to first material?
-                                console.warn("Clicked mesh has multiple materials, but face index was invalid. Targeting first material.");
-                            }
-                        } else {
-                            // Single material
-                            targetMaterial = object.material;
-                        }
-
-                        if (targetMaterial) {
-                            selectedMaterialForEditing = targetMaterial;
-                            const objectName = object.name || 'Unnamed Mesh';
-                            displayElement.textContent = `Editing: ${objectName}`;
-                            
-                            // Set picker color and show controls
-                            colorPicker.value = `#${selectedMaterialForEditing.color.getHexString()}`;
-                            colorPicker.style.display = 'inline-block';
-                            
-                            // Update and show visibility button
-                            visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
-                            visibilityButton.style.display = 'inline-block';
-                            
-                            console.log("Selected mesh:", selectedMeshForEditing);
-                            console.log("Selected material:", selectedMaterialForEditing);
-                        } else {
-                             displayElement.textContent = 'Clicked: (No material found)';
-                        }
-                    } else {
-                         displayElement.textContent = 'Clicked: (Not a mesh)';
-                    }        
-                } else {
-                    displayElement.textContent = 'Clicked: (None)';
-                }
-
-                // Clear previous outline selection
-                outlinePass.selectedObjects = [];
-
-                if (intersects.length > 0) {
-                    const object = intersects[0].object;
-                    
-                    if (object instanceof THREE.Mesh) {
-                        selectedMeshForEditing = object;
+                        
                         // Highlight selected mesh with yellow outline
                         outlinePass.selectedObjects = [selectedMeshForEditing];
                         
@@ -1612,7 +1573,7 @@ def mission():
                         if (targetMaterial) {
                             selectedMaterialForEditing = targetMaterial;
                             const objectName = object.name || 'Unnamed Mesh';
-                            displayElement.textContent = `Editing: ${objectName}`;
+                            displayElement.textContent = `Selected: ${objectName}`;
                             
                             // Set picker color and show controls
                             colorPicker.value = `#${selectedMaterialForEditing.color.getHexString()}`;
@@ -1622,18 +1583,36 @@ def mission():
                             visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
                             visibilityButton.style.display = 'inline-block';
                             
+                            // Find and highlight the corresponding menu item
+                            const menuItems = document.querySelectorAll('.model-group-item');
+                            menuItems.forEach(item => {
+                                const nameElement = item.querySelector('div > div:last-child');
+                                if (nameElement && nameElement.textContent === objectName) {
+                                    item.style.backgroundColor = 'rgba(80, 80, 80, 0.9)';
+                                    
+                                    // Scroll the menu to show the selected item if needed
+                                    const menuContainer = document.getElementById('model-groups-menu');
+                                    if (menuContainer) {
+                                        const itemRect = item.getBoundingClientRect();
+                                        const containerRect = menuContainer.getBoundingClientRect();
+                                        
+                                        if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
+                                            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                        }
+                                    }
+                                }
+                            });
+                            
                             console.log("Selected mesh:", selectedMeshForEditing);
                             console.log("Selected material:", selectedMaterialForEditing);
                         } else {
-                             displayElement.textContent = 'Clicked: (No material found)';
+                            displayElement.textContent = 'Clicked: (No material found)';
                         }
                     } else {
-                         displayElement.textContent = 'Clicked: (Not a mesh)';
+                        displayElement.textContent = 'Clicked: (Not a mesh)';
                     }
                 } else {
                     displayElement.textContent = 'Clicked: (None)';
-                    // Clear outline when nothing is clicked
-                    outlinePass.selectedObjects = [];
                 }
             }
 
@@ -1770,11 +1749,99 @@ def mission():
                     groupItem.style.borderRadius = '4px';
                     groupItem.style.backgroundColor = 'rgba(60, 60, 60, 0.7)';
                     
-                    // Create group name
+                    // Create group name with icon
+                    const groupHeader = document.createElement('div');
+                    groupHeader.style.display = 'flex';
+                    groupHeader.style.alignItems = 'center';
+                    groupHeader.style.marginBottom = '8px';
+                    groupHeader.style.cursor = 'pointer';
+                    groupHeader.style.userSelect = 'none';
+                    
+                    // Add cube icon
+                    const groupIcon = document.createElement('div');
+                    groupIcon.innerHTML = '&#9632;'; // Cube symbol
+                    groupIcon.style.marginRight = '8px';
+                    groupIcon.style.fontSize = '12px';
+                    groupIcon.style.color = 'rgba(180, 180, 180, 1)';
+                    
+                    // Add group name
                     const groupName = document.createElement('div');
                     groupName.textContent = name;
-                    groupName.style.marginBottom = '5px';
-                    groupItem.appendChild(groupName);
+                    groupName.style.fontSize = '13px';
+                    groupName.style.fontWeight = 'bold';
+                    groupName.style.overflow = 'hidden';
+                    groupName.style.textOverflow = 'ellipsis';
+                    groupName.style.whiteSpace = 'nowrap';
+                    
+                    groupHeader.appendChild(groupIcon);
+                    groupHeader.appendChild(groupName);
+                    
+                    // Add click handler for the group header
+                    groupHeader.addEventListener('click', () => {
+                        // Clear any previous selections
+                        document.querySelectorAll('.model-group-item').forEach(item => {
+                            item.style.backgroundColor = 'rgba(50, 50, 50, 0.7)';
+                        });
+                        
+                        // Highlight this group item
+                        groupItem.style.backgroundColor = 'rgba(80, 80, 80, 0.9)';
+                        
+                        // Clear previous outline selection
+                        outlinePass.selectedObjects = [];
+                        
+                        // Set this object as the selection
+                        outlinePass.selectedObjects = [node];
+                        
+                        // Update the display element
+                        const displayElement = document.getElementById('clicked-object-display');
+                        if (displayElement) {
+                            displayElement.textContent = `Selected: ${name}`;
+                        }
+                        
+                        // Update color picker and visibility button in the main UI if they exist
+                        const colorPicker = document.getElementById('selected-object-color-picker');
+                        const visibilityButton = document.getElementById('toggle-object-visibility');
+                        
+                        if (colorPicker) {
+                            colorPicker.style.display = 'inline-block';
+                            if (node.material) {
+                                const material = Array.isArray(node.material) ? node.material[0] : node.material;
+                                if (material && material.color) {
+                                    colorPicker.value = '#' + material.color.getHexString();
+                                }
+                            }
+                        }
+                        
+                        if (visibilityButton) {
+                            visibilityButton.style.display = 'inline-block';
+                            visibilityButton.textContent = node.visible ? 'Hide' : 'Show';
+                        }
+                        
+                        // Store references for the click handler
+                        selectedMeshForEditing = node;
+                        selectedMaterialForEditing = Array.isArray(node.material) ? node.material[0] : node.material;
+                    });
+                    
+                    // Add hover effect for the header
+                    groupHeader.addEventListener('mouseover', () => {
+                        if (!outlinePass.selectedObjects.includes(node)) {
+                            groupHeader.style.backgroundColor = 'rgba(70, 70, 70, 0.5)';
+                        }
+                    });
+                    
+                    groupHeader.addEventListener('mouseout', () => {
+                        if (!outlinePass.selectedObjects.includes(node)) {
+                            groupHeader.style.backgroundColor = 'transparent';
+                        }
+                    });
+                    
+                    groupItem.appendChild(groupHeader);
+                    
+                    // Create controls container
+                    const controlsContainer = document.createElement('div');
+                    controlsContainer.style.display = 'flex';
+                    controlsContainer.style.flexDirection = 'column';
+                    controlsContainer.style.gap = '8px';
                     
                     // Create color picker
                     const colorPicker = document.createElement('input');
@@ -1813,7 +1880,7 @@ def mission():
                         }
                     });
                     
-                    groupItem.appendChild(colorPicker);
+                    controlsContainer.appendChild(colorPicker);
                     
                     // Create visibility toggle button
                     const visibilityBtn = document.createElement('button');
@@ -1832,7 +1899,8 @@ def mission():
                         visibilityBtn.textContent = node.visible ? 'Hide' : 'Show';
                     });
                     
-                    groupItem.appendChild(visibilityBtn);
+                    controlsContainer.appendChild(visibilityBtn);
+                    groupItem.appendChild(controlsContainer);
                     groupsContainer.appendChild(groupItem);
                 });
                 
@@ -3534,7 +3602,12 @@ def repair_estimator_project():
                 selectedMaterialForEditing = null;
                 selectedMeshForEditing = null;
                 colorPicker.style.display = 'none';
-                visibilityButton.style.display = 'none'; 
+                visibilityButton.style.display = 'none';
+                
+                // Reset menu item backgrounds
+                document.querySelectorAll('.model-group-item').forEach(item => {
+                    item.style.backgroundColor = 'rgba(50, 50, 50, 0.7)';
+                });
 
                 const rect = renderer.domElement.getBoundingClientRect();
                 mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -3546,60 +3619,16 @@ def repair_estimator_project():
                     intersects = raycaster.intersectObject(currentModel, true);
                 }
 
+                // Clear previous outline selection
+                outlinePass.selectedObjects = [];
+
                 if (intersects.length > 0) {
                     const intersection = intersects[0];
                     const object = intersection.object; // This is the mesh
                     
                     if (object instanceof THREE.Mesh) {
                         selectedMeshForEditing = object; // Store the selected mesh
-                        let targetMaterial;
-                        // Handle multi-materials used on a single mesh
-                        if (Array.isArray(object.material)) {
-                            if (intersection.face && object.material[intersection.face.materialIndex]) {
-                                targetMaterial = object.material[intersection.face.materialIndex];
-                            } else {
-                                // Fallback or decide how to handle if materialIndex is invalid
-                                targetMaterial = object.material[0]; // Default to first material?
-                                console.warn("Clicked mesh has multiple materials, but face index was invalid. Targeting first material.");
-                            }
-                        } else {
-                            // Single material
-                            targetMaterial = object.material;
-                        }
-
-                        if (targetMaterial) {
-                            selectedMaterialForEditing = targetMaterial;
-                            const objectName = object.name || 'Unnamed Mesh';
-                            displayElement.textContent = `Editing: ${objectName}`;
-                            
-                            // Set picker color and show controls
-                            colorPicker.value = `#${selectedMaterialForEditing.color.getHexString()}`;
-                            colorPicker.style.display = 'inline-block';
-                            
-                            // Update and show visibility button
-                            visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
-                            visibilityButton.style.display = 'inline-block';
-                            
-                            console.log("Selected mesh:", selectedMeshForEditing);
-                            console.log("Selected material:", selectedMaterialForEditing);
-                        } else {
-                             displayElement.textContent = 'Clicked: (No material found)';
-                        }
-                    } else {
-                         displayElement.textContent = 'Clicked: (Not a mesh)';
-                    }        
-                } else {
-                    displayElement.textContent = 'Clicked: (None)';
-                }
-
-                // Clear previous outline selection
-                outlinePass.selectedObjects = [];
-
-                if (intersects.length > 0) {
-                    const object = intersects[0].object;
-                    
-                    if (object instanceof THREE.Mesh) {
-                        selectedMeshForEditing = object;
+                        
                         // Highlight selected mesh with yellow outline
                         outlinePass.selectedObjects = [selectedMeshForEditing];
                         
@@ -3621,7 +3650,7 @@ def repair_estimator_project():
                         if (targetMaterial) {
                             selectedMaterialForEditing = targetMaterial;
                             const objectName = object.name || 'Unnamed Mesh';
-                            displayElement.textContent = `Editing: ${objectName}`;
+                            displayElement.textContent = `Selected: ${objectName}`;
                             
                             // Set picker color and show controls
                             colorPicker.value = `#${selectedMaterialForEditing.color.getHexString()}`;
@@ -3631,18 +3660,36 @@ def repair_estimator_project():
                             visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
                             visibilityButton.style.display = 'inline-block';
                             
+                            // Find and highlight the corresponding menu item
+                            const menuItems = document.querySelectorAll('.model-group-item');
+                            menuItems.forEach(item => {
+                                const nameElement = item.querySelector('div > div:last-child');
+                                if (nameElement && nameElement.textContent === objectName) {
+                                    item.style.backgroundColor = 'rgba(80, 80, 80, 0.9)';
+                                    
+                                    // Scroll the menu to show the selected item if needed
+                                    const menuContainer = document.getElementById('model-groups-menu');
+                                    if (menuContainer) {
+                                        const itemRect = item.getBoundingClientRect();
+                                        const containerRect = menuContainer.getBoundingClientRect();
+                                        
+                                        if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
+                                            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                        }
+                                    }
+                                }
+                            });
+                            
                             console.log("Selected mesh:", selectedMeshForEditing);
                             console.log("Selected material:", selectedMaterialForEditing);
                         } else {
-                             displayElement.textContent = 'Clicked: (No material found)';
+                            displayElement.textContent = 'Clicked: (No material found)';
                         }
                     } else {
-                         displayElement.textContent = 'Clicked: (Not a mesh)';
+                        displayElement.textContent = 'Clicked: (Not a mesh)';
                     }
                 } else {
                     displayElement.textContent = 'Clicked: (None)';
-                    // Clear outline when nothing is clicked
-                    outlinePass.selectedObjects = [];
                 }
             }
 
@@ -3705,11 +3752,99 @@ def repair_estimator_project():
                     groupItem.style.borderRadius = '4px';
                     groupItem.style.backgroundColor = 'rgba(60, 60, 60, 0.7)';
                     
-                    // Create group name
+                    // Create group name with icon
+                    const groupHeader = document.createElement('div');
+                    groupHeader.style.display = 'flex';
+                    groupHeader.style.alignItems = 'center';
+                    groupHeader.style.marginBottom = '8px';
+                    groupHeader.style.cursor = 'pointer';
+                    groupHeader.style.userSelect = 'none';
+                    
+                    // Add cube icon
+                    const groupIcon = document.createElement('div');
+                    groupIcon.innerHTML = '&#9632;'; // Cube symbol
+                    groupIcon.style.marginRight = '8px';
+                    groupIcon.style.fontSize = '12px';
+                    groupIcon.style.color = 'rgba(180, 180, 180, 1)';
+                    
+                    // Add group name
                     const groupName = document.createElement('div');
                     groupName.textContent = name;
-                    groupName.style.marginBottom = '5px';
-                    groupItem.appendChild(groupName);
+                    groupName.style.fontSize = '13px';
+                    groupName.style.fontWeight = 'bold';
+                    groupName.style.overflow = 'hidden';
+                    groupName.style.textOverflow = 'ellipsis';
+                    groupName.style.whiteSpace = 'nowrap';
+                    
+                    groupHeader.appendChild(groupIcon);
+                    groupHeader.appendChild(groupName);
+                    
+                    // Add click handler for the group header
+                    groupHeader.addEventListener('click', () => {
+                        // Clear any previous selections
+                        document.querySelectorAll('.model-group-item').forEach(item => {
+                            item.style.backgroundColor = 'rgba(50, 50, 50, 0.7)';
+                        });
+                        
+                        // Highlight this group item
+                        groupItem.style.backgroundColor = 'rgba(80, 80, 80, 0.9)';
+                        
+                        // Clear previous outline selection
+                        outlinePass.selectedObjects = [];
+                        
+                        // Set this object as the selection
+                        outlinePass.selectedObjects = [node];
+                        
+                        // Update the display element
+                        const displayElement = document.getElementById('clicked-object-display');
+                        if (displayElement) {
+                            displayElement.textContent = `Selected: ${name}`;
+                        }
+                        
+                        // Update color picker and visibility button in the main UI if they exist
+                        const colorPicker = document.getElementById('selected-object-color-picker');
+                        const visibilityButton = document.getElementById('toggle-object-visibility');
+                        
+                        if (colorPicker) {
+                            colorPicker.style.display = 'inline-block';
+                            if (node.material) {
+                                const material = Array.isArray(node.material) ? node.material[0] : node.material;
+                                if (material && material.color) {
+                                    colorPicker.value = '#' + material.color.getHexString();
+                                }
+                            }
+                        }
+                        
+                        if (visibilityButton) {
+                            visibilityButton.style.display = 'inline-block';
+                            visibilityButton.textContent = node.visible ? 'Hide' : 'Show';
+                        }
+                        
+                        // Store references for the click handler
+                        selectedMeshForEditing = node;
+                        selectedMaterialForEditing = Array.isArray(node.material) ? node.material[0] : node.material;
+                    });
+                    
+                    // Add hover effect for the header
+                    groupHeader.addEventListener('mouseover', () => {
+                        if (!outlinePass.selectedObjects.includes(node)) {
+                            groupHeader.style.backgroundColor = 'rgba(70, 70, 70, 0.5)';
+                        }
+                    });
+                    
+                    groupHeader.addEventListener('mouseout', () => {
+                        if (!outlinePass.selectedObjects.includes(node)) {
+                            groupHeader.style.backgroundColor = 'transparent';
+                        }
+                    });
+                    
+                    groupItem.appendChild(groupHeader);
+                    
+                    // Create controls container
+                    const controlsContainer = document.createElement('div');
+                    controlsContainer.style.display = 'flex';
+                    controlsContainer.style.flexDirection = 'column';
+                    controlsContainer.style.gap = '8px';
                     
                     // Create color picker
                     const colorPicker = document.createElement('input');
@@ -3748,7 +3883,7 @@ def repair_estimator_project():
                         }
                     });
                     
-                    groupItem.appendChild(colorPicker);
+                    controlsContainer.appendChild(colorPicker);
                     
                     // Create visibility toggle button
                     const visibilityBtn = document.createElement('button');
@@ -3767,7 +3902,8 @@ def repair_estimator_project():
                         visibilityBtn.textContent = node.visible ? 'Hide' : 'Show';
                     });
                     
-                    groupItem.appendChild(visibilityBtn);
+                    controlsContainer.appendChild(visibilityBtn);
+                    groupItem.appendChild(controlsContainer);
                     groupsContainer.appendChild(groupItem);
                 });
                 
