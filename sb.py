@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string
+from flask import Flask, render_template_string, send_from_directory
 
 app = Flask(__name__, static_folder="assets", static_url_path="/assets")
 
@@ -774,6 +774,8 @@ def mission():
                                 <option value="wood">Wooden Tile</option>
                                 <option value="carpet">Carpet</option>
                                 <option value="porcelain">Porcelain Tile</option>  <!-- Added porcelain option -->
+                                <option value="epoxy">Epoxy</option>  <!-- Added epoxy option -->
+                                <option value="concrete">Concrete</option>  <!-- Added concrete option -->
                             </select>
                         </div>
                     </div>
@@ -1455,8 +1457,12 @@ def mission():
                         texturePath = '/assets/floor.jpg';
                     } else if (textureType === 'carpet') {
                         texturePath = '/assets/carpet.jpg';
-                    } else if (textureType === 'porcelain') { // Added condition for porcelain
+                    } else if (textureType === 'porcelain') {
                         texturePath = '/assets/porcelain.jpg';
+                    } else if (textureType === 'epoxy') {
+                        texturePath = '/assets/600-epoxy-flooring-ideas-sample.jpg';
+                    } else if (textureType === 'concrete') {
+                        texturePath = '/assets/360_F_310285583_ILKFCwTerYFhqcIGiNL9zuY68sy7xd16.jpg';
                     } else {
                         console.error("Unknown texture type:", textureType);
                         return; // Exit if texture type is unknown
@@ -1469,27 +1475,25 @@ def mission():
                         texturePath,
                         // onLoad callback
                         (texture) => {
-                            console.log(`Texture loaded successfully: ${texturePath}`, texture); // Log texture object
-                             if (texture.image) {
-                                 console.log('Texture image dimensions:', texture.image.width, texture.image.height);
+                            console.log(`Texture loaded successfully: ${texturePath}`, texture);
+                            if (texture.image) {
+                                console.log('Texture image dimensions:', texture.image.width, texture.image.height);
                             } else {
-                                 console.warn('Texture image not loaded.');
+                                console.warn('Texture image not loaded.');
                             }
                             // Configure texture wrapping and repetition
                             texture.wrapS = THREE.RepeatWrapping;
                             texture.wrapT = THREE.RepeatWrapping;
-                            texture.repeat.set( 1, 1 ); // Repeat texture 1 time (make pattern larger)
+                            texture.repeat.set(1, 1); // Repeat texture 1 time (make pattern larger)
 
-                            floorMaterial.map = texture; // Assign the loaded texture to the material's map property
-                            floorMaterial.color.set(0xFFFFFF); // Set color to white to show texture directly
-                            floorMaterial.needsUpdate = true; // Signal Three.js to update the material
-                            console.log(`Changed floor texture to ${textureType}. Material map:`, floorMaterial.map); // Log map property
-                            console.log('Updated floor material color:', floorMaterial.color); // Log color
-                            console.log('Updated floor material FULL:', JSON.stringify(floorMaterial.toJSON(), null, 2)); // Log the full material state
+                            floorMaterial.map = texture;
+                            floorMaterial.color.set(0xFFFFFF);
+                            floorMaterial.needsUpdate = true;
+                            console.log(`Changed floor texture to ${textureType}. Material map:`, floorMaterial.map);
+                            console.log('Updated floor material color:', floorMaterial.color);
+                            console.log('Updated floor material FULL:', JSON.stringify(floorMaterial.toJSON(), null, 2));
                         },
-                        // onProgress callback (optional)
                         undefined,
-                        // onError callback
                         (error) => {
                             console.error(`Error loading texture: ${texturePath}`, error);
                         }
@@ -1881,6 +1885,122 @@ def mission():
                     });
                     
                     controlsContainer.appendChild(colorPicker);
+                    
+                    // Add floor texture selector for groups with "Floor" in their name
+                    if (name.toLowerCase().includes('floor')) {
+                        // Create texture selector container
+                        const textureContainer = document.createElement('div');
+                        textureContainer.style.marginTop = '5px';
+                        textureContainer.style.width = '100%';
+                        
+                        // Create label
+                        const textureLabel = document.createElement('label');
+                        textureLabel.textContent = 'Floor Texture:';
+                        textureLabel.style.display = 'block';
+                        textureLabel.style.marginBottom = '3px';
+                        textureLabel.style.fontSize = '12px';
+                        textureLabel.style.color = 'rgba(200, 200, 200, 1)';
+                        
+                        // Create select element
+                        const textureSelect = document.createElement('select');
+                        textureSelect.style.width = '100%';
+                        textureSelect.style.padding = '3px';
+                        textureSelect.style.backgroundColor = '#555';
+                        textureSelect.style.color = 'white';
+                        textureSelect.style.border = 'none';
+                        textureSelect.style.borderRadius = '3px';
+                        textureSelect.style.cursor = 'pointer';
+                        
+                        // Add texture options
+                        const textureOptions = [
+                            { value: 'wood', text: 'Wood' },
+                            { value: 'carpet', text: 'Carpet' },
+                            { value: 'porcelain', text: 'Porcelain Tile' },
+                            { value: 'epoxy', text: 'Epoxy' },
+                            { value: 'concrete', text: 'Concrete' }
+                        ];
+                        
+                        textureOptions.forEach(option => {
+                            const optionElement = document.createElement('option');
+                            optionElement.value = option.value;
+                            optionElement.textContent = option.text;
+                            textureSelect.appendChild(optionElement);
+                        });
+                        
+                        // Set default value to current floor texture
+                        textureSelect.value = currentFloorTexture || 'wood';
+                        
+                        // Add event listener to texture selector
+                        textureSelect.addEventListener('change', (e) => {
+                            const textureType = e.target.value;
+                            
+                            // Reset color picker to default white
+                            colorPicker.value = "#FFFFFF";
+                            
+                            if (node.material) {
+                                const material = Array.isArray(node.material) ? node.material[0] : node.material;
+                                let texturePath = '';
+                                
+                                if (textureType === 'wood') {
+                                    texturePath = '/assets/floor.jpg';
+                                } else if (textureType === 'carpet') {
+                                    texturePath = '/assets/carpet.jpg';
+                                } else if (textureType === 'porcelain') {
+                                    texturePath = '/assets/porcelain.jpg';
+                                } else if (textureType === 'epoxy') {
+                                    texturePath = '/assets/600-epoxy-flooring-ideas-sample.jpg';
+                                } else if (textureType === 'concrete') {
+                                    texturePath = '/assets/360_F_310285583_ILKFCwTerYFhqcIGiNL9zuY68sy7xd16.jpg';
+                                } else {
+                                    console.error("Unknown texture type:", textureType);
+                                    return;
+                                }
+                                
+                                console.log(`Attempting to load texture: ${texturePath}`);
+                                
+                                // Load the new texture
+                                textureLoader.load(
+                                    texturePath,
+                                    (texture) => {
+                                        console.log(`Texture loaded successfully: ${texturePath}`, texture);
+                                        if (texture.image) {
+                                            console.log('Texture image dimensions:', texture.image.width, texture.image.height);
+                                        } else {
+                                            console.warn('Texture image not loaded.');
+                                        }
+                                        
+                                        // Configure texture wrapping and repetition
+                                        texture.wrapS = THREE.RepeatWrapping;
+                                        texture.wrapT = THREE.RepeatWrapping;
+                                        texture.repeat.set(1, 1);
+                                        
+                                        // Apply texture to the material
+                                        if (Array.isArray(node.material)) {
+                                            node.material.forEach(mat => {
+                                                mat.map = texture;
+                                                mat.color.set(0xFFFFFF);
+                                                mat.needsUpdate = true;
+                                            });
+                                        } else {
+                                            node.material.map = texture;
+                                            node.material.color.set(0xFFFFFF);
+                                            node.material.needsUpdate = true;
+                                        }
+                                        
+                                        console.log(`Changed floor texture to ${textureType} for ${name}`);
+                                    },
+                                    undefined,
+                                    (error) => {
+                                        console.error(`Error loading texture: ${texturePath}`, error);
+                                    }
+                                );
+                            }
+                        });
+                        
+                        textureContainer.appendChild(textureLabel);
+                        textureContainer.appendChild(textureSelect);
+                        controlsContainer.appendChild(textureContainer);
+                    }
                     
                     // Create visibility toggle button
                     const visibilityBtn = document.createElement('button');
@@ -3044,6 +3164,8 @@ def repair_estimator_project():
                                 <option value="wood">Wooden Tile</option>
                                 <option value="carpet">Carpet</option>
                                 <option value="porcelain">Porcelain Tile</option>  <!-- Added porcelain option -->
+                                <option value="epoxy">Epoxy</option>  <!-- Added epoxy option -->
+                                <option value="concrete">Concrete</option>  <!-- Added concrete option -->
                             </select>
                         </div>
                     </div>
