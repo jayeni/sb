@@ -413,6 +413,9 @@ function onModelClick(event) {
     if(displayElement) displayElement.textContent = 'Clicked: (None)';
      document.querySelectorAll('.model-group-item').forEach(item => {
          item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)'; // Reset menu item background
+         // Reset text color as well
+         const nameEl = item.querySelector('.model-group-name');
+         if (nameEl) nameEl.style.color = '#eee'; // Default/reset color
      });
 
     if (intersects.length > 0) {
@@ -718,8 +721,11 @@ function onModelClick(event) {
       if (!(node instanceof THREE.Mesh)) return;
 
       // Reset previous selection visuals ONLY in side menu
-      document.querySelectorAll('.model-group-item').forEach(item => { // Only query side menu items
+      document.querySelectorAll('#right-menu-model-groups-content .model-group-item').forEach(item => { 
           item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)';
+          // Reset text color
+          const nameEl = item.querySelector('.model-group-name');
+          if (nameEl) nameEl.style.color = '#eee'; // Default/reset color
       });
       // REMOVED: Querying/resetting .material-control items
 
@@ -760,6 +766,10 @@ function onModelClick(event) {
       const menuItem = document.getElementById(`right-menu-model-groups-content-color-${node.uuid}`)?.closest('.model-group-item');
       if (menuItem) {
            menuItem.style.backgroundColor = 'rgba(80, 80, 80, 0.9)'; // Highlight color
+           // Highlight text color
+           const nameEl = menuItem.querySelector('.model-group-name');
+           if (nameEl) nameEl.style.color = 'yellow';
+           
            // Scroll the content area of the right menu
            const menuContainer = document.getElementById('right-menu-content-area');
            if (menuContainer) {
@@ -850,8 +860,9 @@ function onModelClick(event) {
          fullscreenBtnIcon.classList.remove('fa-expand');
          fullscreenBtnIcon.classList.add('fa-compress');
      } else {
+         // Not fullscreen: Show expand icon
          fullscreenBtnIcon.classList.remove('fa-compress');
-         fullscreenBtn.classList.add('fa-expand');
+         fullscreenBtnIcon.classList.add('fa-expand'); // Use correct variable
      }
      // Trigger resize explicitly after fullscreen change
      setTimeout(onWindowResize, 50); // Small delay often helps rendering
