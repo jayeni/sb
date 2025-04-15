@@ -153,12 +153,49 @@ function init() {
     // Add listener for the visibility toggle button
     document.getElementById('toggle-object-visibility')?.addEventListener('click', onToggleVisibilityClick);
     
-    // Create and add the side menu for model groups
-    createModelGroupsMenu();
+    // Setup the right menu container for model groups (will be populated later)
+    setupModelGroupsContainer();
     
      // Add window resize listener
      window.addEventListener('resize', onWindowResize);
      onWindowResize(); // Call once initially to set size
+     
+     // Add listener for fullscreen button
+     document.getElementById('fullscreen-btn')?.addEventListener('click', toggleFullscreen);
+
+     // Add listener for fullscreen change events (browser prefix handling)
+     document.addEventListener('fullscreenchange', handleFullscreenChange);
+     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+     document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+     document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+     
+     // Add listener for right controls menu collapse button
+     document.getElementById('right-menu-collapse-btn')?.addEventListener('click', () => {
+         const menu = document.getElementById('right-controls-menu');
+         const btn = document.getElementById('right-menu-collapse-btn');
+         if (!menu || !btn) return;
+         
+         const isCollapsed = menu.dataset.collapsed === 'true';
+         const menuHeight = menu.scrollHeight; // Get the full potential height
+
+         if (isCollapsed) {
+             // Expand: Slide back from left
+             menu.style.transform = 'translateX(0)';
+              menu.dataset.collapsed = 'false';
+             btn.innerHTML = '&minus;';
+         } else {
+             // Collapse: Slide to the left
+             const menuWidth = menu.offsetWidth;
+             const hiddenWidth = Math.max(0, menuWidth - 30);
+             menu.style.transform = `translateX(-${hiddenWidth}px)`; // Negative value for left slide
+               menu.dataset.collapsed = 'true';
+             btn.innerHTML = '&plus;';
+         }
+     });
+
+     // Add listeners for panel switcher buttons
+     document.getElementById('show-model-groups-btn')?.addEventListener('click', () => switchRightPanel('model-groups'));
+     document.getElementById('show-control-settings-btn')?.addEventListener('click', () => switchRightPanel('control-settings'));
 }
 
 function setRotation(direction) {
@@ -407,12 +444,14 @@ function changeZoom(event) {
             }
        });
        
-       // Scroll the menu if the item was found
+       // Scroll the content area of the right menu
+       const menuContainer = document.getElementById('right-menu-content-area'); 
        if (foundItem) {
-            const menuContainer = document.getElementById('model-groups-menu');
-            if (menuContainer) {
-                 foundItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+            // Calculate offset relative to the scrollable container
+            const containerRect = menuContainer.getBoundingClientRect();
+            const itemRect = foundItem.getBoundingClientRect();
+            const offset = itemRect.top - containerRect.top + menuContainer.scrollTop;
+            menuContainer.scrollTo({ top: offset, behavior: 'smooth' });
        }
   }
 
@@ -458,62 +497,10 @@ function changeZoom(event) {
      }
  }
 
-  // Function to create the collapsible model groups menu
- function createModelGroupsMenu() {
-     const viewerContainer = document.getElementById('threejs-viewer');
-     if (!viewerContainer) return; // Don't create if container doesn't exist
-
-     // Remove existing menu if any
-     const existingMenu = document.getElementById('model-groups-menu');
-     if (existingMenu) {
-         existingMenu.remove();
-     }
-     
-     const menuContainer = document.createElement('div');
-     menuContainer.id = 'model-groups-menu';
-     // Styles are applied via CSS now
-     
-     // Header with collapse button
-     const header = document.createElement('div');
-      header.id = 'model-menu-header'; // Use specific ID
-      // Styles applied via CSS
-     
-     const title = document.createElement('h3');
-     title.textContent = 'Model Objects'; // Changed title
-     title.style.margin = '0';
-     
-     const collapseBtn = document.createElement('button');
-     collapseBtn.id = 'model-menu-collapse-btn'; // Use specific ID
-     collapseBtn.innerHTML = '&minus;'; // Initial state: visible
-      // Styles applied via CSS
-     
-     collapseBtn.addEventListener('click', () => {
-         const isCollapsed = menuContainer.dataset.collapsed === 'true';
-         if (isCollapsed) {
-             menuContainer.style.transform = 'translateX(0)';
-             menuContainer.dataset.collapsed = 'false';
-             collapseBtn.innerHTML = '&minus;';
-         } else {
-             // Calculate translate based on actual width to hide most of it
-              const menuWidth = menuContainer.offsetWidth;
-              const hiddenWidth = Math.max(0, menuWidth - 30); // Keep 30px visible
-              menuContainer.style.transform = `translateX(-${hiddenWidth}px)`;
-              menuContainer.dataset.collapsed = 'true';
-             collapseBtn.innerHTML = '&plus;';
-         }
-     });
-     
-     header.appendChild(title);
-     header.appendChild(collapseBtn);
-     menuContainer.appendChild(header);
-     
-     // Container for group items
-     const groupsContainer = document.createElement('div');
-     groupsContainer.id = 'model-groups-container';
-     menuContainer.appendChild(groupsContainer);
-     
-     viewerContainer.appendChild(menuContainer); // Add to viewer
-     
+ // Setup the container where model groups will be listed in the right menu
+ function setupModelGroupsContainer() {
+     // This function now just ensures the target div exists.
+     // The menu structure is already in the HTML.
      // Populate if model already loaded
      if (currentModel) {
          populateModelGroupsMenu();
@@ -521,6 +508,7 @@ function changeZoom(event) {
  }
  
  // NEW: Function to create UI controls for a single object (now only for side menu)
+ // *Note*: targetContainer will now be #right-menu-model-groups-content
  function createObjectControlsUI(node, name, targetContainer) {
      const itemContainer = document.createElement('div');
      // Only side menu styling now
@@ -664,15 +652,16 @@ function changeZoom(event) {
 
  // Function to populate the model groups menu
  function populateModelGroupsMenu() {
-     const groupsContainer = document.getElementById('model-groups-container');
-     // REMOVED: Reference to mainControlsContainer
-     if (!groupsContainer) {
-          console.error("Required container element 'model-groups-container' not found.");
-          return;
-     }
+     // Target the new container within the right menu
+     const groupsContainer = document.getElementById('right-menu-model-groups-content');
+      // REMOVED: Reference to mainControlsContainer
+      if (!groupsContainer) {
+           console.error("Required container element 'right-menu-model-groups-content' not found.");
+           return;
+      }
 
      groupsContainer.innerHTML = ''; // Clear existing side menu entries
-     // REMOVED: Clearing mainControlsContainer
+      // REMOVED: Clearing mainControlsContainer
 
      if (!currentModel) return;
 
@@ -731,8 +720,8 @@ function changeZoom(event) {
 
       const objectName = getHierarchicalName(node);
 
-      // Update main interaction area display
-      const displayElement = document.getElementById('clicked-object-display');
+      // Update main interaction area display (still needed)
+      const displayElement = document.querySelector('#right-menu-control-settings-content #clicked-object-display');
       const colorPicker = document.getElementById('selected-object-color-picker');
       const visibilityButton = document.getElementById('toggle-object-visibility');
 
@@ -752,18 +741,130 @@ function changeZoom(event) {
          visibilityButton.style.display = 'inline-block';
       }
 
-      // Highlight the item ONLY in the side menu
-      const menuItem = document.getElementById(`groupsContainer-color-${node.uuid}`)?.closest('.model-group-item'); // ID prefix assumes side menu
+      // Highlight the item ONLY in the side menu (now the right menu)
+      // Ensure ID prefix matches the new target container ID ('right-menu-model-groups-content')
+      const menuItem = document.getElementById(`right-menu-model-groups-content-color-${node.uuid}`)?.closest('.model-group-item');
       if (menuItem) {
            menuItem.style.backgroundColor = 'rgba(80, 80, 80, 0.9)'; // Highlight color
-           const menuContainer = document.getElementById('model-groups-menu');
-            if (menuContainer) {
-                 menuItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+           // Scroll the content area of the right menu
+           const menuContainer = document.getElementById('right-menu-content-area');
+           if (menuContainer) {
+                // Calculate offset relative to the scrollable container
+                const containerRect = menuContainer.getBoundingClientRect();
+                const itemRect = menuItem.getBoundingClientRect();
+                const offset = itemRect.top - containerRect.top + menuContainer.scrollTop;
+                menuContainer.scrollTo({ top: offset, behavior: 'smooth' });
+           }
       }
       // REMOVED: Highlighting/scrolling in the removed main controls area
  }
  
-  // Handle window resize
-// ... existing code ...
-              document.addEventListener('DOMContentLoaded', init); 
+  // Handle window resize AND fullscreen changes
+ function onWindowResize() {
+     const container = document.getElementById('threejs-viewer');
+     if (!container) return;
+     
+     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+     let newWidth, newHeight;
+
+     if (isFullscreen) {
+         // Use full window dimensions when fullscreen
+         newWidth = window.innerWidth;
+         newHeight = window.innerHeight;
+     } else {
+         // Use container dimensions when not fullscreen
+         newWidth = container.clientWidth;
+         // Calculate height based on aspect ratio, respecting container max-height
+         const aspect = 16 / 12; 
+         newHeight = Math.min(container.clientHeight, newWidth / aspect);
+         // If flex container squishes it, use clientHeight
+         if (container.clientHeight > 0 && newHeight > container.clientHeight) {
+             newHeight = container.clientHeight;
+             newWidth = newHeight * aspect; // Adjust width to maintain aspect if height is limited
+         }
+     }
+
+     // Update camera aspect ratio
+     camera.aspect = newWidth / newHeight;
+     camera.updateProjectionMatrix();
+
+     // Update renderer size
+     renderer.setSize(newWidth, newHeight);
+     composer.setSize(newWidth, newHeight); // Also resize the composer
+     outlinePass.resolution.set(newWidth, newHeight); // Update outline pass resolution
+
+     console.log(`Resized to: ${newWidth}x${newHeight}, Fullscreen: ${!!isFullscreen}`);
+ }
+ 
+ // Toggle Fullscreen Function
+ function toggleFullscreen() {
+     const viewerElement = document.getElementById('threejs-viewer');
+     if (!viewerElement) return;
+     
+     if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+         // Enter fullscreen
+         if (viewerElement.requestFullscreen) {
+             viewerElement.requestFullscreen();
+         } else if (viewerElement.webkitRequestFullscreen) { /* Safari */
+             viewerElement.webkitRequestFullscreen();
+         } else if (viewerElement.mozRequestFullScreen) { /* Firefox */
+             viewerElement.mozRequestFullScreen();
+         } else if (viewerElement.msRequestFullscreen) { /* IE11 */
+             viewerElement.msRequestFullscreen();
+         }
+     } else {
+         // Exit fullscreen
+         if (document.exitFullscreen) {
+             document.exitFullscreen();
+         } else if (document.webkitExitFullscreen) { /* Safari */
+             document.webkitExitFullscreen();
+         } else if (document.mozCancelFullScreen) { /* Firefox */
+             document.mozCancelFullScreen();
+         } else if (document.msExitFullscreen) { /* IE11 */
+             document.msExitFullscreen();
+         }
+     }
+ }
+ 
+ // Function to update button icon based on fullscreen state
+ function handleFullscreenChange() {
+     const fullscreenBtnIcon = document.querySelector('#fullscreen-btn i');
+     if (!fullscreenBtnIcon) return;
+
+     if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+         fullscreenBtnIcon.classList.remove('fa-expand');
+         fullscreenBtnIcon.classList.add('fa-compress');
+     } else {
+         fullscreenBtnIcon.classList.remove('fa-compress');
+         fullscreenBtn.classList.add('fa-expand');
+     }
+     // Trigger resize explicitly after fullscreen change
+     setTimeout(onWindowResize, 50); // Small delay often helps rendering
+ }
+ 
+ // Function to switch panels in the right menu
+ function switchRightPanel(panelToShow) {
+     const modelGroupsPanel = document.getElementById('right-menu-model-groups-content');
+     const controlSettingsPanel = document.getElementById('right-menu-control-settings-content');
+     const modelGroupsBtn = document.getElementById('show-model-groups-btn');
+     const controlSettingsBtn = document.getElementById('show-control-settings-btn');
+
+     if (!modelGroupsPanel || !controlSettingsPanel || !modelGroupsBtn || !controlSettingsBtn) return;
+
+     if (panelToShow === 'model-groups') {
+         modelGroupsPanel.style.display = 'block';
+         controlSettingsPanel.style.display = 'none';
+         modelGroupsBtn.classList.add('active');
+         controlSettingsBtn.classList.remove('active');
+     } else { // 'control-settings'
+         modelGroupsPanel.style.display = 'none';
+         controlSettingsPanel.style.display = 'block';
+         modelGroupsBtn.classList.remove('active');
+         controlSettingsBtn.classList.add('active');
+     }
+     // Ensure the content area can scroll if needed
+     document.getElementById('right-menu-content-area')?.scrollTo(0, 0);
+ }
+ 
+ // Initialize when the DOM is ready
+ document.addEventListener('DOMContentLoaded', init); 

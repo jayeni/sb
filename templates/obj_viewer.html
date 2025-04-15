@@ -4,8 +4,11 @@
     <title>OBJ Model Viewer - Serene Build</title>
     <!-- Link to the blueprint's external CSS file -->
     <link rel="stylesheet" href="{{ url_for('obj_viewer.static', filename='css/obj_viewer.css') }}">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <a href="/" class="back-button">← Back to Home</a>
 
     <div class="viewer-title">
         <span class="combined-bubble-text" data-text="Interactive House Model">Interactive House Model</span>
@@ -18,43 +21,76 @@
     <!-- Copied Three.js viewer container and controls -->
     <div class="threejs-container">
         <div id="threejs-viewer">
-            <!-- Menu will be added here by JS -->
+            <!-- Left Menu (Model Groups) will be added here by JS -->
+            
+            <!-- Fullscreen Button -->
+            <button id="fullscreen-btn" class="fullscreen-button" title="Toggle Fullscreen">
+                <i class="fas fa-expand"></i>
+            </button>
+
+            <!-- Right Controls Menu -->
+            <div id="right-controls-menu">
+                <div id="right-menu-header">
+                    <h3>Menu</h3>
+                    <button id="right-menu-collapse-btn">&minus;</button>
+                </div>
+                
+                <!-- Panel Switcher -->
+                <div id="right-menu-switcher">
+                    <button id="show-model-groups-btn" class="switcher-btn">Model Objects</button>
+                    <button id="show-control-settings-btn" class="switcher-btn active">Control Settings</button>
+                </div>
+
+                <!-- Content Area for Panels -->
+                <div id="right-menu-content-area">
+                    
+                    <!-- Model Groups Panel (Initially hidden) -->
+                    <div id="right-menu-model-groups-content" style="display: none;">
+                        <!-- Dynamically created #model-groups-menu content will go here -->
+                    </div>
+                    
+                    <!-- Control Settings Panel (Initially visible) -->
+                    <div id="right-menu-control-settings-content" style="display: block;">
+                        <!-- Object Interaction Area -->
+                        <div id="object-interaction-area">
+                            <span id="clicked-object-display">Clicked: (None)</span>
+                            <input type="color" id="selected-object-color-picker" style="display: none;">
+                            <button id="toggle-object-visibility" style="display: none;">Hide</button> 
+                        </div>
+                        
+                        <!-- Camera and Environment Controls -->
+                        <div class="controls">
+                            <div class="control-section">
+                                 <h4>Camera Controls:</h4>
+                                 <div class="camera-controls">
+                                     <label for="zoom-input">Zoom:</label>
+                                     <button id="zoom-out">-</button>
+                                     <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
+                                     <button id="zoom-in">+</button>
+                                     
+                                     <button id="rotate-left">Rotate Left</button>
+                                     <button id="rotate-right">Rotate Right</button>
+                                     <button id="pause-rotation">Pause</button>
+                                 </div>
+                             </div>
+                             
+                             <div class="control-section">
+                                 <h4>Environment Controls:</h4>
+                                 <div class="environment-controls">
+                                     <label for="lighting-intensity">Lighting:</label>
+                                     <input type="range" id="lighting-intensity" min="0.1" max="2.5" step="0.1" value="1.0">
+                                     <label for="background-color">Background:</label>
+                                     <input type="color" id="background-color" value="#000000">
+                                </div>
+                             </div>
+                        </div>
+                    </div> 
+
+                </div>
+            </div>
         </div>
     </div>
     
-    <div id="object-interaction-area">
-        <span id="clicked-object-display">
-            Clicked: (None)
-        </span>
-        <input type="color" id="selected-object-color-picker" style="display: none;">
-        <button id="toggle-object-visibility" style="display: none;">Hide</button> 
-    </div>
-    
-    <div class="controls">
-        <div class="control-section">
-             <h4>Camera Controls:</h4>
-             <div class="camera-controls">
-                 <label for="zoom-input">Zoom:</label>
-                 <button id="zoom-out">-</button>
-                 <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
-                 <button id="zoom-in">+</button>
-                 
-                 <button id="rotate-left">Rotate Left</button>
-                 <button id="rotate-right">Rotate Right</button>
-                 <button id="pause-rotation">Pause</button>
-             </div>
-         </div>
-         
-         <div class="control-section">
-             <h4>Environment Controls:</h4>
-             <div class="environment-controls">
-                 <label for="lighting-intensity">Lighting:</label>
-                 <input type="range" id="lighting-intensity" min="0.1" max="2.5" step="0.1" value="1.0">
-                 <label for="background-color">Background:</label>
-                 <input type="color" id="background-color" value="#000000">
-            </div>
-         </div>
-    </div>
     <div class="viewer-instructions">
         <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
         <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
