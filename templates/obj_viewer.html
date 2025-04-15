@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OBJ Model Viewer - Serene Build</title>
+    <!-- Link to the blueprint's external CSS file -->
+    <link rel="stylesheet" href="{{ url_for('obj_viewer.static', filename='css/obj_viewer.css') }}">
+</head>
+<body>
+
+    <div class="viewer-title">
+        <span class="combined-bubble-text" data-text="Interactive House Model">Interactive House Model</span>
+    </div>
+
+     <div class="subtitle">
+         <span class="combined-bubble-text gold" data-text="OBJ VIEWER">OBJ VIEWER</span>
+     </div>
+
+    <!-- Copied Three.js viewer container and controls -->
+    <div class="threejs-container">
+        <div id="threejs-viewer">
+            <!-- Menu will be added here by JS -->
+        </div>
+    </div>
+    
+    <div id="object-interaction-area">
+        <span id="clicked-object-display">
+            Clicked: (None)
+        </span>
+        <input type="color" id="selected-object-color-picker" style="display: none;">
+        <button id="toggle-object-visibility" style="display: none;">Hide</button> 
+    </div>
+    
+    <div class="controls">
+        <div class="control-section">
+             <h4>Camera Controls:</h4>
+             <div class="camera-controls">
+                 <label for="zoom-input">Zoom:</label>
+                 <button id="zoom-out">-</button>
+                 <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
+                 <button id="zoom-in">+</button>
+                 
+                 <button id="rotate-left">Rotate Left</button>
+                 <button id="rotate-right">Rotate Right</button>
+                 <button id="pause-rotation">Pause</button>
+             </div>
+         </div>
+         
+         <div class="control-section">
+             <h4>Environment Controls:</h4>
+             <div class="environment-controls">
+                 <label for="lighting-intensity">Lighting:</label>
+                 <input type="range" id="lighting-intensity" min="0.1" max="2.5" step="0.1" value="1.0">
+                 <label for="background-color">Background:</label>
+                 <input type="color" id="background-color" value="#000000">
+            </div>
+         </div>
+    </div>
+    <div class="viewer-instructions">
+        <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
+        <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-copyright">SERENE BUILD - IREOLUWA</div>
+        </div>
+    </div>
+
+    <!-- Link to the external JavaScript file using the main app's static path -->
+    <script type="module" src="/assets/obj_viewer_logic.js"></script>
+
+</body>
+</html> 
