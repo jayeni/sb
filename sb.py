@@ -1,6 +1,9 @@
 from flask import Flask, render_template_string, send_from_directory
+from obj_viewer import obj_viewer_bp # Import the Blueprint
 
 app = Flask(__name__, static_folder="assets", static_url_path="/assets")
+
+app.register_blueprint(obj_viewer_bp) # Register the Blueprint
 
 @app.route("/")
 def mission():
@@ -630,6 +633,38 @@ def mission():
                     font-size: 16px;
                 }
             }
+
+            /* Styles for the link to the separate viewer */
+            .viewer-link-card {
+                 background: #000080;
+                 border: 2px solid #FFD700;
+                 border-radius: 10px;
+                 padding: 20px;
+                 text-decoration: none;
+                 transition: transform 0.3s ease;
+                 display: block;
+                 text-align: center;
+                 color: #FFD700; /* Make text gold */
+                 font-family: 'Backso', sans-serif;
+                 font-size: 24px;
+            }
+            
+            .viewer-link-card:hover {
+                 transform: translateY(-5px);
+                 background: #FFD700; /* Swap colors on hover */
+                 color: #000080;
+            }
+            
+            .viewer-link-card p { /* Style paragraph inside link */
+                 color: white;
+                 font-family: 'Oswald', sans-serif;
+                 margin-top: 10px; /* Add some space */
+                 font-size: 16px;
+            }
+            
+            .viewer-link-card:hover p { /* Change paragraph color on hover too */
+                 color: #000080;
+            }
         </style>
     </head>
     <body>
@@ -736,79 +771,18 @@ def mission():
         </div>
 
         <div class="subtitle" style="margin-top: 60px;">
-            <span class="combined-bubble-text gold" data-text="3D MODEL VIEWER - OBJ(WIP)">3D MODEL VIEWER - OBJ(WIP)</span>
+            <span class="combined-bubble-text gold" data-text="3D MODEL VIEWER - OBJ">3D MODEL VIEWER - OBJ</span>
         </div>
 
-            <div class="threejs-container">
-                <div id="threejs-viewer"></div>
+        <!-- Link to the separate OBJ viewer page -->
+        <div style="max-width: 1200px; margin: 30px auto; padding: 0 20px;">
+             <a href="/obj-viewer" class="viewer-link-card">
+                 <div>View Interactive House Model</div>
+                 <p>(Click here to open the detailed OBJ model viewer)</p>
+            </a>
         </div>
         
-        <div id="object-interaction-area" style="text-align: center; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
-            <span id="clicked-object-display" style="font-family: 'Oswald', sans-serif; color: #000080; font-weight: bold;">
-                Clicked: (None)
-            </span>
-            <input type="color" id="selected-object-color-picker" style="display: none; width: 40px; height: 30px; border: 1px solid #ccc; padding: 2px; cursor: pointer;">
-            <button id="toggle-object-visibility" style="display: none; padding: 4px 8px; font-size: 12px;">Hide</button> 
-        </div>
-        
-        <div class="controls">
-            <h4>Customize Materials:</h4>
-                    <div class="material-controls">
-                        <div class="material-control">
-                            <label for="outside-walls-color">Outside Walls:</label>
-                            <input type="color" id="outside-walls-color" value="#FFFFFF">
-                        </div>
-                        <div class="material-control">
-                            <label for="interior-walls-color">Interior Walls:</label>
-                            <input type="color" id="interior-walls-color" value="#FFFFFF">
-                        </div>
-                        <div class="material-control">
-                            <label for="garage-door-color">Garage Door:</label>
-                            <input type="color" id="garage-door-color" value="#FFFFFF">
-                        </div>
-                        <div class="material-control">
-                            <label for="interior-floor-color">Interior Floor:</label>
-                            <input type="color" id="interior-floor-color" value="#FFFFFF">
-                            <label for="interior-floor-texture" style="margin-top: 8px;">Floor Texture:</label> <!-- Added label for dropdown -->
-                            <select id="interior-floor-texture" class="texture-dropdown">
-                                <option value="wood">Wooden Tile</option>
-                                <option value="carpet">Carpet</option>
-                                <option value="porcelain">Porcelain Tile</option>  <!-- Added porcelain option -->
-                                <option value="epoxy">Epoxy</option>  <!-- Added epoxy option -->
-                                <option value="concrete">Concrete</option>  <!-- Added concrete option -->
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="control-section">
-                        <h4>Camera Controls:</h4>
-                        <div class="camera-controls">
-                            <label for="zoom-input">Zoom:</label>
-                            <button id="zoom-out">-</button>
-                            <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
-                            <button id="zoom-in">+</button>
-                            
-                            <button id="rotate-left">Rotate Left</button>
-                            <button id="rotate-right">Rotate Right</button>
-                            <button id="pause-rotation">Pause</button>
-                        </div>
-                    </div>
-            
-            <!-- Added Environment Controls -->
-            <div class="control-section">
-                 <h4>Environment Controls:</h4>
-                 <div class="environment-controls">
-                     <label for="lighting-intensity">Lighting:</label>
-                     <input type="range" id="lighting-intensity" min="0.1" max="2.5" step="0.1" value="1.0">
-                     <label for="background-color">Background:</label>
-                     <input type="color" id="background-color" value="#000000">
-                </div>
-            </div>
-        </div>
-        <div class="viewer-instructions">
-            <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
-            <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
-        </div>
+        <!-- Removed the OBJ viewer HTML, CSS, and JS from here -->
 
         <div class="subtitle" style="margin-top: 60px;">
             <span class="combined-bubble-text gold" data-text="3D MODEL VIEWER - GLB(WIP)">3D MODEL VIEWER - GLB(WIP)</span>
@@ -928,17 +902,13 @@ def mission():
         <script type="module">
             import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
             import { OrbitControls } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/controls/OrbitControls.js';
-            import { OBJLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/OBJLoader.js';
             import { MTLLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/MTLLoader.js';
             import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
             import { EffectComposer } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/EffectComposer.js';
             import { RenderPass } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/RenderPass.js';
             import { OutlinePass } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/OutlinePass.js';
 
-            let scene, camera, renderer, controls, currentModel;
-            let isRotating = false;
-            let rotationDirection = 0;
-            
+            // Keep GLB viewer variables and functions
             let glbScene, glbCamera, glbRenderer, glbControls, glbCurrentModel; // Added for GLB viewer
             let glbIsRotating = false; // Added for GLB viewer
             let glbRotationDirection = 0; // Added for GLB viewer
@@ -948,315 +918,25 @@ def mission():
                 'shoe': null
             };
 
-            // Store material references for easy access
-            let materials = {
-                'outside_walls': null,
-                'interior_walls': null,
-                'Garage_door': null,
-                'window_glass': null,
-                'interior_floor': null
-            };
+            // Removed OBJ specific variables: materials, currentFloorTexture, textureLoader, allLights, initialIntensities, raycaster, mouse, selectedMaterialForEditing, selectedMeshForEditing, composer, outlinePass
 
-            // Store current texture selection globally
-            let currentFloorTexture = 'wood'; // Default to wood
-            let textureLoader; // Declare texture loader
-            let allLights = []; // Array to store references to lights
-            let initialIntensities = {}; // Store initial light intensities
-            let raycaster; // Re-add for detecting clicks
-            let mouse;     // Re-add for mouse coordinates
-            let selectedMaterialForEditing = null; // Variable to hold the clicked material
-            let selectedMeshForEditing = null; // Variable to hold the clicked mesh
-            let composer; // For post-processing
-            let outlinePass; // For highlighting
+            // Removed OBJ init() function
 
-            function init() {
-                raycaster = new THREE.Raycaster(); // Initialize Raycaster
-                mouse = new THREE.Vector2();     // Initialize mouse vector
-                selectedMaterialForEditing = null; // Ensure it's null on init
-                selectedMeshForEditing = null; // Ensure mesh is null on init
-                // Create scene
-                scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x000000); // Changed to black background
+            // Removed OBJ changeMaterialKd() function
 
-                // Create camera with fixed aspect ratio
-                const container = document.getElementById('threejs-viewer');
-                const aspect = 16 / 12; // Match the container's aspect ratio
-                camera = new THREE.PerspectiveCamera(30, aspect, 0.1, 1000);
-                
-                // Initialize Texture Loader
-                textureLoader = new THREE.TextureLoader();
+            // Removed OBJ setRotation() function
 
-                // Create renderer with responsive sizing
-                renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setSize(container.clientWidth, container.clientWidth / aspect);
-                renderer.physicallyCorrectLights = true; // Enable physically correct lighting
-                renderer.shadowMap.enabled = true; // Enable shadow mapping
-                renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
-                container.appendChild(renderer.domElement);
+            // Removed OBJ pauseRotation() function
 
-                // Post-processing Composer Setup
-                composer = new EffectComposer(renderer);
-                const renderPass = new RenderPass(scene, camera);
-                composer.addPass(renderPass);
+            // Removed OBJ animate() function
 
-                // Set up the outline pass
-                outlinePass = new OutlinePass(
-                    new THREE.Vector2(container.clientWidth, container.clientWidth / aspect), 
-                    scene, 
-                    camera
-                );
-                outlinePass.edgeStrength = 3.0;
-                outlinePass.edgeGlow = 0.5;
-                outlinePass.edgeThickness = 1.0;
-                outlinePass.pulsePeriod = 0;
-                outlinePass.visibleEdgeColor.set('#ffff00');
-                outlinePass.hiddenEdgeColor.set('#ffff00');
-                composer.addPass(outlinePass);
+            // Removed OBJ loadOBJFile() function
 
-                // Add enhanced lighting setup
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-                scene.add(ambientLight);
-                allLights.push(ambientLight);
-                initialIntensities[ambientLight.uuid] = ambientLight.intensity;
-                
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-                directionalLight.position.set(1, 1, 1);
-                directionalLight.castShadow = true;
-                scene.add(directionalLight);
-                allLights.push(directionalLight);
-                initialIntensities[directionalLight.uuid] = directionalLight.intensity;
-                
-                const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                backLight.position.set(-1, 0.5, -1);
-                scene.add(backLight);
-                allLights.push(backLight);
-                initialIntensities[backLight.uuid] = backLight.intensity;
-                
-                const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 50);
-                pointLight1.position.set(5, 5, 5);
-                scene.add(pointLight1);
-                allLights.push(pointLight1);
-                initialIntensities[pointLight1.uuid] = pointLight1.intensity;
-                
-                const pointLight2 = new THREE.PointLight(0xffffff, 0.8, 50);
-                pointLight2.position.set(-5, 3, -5);
-                scene.add(pointLight2);
-                allLights.push(pointLight2);
-                initialIntensities[pointLight2.uuid] = pointLight2.intensity;
-                
-                const pointLight3 = new THREE.PointLight(0xffffff, 0.7, 50);
-                pointLight3.position.set(0, -5, 0);
-                scene.add(pointLight3);
-                allLights.push(pointLight3);
-                initialIntensities[pointLight3.uuid] = pointLight3.intensity;
+            // Removed OBJ changeZoom() function
 
-                // Add controls
-                controls = new OrbitControls(camera, renderer.domElement);
-                controls.enableDamping = true;
-                controls.dampingFactor = 0.05;
-                controls.screenSpacePanning = true;
+            // Removed OBJ zoomIn() function
 
-                // Load OBJ file
-                loadOBJFile('/assets/pk4.obj');
-
-                // Start animation loop
-                animate();
-
-                // Add event listeners for controls
-                document.getElementById('zoom-input').addEventListener('input', changeZoom);
-                document.getElementById('zoom-in').addEventListener('click', zoomIn);
-                document.getElementById('zoom-out').addEventListener('click', zoomOut);
-                document.getElementById('rotate-left').addEventListener('click', () => setRotation(-1));
-                document.getElementById('rotate-right').addEventListener('click', () => setRotation(1));
-                document.getElementById('pause-rotation').addEventListener('click', pauseRotation);
-                
-                // Add material color change listeners
-                document.getElementById('outside-walls-color').addEventListener('input', (e) => changeMaterialKd('outside_walls', e.target.value));
-                document.getElementById('interior-walls-color').addEventListener('input', (e) => changeMaterialKd('interior_walls', e.target.value));
-                document.getElementById('garage-door-color').addEventListener('input', (e) => changeMaterialKd('Garage_door', e.target.value));
-                document.getElementById('interior-floor-color').addEventListener('input', (e) => changeMaterialKd('interior_floor', e.target.value));
-                
-                // Add texture change listener
-                document.getElementById('interior-floor-texture').addEventListener('change', changeFloorTexture);
-                
-                // Add event listeners for NEW controls
-                document.getElementById('lighting-intensity').addEventListener('input', changeLightingIntensity);
-                document.getElementById('background-color').addEventListener('input', changeBackgroundColor);
-
-                // Add click listener for object identification and selection
-                renderer.domElement.addEventListener('click', onModelClick);
-
-                // Add listener for the new color picker
-                document.getElementById('selected-object-color-picker').addEventListener('input', onSelectedColorChange);
-                
-                // Add listener for the visibility toggle button
-                document.getElementById('toggle-object-visibility').addEventListener('click', onToggleVisibilityClick);
-                
-                // Create and add the side menu for model groups
-                createModelGroupsMenu();
-            }
-
-            // Function to change only the Kd value of a specific material
-            function changeMaterialKd(materialName, colorHex) {
-                if (materials[materialName]) {
-                    const color = new THREE.Color(colorHex);
-                    
-                    // Update the material's Kd value
-                    materials[materialName].color.set(color);
-                    materials[materialName].needsUpdate = true;
-                    
-                    // For glass, we need to adjust opacity and specular properties when color changes
-                    if (materialName === 'window_glass') {
-                        // Keep glass properties like reflectivity when changing color
-                        materials[materialName].specular = new THREE.Color(0xffffff);
-                        materials[materialName].shininess = 100;
-                        
-                        // Adjust transparency based on how dark the color is
-                        const brightness = (color.r + color.g + color.b) / 3;
-                        materials[materialName].opacity = Math.max(0.5, Math.min(0.9, brightness));
-                    }
-                }
-            }
-
-            function setRotation(direction) {
-                rotationDirection = direction;
-                isRotating = true;
-            }
-
-            function pauseRotation() {
-                isRotating = false;
-            }
-
-            function animate() {
-                requestAnimationFrame(animate);
-                if (isRotating && currentModel) {
-                    currentModel.rotation.y += rotationDirection * 0.01; // Continuous rotation based on direction
-                }
-                controls.update();
-                composer.render(); // Use composer instead of renderer
-            }
-
-            function loadOBJFile(path, isReload = false) {
-                const mtlLoader = new MTLLoader();
-                const objLoader = new OBJLoader();
-                
-                // First load the material file
-                mtlLoader.load('/assets/pk4.mtl', function(mtlMaterials) {
-                    mtlMaterials.preload();
-                    
-                    // Store references to the materials we want to modify
-                    for (const materialName in materials) {
-                        if (mtlMaterials.materials[materialName]) {
-                            materials[materialName] = mtlMaterials.materials[materialName];
-                            
-                            // Set initial color picker values based on material's Kd value
-                            const color = mtlMaterials.materials[materialName].color;
-                            const hexColor = '#' + color.getHexString();
-                            const elementId = materialName.replace('_', '-').toLowerCase() + '-color';
-                            const colorPicker = document.getElementById(elementId);
-                            if (colorPicker) {
-                                colorPicker.value = hexColor;
-                            }
-                            
-                            // Enhance glass material properties specifically
-                            if (materialName === 'window_glass') {
-                                materials[materialName].transparent = true;
-                                materials[materialName].opacity = 0.8;
-                                materials[materialName].shininess = 100; // Higher shininess for more focused reflections
-                                materials[materialName].specular = new THREE.Color(0xffffff); // Add specular highlights
-                                materials[materialName].refractionRatio = 0.98; // Add refraction for glass effect
-                            }
-                            
-                            // For interior_floor, add some additional properties
-                            if (materialName === 'interior_floor') {
-                                // Set basic material properties
-                                materials[materialName].shininess = 30;
-                                materials[materialName].specular = new THREE.Color(0x222222);
-
-                                // Load and apply the default texture ('wood') initially
-                                const defaultTexturePath = '/assets/floor.jpg';
-                                textureLoader.load(defaultTexturePath, (texture) => {
-                                    console.log('Initial texture loaded:', texture); // Log texture object
-                                    if (texture.image) {
-                                        console.log('Initial texture image dimensions:', texture.image.width, texture.image.height);
-                                    } else {
-                                        console.warn('Initial texture image not loaded.');
-                                    }
-                                    // Configure texture wrapping and repetition
-                                    texture.wrapS = THREE.RepeatWrapping;
-                                    texture.wrapT = THREE.RepeatWrapping;
-                                    texture.repeat.set( 1, 1 ); // Repeat texture 1 time (make pattern larger)
-
-                                    materials[materialName].map = texture;
-                                    materials[materialName].color.set(0xFFFFFF); // Ensure base color is white
-                                    materials[materialName].needsUpdate = true;
-                                    console.log(`Initial floor texture set. Material map:`, materials[materialName].map); // Log map property
-                                    console.log('Initial floor material FULL:', JSON.stringify(materials[materialName].toJSON(), null, 2)); // Log the full material state
-                                }, undefined, (error) => { // Add error callback
-                                     console.error(`Error loading initial texture: ${defaultTexturePath}`, error);
-                                });
-
-                                // Update the texture dropdown to match the current texture
-                                const floorTextureDropdown = document.getElementById('interior-floor-texture');
-                                if (floorTextureDropdown) {
-                                    floorTextureDropdown.value = currentFloorTexture;
-                                }
-                            }
-                        }
-                    }
-                    
-                    objLoader.setMaterials(mtlMaterials);
-                    
-                    // Then load the OBJ file
-                    objLoader.load('/assets/pk4.obj', function(object) {
-                        // Center and scale the model
-                        const box = new THREE.Box3().setFromObject(object);
-                        const center = box.getCenter(new THREE.Vector3());
-                        const size = box.getSize(new THREE.Vector3());
-
-                        const maxDim = Math.max(size.x, size.y, size.z);
-                        const scale = 7 / maxDim;
-                        object.scale.multiplyScalar(scale);
-
-                        object.position.sub(center.multiplyScalar(scale));
-
-                        scene.add(object);
-                        currentModel = object;
-                        
-                        // Populate the model groups menu with the loaded model
-                        populateModelGroupsMenu();
-
-                        // Reset camera position with closer zoom
-                        camera.position.set(0, 0, 8.0);
-                        controls.target.set(0, 0, 0);
-                        controls.update();
-                    });
-                });
-            }
-
-            function changeZoom(event) {
-                const zoomLevel = parseFloat(event.target.value);
-                camera.position.z = zoomLevel;
-                controls.update();
-            }
-
-            function zoomIn() {
-                const slider = document.getElementById('zoom-input');
-                let currentZoom = parseFloat(slider.value);
-                let newZoom = Math.max(parseFloat(slider.min), currentZoom - 2); // Decrease z for zoom in
-                slider.value = newZoom;
-                camera.position.z = newZoom;
-                controls.update();
-            }
-
-            function zoomOut() {
-                const slider = document.getElementById('zoom-input');
-                let currentZoom = parseFloat(slider.value);
-                let newZoom = Math.min(parseFloat(slider.max), currentZoom + 2); // Increase z for zoom out
-                slider.value = newZoom;
-                camera.position.z = newZoom;
-                controls.update();
-            }
+            // Removed OBJ zoomOut() function
 
             function initGLBViewer() {
                 // Create scene
@@ -1438,624 +1118,23 @@ def mission():
                 glbIsRotating = false;
             }
 
-            // Function to change floor texture using TextureLoader
-            function changeFloorTexture(event) {
-                const textureType = event.target.value;
-                currentFloorTexture = textureType; // Store the selection globally
-                
-                // Reset color picker to default white
-                const colorPicker = document.getElementById('interior-floor-color');
-                if (colorPicker) {
-                    colorPicker.value = "#FFFFFF";
-                }
-                
-                if (materials['interior_floor']) {
-                    const floorMaterial = materials['interior_floor'];
-                    let texturePath = '';
-
-                    if (textureType === 'wood') {
-                        texturePath = '/assets/floor.jpg';
-                    } else if (textureType === 'carpet') {
-                        texturePath = '/assets/carpet.jpg';
-                    } else if (textureType === 'porcelain') {
-                        texturePath = '/assets/porcelain.jpg';
-                    } else if (textureType === 'epoxy') {
-                        texturePath = '/assets/600-epoxy-flooring-ideas-sample.jpg';
-                    } else if (textureType === 'concrete') {
-                        texturePath = '/assets/360_F_310285583_ILKFCwTerYFhqcIGiNL9zuY68sy7xd16.jpg';
-                    } else {
-                        console.error("Unknown texture type:", textureType);
-                        return; // Exit if texture type is unknown
-                    }
-
-                    console.log(`Attempting to load texture: ${texturePath}`);
-
-                    // Load the new texture
-                    textureLoader.load(
-                        texturePath,
-                        // onLoad callback
-                        (texture) => {
-                            console.log(`Texture loaded successfully: ${texturePath}`, texture);
-                            if (texture.image) {
-                                console.log('Texture image dimensions:', texture.image.width, texture.image.height);
-                            } else {
-                                console.warn('Texture image not loaded.');
-                            }
-                            // Configure texture wrapping and repetition
-                            texture.wrapS = THREE.RepeatWrapping;
-                            texture.wrapT = THREE.RepeatWrapping;
-                            texture.repeat.set(1, 1); // Repeat texture 1 time (make pattern larger)
-
-                            floorMaterial.map = texture;
-                            floorMaterial.color.set(0xFFFFFF);
-                            floorMaterial.needsUpdate = true;
-                            console.log(`Changed floor texture to ${textureType}. Material map:`, floorMaterial.map);
-                            console.log('Updated floor material color:', floorMaterial.color);
-                            console.log('Updated floor material FULL:', JSON.stringify(floorMaterial.toJSON(), null, 2));
-                        },
-                        undefined,
-                        (error) => {
-                            console.error(`Error loading texture: ${texturePath}`, error);
-                        }
-                    );
-                } else {
-                    console.warn("Interior floor material not found yet.");
-                }
-            }
-
-            // NEW Function to change lighting intensity
-            function changeLightingIntensity(event) {
-                const multiplier = parseFloat(event.target.value);
-                allLights.forEach(light => {
-                    if (initialIntensities[light.uuid] !== undefined) {
-                        light.intensity = initialIntensities[light.uuid] * multiplier;
-                    }
-                });
-            }
-
-            // NEW Function to change background color
-            function changeBackgroundColor(event) {
-                const color = new THREE.Color(event.target.value);
-                scene.background = color;
-            }
-
-            // Updated Click handler function
-            function onModelClick(event) {
-                const displayElement = document.getElementById('clicked-object-display');
-                const colorPicker = document.getElementById('selected-object-color-picker');
-                const visibilityButton = document.getElementById('toggle-object-visibility');
-                
-                // Reset selection state
-                selectedMaterialForEditing = null;
-                selectedMeshForEditing = null;
-                colorPicker.style.display = 'none';
-                visibilityButton.style.display = 'none';
-                
-                // Reset menu item backgrounds
-                document.querySelectorAll('.model-group-item').forEach(item => {
-                    item.style.backgroundColor = 'rgba(50, 50, 50, 0.7)';
-                });
-
-                const rect = renderer.domElement.getBoundingClientRect();
-                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-                raycaster.setFromCamera(mouse, camera);
-
-                let intersects = [];
-                if (currentModel) {
-                    intersects = raycaster.intersectObject(currentModel, true);
-                }
-
-                // Clear previous outline selection
-                outlinePass.selectedObjects = [];
-
-                if (intersects.length > 0) {
-                    const intersection = intersects[0];
-                    const object = intersection.object; // This is the mesh
-                    
-                    if (object instanceof THREE.Mesh) {
-                        selectedMeshForEditing = object; // Store the selected mesh
-                        
-                        // Highlight selected mesh with yellow outline
-                        outlinePass.selectedObjects = [selectedMeshForEditing];
-                        
-                        let targetMaterial;
-                        // Handle multi-materials used on a single mesh
-                        if (Array.isArray(object.material)) {
-                            if (intersection.face && object.material[intersection.face.materialIndex]) {
-                                targetMaterial = object.material[intersection.face.materialIndex];
-                            } else {
-                                // Fallback or decide how to handle if materialIndex is invalid
-                                targetMaterial = object.material[0]; // Default to first material?
-                                console.warn("Clicked mesh has multiple materials, but face index was invalid. Targeting first material.");
-                            }
-                        } else {
-                            // Single material
-                            targetMaterial = object.material;
-                        }
-
-                        if (targetMaterial) {
-                            selectedMaterialForEditing = targetMaterial;
-                            const objectName = object.name || 'Unnamed Mesh';
-                            displayElement.textContent = `Selected: ${objectName}`;
-                            
-                            // Set picker color and show controls
-                            colorPicker.value = `#${selectedMaterialForEditing.color.getHexString()}`;
-                            colorPicker.style.display = 'inline-block';
-                            
-                            // Update and show visibility button
-                            visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
-                            visibilityButton.style.display = 'inline-block';
-                            
-                            // Find and highlight the corresponding menu item
-                            const menuItems = document.querySelectorAll('.model-group-item');
-                            menuItems.forEach(item => {
-                                const nameElement = item.querySelector('div > div:last-child');
-                                if (nameElement && nameElement.textContent === objectName) {
-                                    item.style.backgroundColor = 'rgba(80, 80, 80, 0.9)';
-                                    
-                                    // Scroll the menu to show the selected item if needed
-                                    const menuContainer = document.getElementById('model-groups-menu');
-                                    if (menuContainer) {
-                                        const itemRect = item.getBoundingClientRect();
-                                        const containerRect = menuContainer.getBoundingClientRect();
-                                        
-                                        if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
-                                            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                                        }
-                                    }
-                                }
-                            });
-                            
-                            console.log("Selected mesh:", selectedMeshForEditing);
-                            console.log("Selected material:", selectedMaterialForEditing);
-                        } else {
-                            displayElement.textContent = 'Clicked: (No material found)';
-                        }
-                    } else {
-                        displayElement.textContent = 'Clicked: (Not a mesh)';
-                    }
-                } else {
-                    displayElement.textContent = 'Clicked: (None)';
-                }
-            }
-
-            // NEW function to handle color change from the selected object picker
-            function onSelectedColorChange(event) {
-                if (selectedMaterialForEditing) {
-                    selectedMaterialForEditing.color.set(event.target.value);
-                    selectedMaterialForEditing.needsUpdate = true;
-                    console.log(`Tinted selected material with color ${event.target.value}`);
-                } else {
-                     console.warn("Color changed but no material selected for editing.");
-                }
-            }
-
-            // NEW function to toggle visibility
-            function onToggleVisibilityClick() {
-                if (selectedMeshForEditing) {
-                    selectedMeshForEditing.visible = !selectedMeshForEditing.visible;
-                    // Update button text
-                    const visibilityButton = document.getElementById('toggle-object-visibility');
-                    visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
-                    console.log(`Toggled visibility for ${selectedMeshForEditing.name}. Now visible: ${selectedMeshForEditing.visible}`);
-                } else {
-                    console.warn("Toggle visibility clicked, but no mesh selected.");
-                }
-            }
-
-            // Function to create model groups menu
-            function createModelGroupsMenu() {
-                // Create the menu container
-                const menuContainer = document.createElement('div');
-                menuContainer.id = 'model-groups-menu';
-                menuContainer.style.position = 'absolute';
-                menuContainer.style.left = '0';
-                menuContainer.style.top = '0';
-                menuContainer.style.width = '250px';
-                menuContainer.style.height = '100%';
-                menuContainer.style.backgroundColor = 'rgba(30, 30, 30, 0.9)';
-                menuContainer.style.color = 'white';
-                menuContainer.style.padding = '10px';
-                menuContainer.style.overflowY = 'auto';
-                menuContainer.style.transition = 'transform 0.3s ease';
-                menuContainer.style.zIndex = '1000';
-                menuContainer.style.boxShadow = '2px 0px 5px rgba(0, 0, 0, 0.5)';
-                
-                // Create header with collapse button
-                const header = document.createElement('div');
-                header.style.display = 'flex';
-                header.style.justifyContent = 'space-between';
-                header.style.alignItems = 'center';
-                header.style.marginBottom = '15px';
-                
-                const title = document.createElement('h3');
-                title.textContent = 'Model Groups';
-                title.style.margin = '0';
-                
-                const collapseBtn = document.createElement('button');
-                collapseBtn.innerHTML = '&minus;';
-                collapseBtn.style.background = 'none';
-                collapseBtn.style.border = '1px solid white';
-                collapseBtn.style.color = 'white';
-                collapseBtn.style.width = '24px';
-                collapseBtn.style.height = '24px';
-                collapseBtn.style.cursor = 'pointer';
-                collapseBtn.style.display = 'flex';
-                collapseBtn.style.justifyContent = 'center';
-                collapseBtn.style.alignItems = 'center';
-                collapseBtn.style.borderRadius = '3px';
-                
-                collapseBtn.addEventListener('click', () => {
-                    if (menuContainer.dataset.collapsed === 'true') {
-                        menuContainer.style.transform = 'translateX(0)';
-                        menuContainer.dataset.collapsed = 'false';
-                        collapseBtn.innerHTML = '&minus;';
-                    } else {
-                        menuContainer.style.transform = 'translateX(-230px)';
-                        menuContainer.dataset.collapsed = 'true';
-                        collapseBtn.innerHTML = '&plus;';
-                    }
-                });
-                
-                header.appendChild(title);
-                header.appendChild(collapseBtn);
-                menuContainer.appendChild(header);
-                
-                // Create groups container
-                const groupsContainer = document.createElement('div');
-                groupsContainer.id = 'model-groups-container';
-                menuContainer.appendChild(groupsContainer);
-                
-                // Add menu to the viewer container
-                const viewerContainer = document.getElementById('threejs-viewer');
-                viewerContainer.style.position = 'relative';
-                viewerContainer.appendChild(menuContainer);
-                
-                // Initially populate the groups if model is already loaded
-                if (currentModel) {
-                    populateModelGroupsMenu();
-                }
-            }
-            
-            // Function to populate the model groups menu with actual model data
-            function populateModelGroupsMenu() {
-                const groupsContainer = document.getElementById('model-groups-container');
-                groupsContainer.innerHTML = ''; // Clear existing entries
-                
-                if (!currentModel) return;
-                
-                // Map to store unique groups/meshes
-                const groupsMap = new Map();
-                
-                // Traverse model to find all groups and meshes
-                currentModel.traverse((node) => {
-                    if (node instanceof THREE.Mesh) {
-                        const name = node.name || node.parent.name || 'Unnamed';
-                        
-                        // Skip duplicates
-                        if (groupsMap.has(name)) return;
-                        
-                        // Store node reference
-                        groupsMap.set(name, node);
-                    }
-                });
-                
-                // Sort groups alphabetically
-                const sortedGroups = Array.from(groupsMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-                
-                // Create UI elements for each group
-                sortedGroups.forEach(([name, node]) => {
-                    const groupItem = document.createElement('div');
-                    groupItem.className = 'model-group-item';
-                    groupItem.style.marginBottom = '10px';
-                    groupItem.style.padding = '8px';
-                    groupItem.style.borderRadius = '4px';
-                    groupItem.style.backgroundColor = 'rgba(60, 60, 60, 0.7)';
-                    
-                    // Create group name with icon
-                    const groupHeader = document.createElement('div');
-                    groupHeader.style.display = 'flex';
-                    groupHeader.style.alignItems = 'center';
-                    groupHeader.style.marginBottom = '8px';
-                    groupHeader.style.cursor = 'pointer';
-                    groupHeader.style.userSelect = 'none';
-                    
-                    // Add cube icon
-                    const groupIcon = document.createElement('div');
-                    groupIcon.innerHTML = '&#9632;'; // Cube symbol
-                    groupIcon.style.marginRight = '8px';
-                    groupIcon.style.fontSize = '12px';
-                    groupIcon.style.color = 'rgba(180, 180, 180, 1)';
-                    
-                    // Add group name
-                    const groupName = document.createElement('div');
-                    groupName.textContent = name;
-                    groupName.style.fontSize = '13px';
-                    groupName.style.fontWeight = 'bold';
-                    groupName.style.overflow = 'hidden';
-                    groupName.style.textOverflow = 'ellipsis';
-                    groupName.style.whiteSpace = 'nowrap';
-                    
-                    groupHeader.appendChild(groupIcon);
-                    groupHeader.appendChild(groupName);
-                    
-                    // Add click handler for the group header
-                    groupHeader.addEventListener('click', () => {
-                        // Clear any previous selections
-                        document.querySelectorAll('.model-group-item').forEach(item => {
-                            item.style.backgroundColor = 'rgba(50, 50, 50, 0.7)';
-                        });
-                        
-                        // Highlight this group item
-                        groupItem.style.backgroundColor = 'rgba(80, 80, 80, 0.9)';
-                        
-                        // Clear previous outline selection
-                        outlinePass.selectedObjects = [];
-                        
-                        // Set this object as the selection
-                        outlinePass.selectedObjects = [node];
-                        
-                        // Update the display element
-                        const displayElement = document.getElementById('clicked-object-display');
-                        if (displayElement) {
-                            displayElement.textContent = `Selected: ${name}`;
-                        }
-                        
-                        // Update color picker and visibility button in the main UI if they exist
-                        const colorPicker = document.getElementById('selected-object-color-picker');
-                        const visibilityButton = document.getElementById('toggle-object-visibility');
-                        
-                        if (colorPicker) {
-                            colorPicker.style.display = 'inline-block';
-                            if (node.material) {
-                                const material = Array.isArray(node.material) ? node.material[0] : node.material;
-                                if (material && material.color) {
-                                    colorPicker.value = '#' + material.color.getHexString();
-                                }
-                            }
-                        }
-                        
-                        if (visibilityButton) {
-                            visibilityButton.style.display = 'inline-block';
-                            visibilityButton.textContent = node.visible ? 'Hide' : 'Show';
-                        }
-                        
-                        // Store references for the click handler
-                        selectedMeshForEditing = node;
-                        selectedMaterialForEditing = Array.isArray(node.material) ? node.material[0] : node.material;
-                    });
-                    
-                    // Add hover effect for the header
-                    groupHeader.addEventListener('mouseover', () => {
-                        if (!outlinePass.selectedObjects.includes(node)) {
-                            groupHeader.style.backgroundColor = 'rgba(70, 70, 70, 0.5)';
-                        }
-                    });
-                    
-                    groupHeader.addEventListener('mouseout', () => {
-                        if (!outlinePass.selectedObjects.includes(node)) {
-                            groupHeader.style.backgroundColor = 'transparent';
-                        }
-                    });
-                    
-                    groupItem.appendChild(groupHeader);
-                    
-                    // Create controls container
-                    const controlsContainer = document.createElement('div');
-                    controlsContainer.style.display = 'flex';
-                    controlsContainer.style.flexDirection = 'column';
-                    controlsContainer.style.gap = '8px';
-                    
-                    // Create color picker
-                    const colorPicker = document.createElement('input');
-                    colorPicker.type = 'color';
-                    colorPicker.value = '#ffffff'; // Default color
-                    
-                    // Try to get the current material color
-                    if (node.material) {
-                        const material = Array.isArray(node.material) ? node.material[0] : node.material;
-                        if (material && material.color) {
-                            colorPicker.value = '#' + material.color.getHexString();
-                        }
-                    }
-                    
-                    colorPicker.style.width = '100%';
-                    colorPicker.style.marginTop = '5px';
-                    colorPicker.style.cursor = 'pointer';
-                    
-                    // Add event listener to color picker
-                    colorPicker.addEventListener('input', (e) => {
-                        const color = new THREE.Color(e.target.value);
-                        
-                        // Apply color to the mesh materials
-                        if (node.material) {
-                            if (Array.isArray(node.material)) {
-                                // Apply to all materials in the array
-                                node.material.forEach(mat => {
-                                    mat.color.set(color);
-                                    mat.needsUpdate = true;
-                                });
-                            } else {
-                                // Apply to single material
-                                node.material.color.set(color);
-                                node.material.needsUpdate = true;
-                            }
-                        }
-                    });
-                    
-                    controlsContainer.appendChild(colorPicker);
-                    
-                    // Add floor texture selector for groups with "Floor" in their name
-                    if (name.toLowerCase().includes('floor')) {
-                        // Create texture selector container
-                        const textureContainer = document.createElement('div');
-                        textureContainer.style.marginTop = '5px';
-                        textureContainer.style.width = '100%';
-                        
-                        // Create label
-                        const textureLabel = document.createElement('label');
-                        textureLabel.textContent = 'Floor Texture:';
-                        textureLabel.style.display = 'block';
-                        textureLabel.style.marginBottom = '3px';
-                        textureLabel.style.fontSize = '12px';
-                        textureLabel.style.color = 'rgba(200, 200, 200, 1)';
-                        
-                        // Create select element
-                        const textureSelect = document.createElement('select');
-                        textureSelect.style.width = '100%';
-                        textureSelect.style.padding = '3px';
-                        textureSelect.style.backgroundColor = '#555';
-                        textureSelect.style.color = 'white';
-                        textureSelect.style.border = 'none';
-                        textureSelect.style.borderRadius = '3px';
-                        textureSelect.style.cursor = 'pointer';
-                        
-                        // Add texture options
-                        const textureOptions = [
-                            { value: 'wood', text: 'Wood' },
-                            { value: 'carpet', text: 'Carpet' },
-                            { value: 'porcelain', text: 'Porcelain Tile' },
-                            { value: 'epoxy', text: 'Epoxy' },
-                            { value: 'concrete', text: 'Concrete' }
-                        ];
-                        
-                        textureOptions.forEach(option => {
-                            const optionElement = document.createElement('option');
-                            optionElement.value = option.value;
-                            optionElement.textContent = option.text;
-                            textureSelect.appendChild(optionElement);
-                        });
-                        
-                        // Set default value to current floor texture
-                        textureSelect.value = currentFloorTexture || 'wood';
-                        
-                        // Add event listener to texture selector
-                        textureSelect.addEventListener('change', (e) => {
-                            const textureType = e.target.value;
-                            
-                            // Reset color picker to default white
-                            colorPicker.value = "#FFFFFF";
-                            
-                            if (node.material) {
-                                const material = Array.isArray(node.material) ? node.material[0] : node.material;
-                                let texturePath = '';
-                                
-                                if (textureType === 'wood') {
-                                    texturePath = '/assets/floor.jpg';
-                                } else if (textureType === 'carpet') {
-                                    texturePath = '/assets/carpet.jpg';
-                                } else if (textureType === 'porcelain') {
-                                    texturePath = '/assets/porcelain.jpg';
-                                } else if (textureType === 'epoxy') {
-                                    texturePath = '/assets/600-epoxy-flooring-ideas-sample.jpg';
-                                } else if (textureType === 'concrete') {
-                                    texturePath = '/assets/360_F_310285583_ILKFCwTerYFhqcIGiNL9zuY68sy7xd16.jpg';
-                                } else {
-                                    console.error("Unknown texture type:", textureType);
-                                    return;
-                                }
-                                
-                                console.log(`Attempting to load texture: ${texturePath}`);
-                                
-                                // Load the new texture
-                                textureLoader.load(
-                                    texturePath,
-                                    (texture) => {
-                                        console.log(`Texture loaded successfully: ${texturePath}`, texture);
-                                        if (texture.image) {
-                                            console.log('Texture image dimensions:', texture.image.width, texture.image.height);
-                                        } else {
-                                            console.warn('Texture image not loaded.');
-                                        }
-                                        
-                                        // Configure texture wrapping and repetition
-                                        texture.wrapS = THREE.RepeatWrapping;
-                                        texture.wrapT = THREE.RepeatWrapping;
-                                        texture.repeat.set(1, 1);
-                                        
-                                        // Apply texture to the material
-                                        if (Array.isArray(node.material)) {
-                                            node.material.forEach(mat => {
-                                                mat.map = texture;
-                                                mat.color.set(0xFFFFFF);
-                                                mat.needsUpdate = true;
-                                            });
-                                        } else {
-                                            node.material.map = texture;
-                                            node.material.color.set(0xFFFFFF);
-                                            node.material.needsUpdate = true;
-                                        }
-                                        
-                                        console.log(`Changed floor texture to ${textureType} for ${name}`);
-                                    },
-                                    undefined,
-                                    (error) => {
-                                        console.error(`Error loading texture: ${texturePath}`, error);
-                                    }
-                                );
-                            }
-                        });
-                        
-                        textureContainer.appendChild(textureLabel);
-                        textureContainer.appendChild(textureSelect);
-                        controlsContainer.appendChild(textureContainer);
-                    }
-                    
-                    // Create visibility toggle button
-                    const visibilityBtn = document.createElement('button');
-                    visibilityBtn.textContent = 'Toggle Visibility';
-                    visibilityBtn.style.marginTop = '5px';
-                    visibilityBtn.style.width = '100%';
-                    visibilityBtn.style.padding = '3px';
-                    visibilityBtn.style.backgroundColor = '#555';
-                    visibilityBtn.style.color = 'white';
-                    visibilityBtn.style.border = 'none';
-                    visibilityBtn.style.borderRadius = '3px';
-                    visibilityBtn.style.cursor = 'pointer';
-                    
-                    visibilityBtn.addEventListener('click', () => {
-                        node.visible = !node.visible;
-                        visibilityBtn.textContent = node.visible ? 'Hide' : 'Show';
-                    });
-                    
-                    controlsContainer.appendChild(visibilityBtn);
-                    groupItem.appendChild(controlsContainer);
-                    groupsContainer.appendChild(groupItem);
-                });
-                
-                // Show a message if no groups are found
-                if (sortedGroups.length === 0) {
-                    const noGroupsMsg = document.createElement('p');
-                    noGroupsMsg.textContent = 'No model groups found.';
-                    noGroupsMsg.style.fontStyle = 'italic';
-                    groupsContainer.appendChild(noGroupsMsg);
-                }
-            }
-
-            // Initialize both viewers when the DOM is loaded
+            // Initialize ONLY the GLB viewer when the DOM is loaded
             document.addEventListener('DOMContentLoaded', function() {
-            init();
-            initGLBViewer();
+            // init(); // Removed OBJ init call
+            initGLBViewer(); // Keep GLB init call
                 
-                // Add window resize event listener for both viewers
+                // Add window resize event listener for ONLY the GLB viewer
                 window.addEventListener('resize', function() {
-                    // Handle OBJ viewer resize
-                    const objContainer = document.getElementById('threejs-viewer');
-                    if (objContainer && renderer && composer) {
-                        const aspect = 16 / 12;
-                        camera.aspect = aspect;
-                        camera.updateProjectionMatrix();
-                        renderer.setSize(objContainer.clientWidth, objContainer.clientWidth / aspect);
-                        composer.setSize(objContainer.clientWidth, objContainer.clientWidth / aspect);
-                    }
+                    // Removed OBJ viewer resize handling
                     
                     // Handle GLB viewer resize if it exists
                     const glbContainer = document.getElementById('glb-viewer');
                     if (glbContainer && glbRenderer) {
                         const aspect = 16 / 12;
+                        if (glbCamera) { // Check if glbCamera is initialized
                         glbCamera.aspect = aspect;
                         glbCamera.updateProjectionMatrix();
+                        }
                         glbRenderer.setSize(glbContainer.clientWidth, glbContainer.clientWidth / aspect);
                     }
                 });
@@ -3314,278 +2393,128 @@ def repair_estimator_project():
         <script type="module">
             import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
             import { OrbitControls } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/controls/OrbitControls.js';
-            import { OBJLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/OBJLoader.js';
             import { MTLLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/MTLLoader.js';
             import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
             import { EffectComposer } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/EffectComposer.js';
             import { RenderPass } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/RenderPass.js';
             import { OutlinePass } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/OutlinePass.js';
 
-            let scene, camera, renderer, controls, currentModel;
-            let isRotating = false;
-            let rotationDirection = 0;
-
-            // Store material references for easy access
-            let materials = {
-                'outside_walls': null,
-                'interior_walls': null,
-                'Garage_door': null,
-                'window_glass': null,
-                'interior_floor': null
+            // Keep GLB viewer variables and functions
+            let glbScene, glbCamera, glbRenderer, glbControls, glbCurrentModel; // Added for GLB viewer
+            let glbIsRotating = false; // Added for GLB viewer
+            let glbRotationDirection = 0; // Added for GLB viewer
+            
+            // Store references to GLB materials
+            let glbMaterials = {
+                'shoe': null
             };
 
-            // Store current texture selection globally
-            let currentFloorTexture = 'wood'; // Default to wood
-            let textureLoader; // Declare texture loader
-            let allLights = []; // Array to store references to lights
-            let initialIntensities = {}; // Store initial light intensities
-            let raycaster; // Re-add for detecting clicks
-            let mouse;     // Re-add for mouse coordinates
-            let selectedMaterialForEditing = null; // Variable to hold the clicked material
-            let selectedMeshForEditing = null; // Variable to hold the clicked mesh
-            let composer; // For post-processing
-            let outlinePass; // For highlighting
+            // Removed OBJ specific variables: materials, currentFloorTexture, textureLoader, allLights, initialIntensities, raycaster, mouse, selectedMaterialForEditing, selectedMeshForEditing, composer, outlinePass
 
-            function init() {
-                raycaster = new THREE.Raycaster(); // Initialize Raycaster
-                mouse = new THREE.Vector2();     // Initialize mouse vector
-                selectedMaterialForEditing = null; // Ensure it's null on init
-                selectedMeshForEditing = null; // Ensure mesh is null on init
+            // Removed OBJ init() function
+
+            // Removed OBJ changeMaterialKd() function
+
+            // Removed OBJ setRotation() function
+
+            // Removed OBJ pauseRotation() function
+
+            // Removed OBJ animate() function
+
+            // Removed OBJ loadOBJFile() function
+
+            // Removed OBJ changeZoom() function
+
+            // Removed OBJ zoomIn() function
+
+            // Removed OBJ zoomOut() function
+
+            function initGLBViewer() {
                 // Create scene
-                scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x000000); // Changed to black background
+                glbScene = new THREE.Scene();
+                glbScene.background = new THREE.Color(0x000000); // Changed to black background
 
-                // Create camera with fixed aspect ratio
-                const container = document.getElementById('threejs-viewer');
+                // Create camera with matching aspect ratio
+                const container = document.getElementById('glb-viewer');
                 const aspect = 16 / 12; // Match the container's aspect ratio
-                camera = new THREE.PerspectiveCamera(30, aspect, 0.1, 1000);
-                
-                // Initialize Texture Loader
-                textureLoader = new THREE.TextureLoader();
+                glbCamera = new THREE.PerspectiveCamera(30, aspect, 0.1, 1000);
+                // Don't set initial position here, set it after model loads
 
                 // Create renderer with responsive sizing
-                renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setSize(container.clientWidth, container.clientWidth / aspect);
-                renderer.physicallyCorrectLights = true; // Enable physically correct lighting
-                renderer.shadowMap.enabled = true; // Enable shadow mapping
-                renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
-                container.appendChild(renderer.domElement);
+                glbRenderer = new THREE.WebGLRenderer({ antialias: true });
+                glbRenderer.setSize(container.clientWidth, container.clientWidth / aspect);
+                glbRenderer.physicallyCorrectLights = true; // Enable physically correct lighting
+                glbRenderer.shadowMap.enabled = true; // Enable shadow mapping
+                glbRenderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+                container.appendChild(glbRenderer.domElement);
 
-                // Post-processing Composer Setup
-                composer = new EffectComposer(renderer);
-                const renderPass = new RenderPass(scene, camera);
-                composer.addPass(renderPass);
-
-                // Set up the outline pass
-                outlinePass = new OutlinePass(
-                    new THREE.Vector2(container.clientWidth, container.clientWidth / aspect), 
-                    scene, 
-                    camera
-                );
-                outlinePass.edgeStrength = 3.0;
-                outlinePass.edgeGlow = 0.5;
-                outlinePass.edgeThickness = 1.0;
-                outlinePass.pulsePeriod = 0;
-                outlinePass.visibleEdgeColor.set('#ffff00');
-                outlinePass.hiddenEdgeColor.set('#ffff00');
-                composer.addPass(outlinePass);
-
-                // Add enhanced lighting setup
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-                scene.add(ambientLight);
-                allLights.push(ambientLight);
-                initialIntensities[ambientLight.uuid] = ambientLight.intensity;
+                // Add enhanced lighting setup with increased brightness
+                const ambientLightGLB = new THREE.AmbientLight(0xffffff, 1.5); // Increased from 0.8 to 1.5
+                glbScene.add(ambientLightGLB);
                 
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-                directionalLight.position.set(1, 1, 1);
-                directionalLight.castShadow = true;
-                scene.add(directionalLight);
-                allLights.push(directionalLight);
-                initialIntensities[directionalLight.uuid] = directionalLight.intensity;
+                // Main directional light (like sunlight)
+                const directionalLightGLB = new THREE.DirectionalLight(0xffffff, 2.5); // Increased from 1.5 to 2.5
+                directionalLightGLB.position.set(1, 1, 1);
+                directionalLightGLB.castShadow = true;
+                glbScene.add(directionalLightGLB);
                 
-                const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                backLight.position.set(-1, 0.5, -1);
-                scene.add(backLight);
-                allLights.push(backLight);
-                initialIntensities[backLight.uuid] = backLight.intensity;
+                // Add a second directional light from opposite direction
+                const backLightGLB = new THREE.DirectionalLight(0xffffff, 1.5); // Increased from 0.8 to 1.5
+                backLightGLB.position.set(-1, 0.5, -1);
+                glbScene.add(backLightGLB);
                 
-                const pointLight1 = new THREE.PointLight(0xffffff, 1.0, 50);
-                pointLight1.position.set(5, 5, 5);
-                scene.add(pointLight1);
-                allLights.push(pointLight1);
-                initialIntensities[pointLight1.uuid] = pointLight1.intensity;
+                // Add point lights to enhance reflections
+                const pointLight1GLB = new THREE.PointLight(0xffffff, 2.0, 50); // Increased from 1.2 to 2.0
+                pointLight1GLB.position.set(5, 5, 5);
+                glbScene.add(pointLight1GLB);
                 
-                const pointLight2 = new THREE.PointLight(0xffffff, 0.8, 50);
-                pointLight2.position.set(-5, 3, -5);
-                scene.add(pointLight2);
-                allLights.push(pointLight2);
-                initialIntensities[pointLight2.uuid] = pointLight2.intensity;
+                const pointLight2GLB = new THREE.PointLight(0xffffff, 1.5, 50); // Increased from 1.0 to 1.5
+                pointLight2GLB.position.set(-5, 3, -5);
+                glbScene.add(pointLight2GLB);
                 
-                const pointLight3 = new THREE.PointLight(0xffffff, 0.7, 50);
-                pointLight3.position.set(0, -5, 0);
-                scene.add(pointLight3);
-                allLights.push(pointLight3);
-                initialIntensities[pointLight3.uuid] = pointLight3.intensity;
+                // Add additional point light from below
+                const pointLight3GLB = new THREE.PointLight(0xffffff, 1.5, 50);
+                pointLight3GLB.position.set(0, -5, 0);
+                glbScene.add(pointLight3GLB);
 
                 // Add controls
-                controls = new OrbitControls(camera, renderer.domElement);
-                controls.enableDamping = true;
-                controls.dampingFactor = 0.05;
-                controls.screenSpacePanning = true;
+                glbControls = new OrbitControls(glbCamera, glbRenderer.domElement);
+                glbControls.enableDamping = true;
+                glbControls.dampingFactor = 0.05;
+                glbControls.screenSpacePanning = true;
 
-                // Load OBJ file
-                loadOBJFile('/assets/pk4.obj');
+                // Load GLB file
+                loadGLBFile('/assets/currentsneaks.glb');
 
                 // Start animation loop
-                animate();
+                animateGLB();
 
                 // Add event listeners for controls
-                document.getElementById('zoom-input').addEventListener('input', changeZoom);
-                document.getElementById('zoom-in').addEventListener('click', zoomIn);
-                document.getElementById('zoom-out').addEventListener('click', zoomOut);
-                document.getElementById('rotate-left').addEventListener('click', () => setRotation(-1));
-                document.getElementById('rotate-right').addEventListener('click', () => setRotation(1));
-                document.getElementById('pause-rotation').addEventListener('click', pauseRotation);
+                document.getElementById('glb-zoom-input').addEventListener('input', changeGLBZoom);
+                document.getElementById('glb-zoom-in').addEventListener('click', zoomGLBIn);
+                document.getElementById('glb-zoom-out').addEventListener('click', zoomGLBOut);
+                document.getElementById('glb-rotate-left').addEventListener('click', () => setGLBRotation(-1));
+                document.getElementById('glb-rotate-right').addEventListener('click', () => setGLBRotation(1));
+                document.getElementById('glb-pause-rotation').addEventListener('click', pauseGLBRotation);
                 
-                // Add material color change listeners
-                document.getElementById('outside-walls-color').addEventListener('input', (e) => changeMaterialKd('outside_walls', e.target.value));
-                document.getElementById('interior-walls-color').addEventListener('input', (e) => changeMaterialKd('interior_walls', e.target.value));
-                document.getElementById('garage-door-color').addEventListener('input', (e) => changeMaterialKd('Garage_door', e.target.value));
-                document.getElementById('interior-floor-color').addEventListener('input', (e) => changeMaterialKd('interior_floor', e.target.value));
-                
-                // Add texture change listener
-                document.getElementById('interior-floor-texture').addEventListener('change', changeFloorTexture);
-                
-                // Add event listeners for NEW controls
-                document.getElementById('lighting-intensity').addEventListener('input', changeLightingIntensity);
-                document.getElementById('background-color').addEventListener('input', changeBackgroundColor);
-
-                // Add click listener for object identification and selection
-                renderer.domElement.addEventListener('click', onModelClick);
-
-                // Add listener for the new color picker
-                document.getElementById('selected-object-color-picker').addEventListener('input', onSelectedColorChange);
-                
-                // Add listener for the visibility toggle button
-                document.getElementById('toggle-object-visibility').addEventListener('click', onToggleVisibilityClick);
-                
-                // Create and add the side menu for model groups
-                createModelGroupsMenu();
+                // Add color change listeners for GLB model
+                document.getElementById('glb-shoe-color').addEventListener('input', (e) => changeGLBMaterialColor('shoe', e.target.value));
             }
 
-            // Function to change only the Kd value of a specific material
-            function changeMaterialKd(materialName, colorHex) {
-                if (materials[materialName]) {
-                    const color = new THREE.Color(colorHex);
-                    
-                    // Update the material's Kd value
-                    materials[materialName].color.set(color);
-                    materials[materialName].needsUpdate = true;
-                    
-                    // For glass, we need to adjust opacity and specular properties when color changes
-                    if (materialName === 'window_glass') {
-                        // Keep glass properties like reflectivity when changing color
-                        materials[materialName].specular = new THREE.Color(0xffffff);
-                        materials[materialName].shininess = 100;
-                        
-                        // Adjust transparency based on how dark the color is
-                        const brightness = (color.r + color.g + color.b) / 3;
-                        materials[materialName].opacity = Math.max(0.5, Math.min(0.9, brightness));
-                    }
+            function animateGLB() {
+                requestAnimationFrame(animateGLB);
+                if (glbIsRotating && glbCurrentModel) {
+                    glbCurrentModel.rotation.y += glbRotationDirection * 0.01;
                 }
+                glbControls.update();
+                glbRenderer.render(glbScene, glbCamera);
             }
 
-            function setRotation(direction) {
-                rotationDirection = direction;
-                isRotating = true;
-            }
+            function loadGLBFile(path) {
+                const gltfLoader = new GLTFLoader();
+                gltfLoader.load(path, function(gltf) {
+                    const object = gltf.scene;
 
-            function pauseRotation() {
-                isRotating = false;
-            }
-
-            function animate() {
-                requestAnimationFrame(animate);
-                if (isRotating && currentModel) {
-                    currentModel.rotation.y += rotationDirection * 0.01; // Continuous rotation based on direction
-                }
-                controls.update();
-                composer.render(); // Use composer instead of renderer
-            }
-
-            function loadOBJFile(path, isReload = false) {
-                const mtlLoader = new MTLLoader();
-                const objLoader = new OBJLoader();
-                
-                // First load the material file
-                mtlLoader.load('/assets/pk4.mtl', function(mtlMaterials) {
-                    mtlMaterials.preload();
-                    
-                    // Store references to the materials we want to modify
-                    for (const materialName in materials) {
-                        if (mtlMaterials.materials[materialName]) {
-                            materials[materialName] = mtlMaterials.materials[materialName];
-                            
-                            // Set initial color picker values based on material's Kd value
-                            const color = mtlMaterials.materials[materialName].color;
-                            const hexColor = '#' + color.getHexString();
-                            const elementId = materialName.replace('_', '-').toLowerCase() + '-color';
-                            const colorPicker = document.getElementById(elementId);
-                            if (colorPicker) {
-                                colorPicker.value = hexColor;
-                            }
-                            
-                            // Enhance glass material properties specifically
-                            if (materialName === 'window_glass') {
-                                materials[materialName].transparent = true;
-                                materials[materialName].opacity = 0.8;
-                                materials[materialName].shininess = 100; // Higher shininess for more focused reflections
-                                materials[materialName].specular = new THREE.Color(0xffffff); // Add specular highlights
-                                materials[materialName].refractionRatio = 0.98; // Add refraction for glass effect
-                            }
-                            
-                            // For interior_floor, add some additional properties
-                            if (materialName === 'interior_floor') {
-                                // Set basic material properties
-                                materials[materialName].shininess = 30;
-                                materials[materialName].specular = new THREE.Color(0x222222);
-
-                                // Load and apply the default texture ('wood') initially
-                                const defaultTexturePath = '/assets/floor.jpg';
-                                textureLoader.load(defaultTexturePath, (texture) => {
-                                    console.log('Initial texture loaded:', texture); // Log texture object
-                                    if (texture.image) {
-                                        console.log('Initial texture image dimensions:', texture.image.width, texture.image.height);
-                                    } else {
-                                        console.warn('Initial texture image not loaded.');
-                                    }
-                                    // Configure texture wrapping and repetition
-                                    texture.wrapS = THREE.RepeatWrapping;
-                                    texture.wrapT = THREE.RepeatWrapping;
-                                    texture.repeat.set( 1, 1 ); // Repeat texture 1 time (make pattern larger)
-
-                                    materials[materialName].map = texture;
-                                    materials[materialName].color.set(0xFFFFFF); // Ensure base color is white
-                                    materials[materialName].needsUpdate = true;
-                                    console.log(`Initial floor texture set. Material map:`, materials[materialName].map); // Log map property
-                                    console.log('Initial floor material FULL:', JSON.stringify(materials[materialName].toJSON(), null, 2)); // Log the full material state
-                                }, undefined, (error) => { // Add error callback
-                                     console.error(`Error loading initial texture: ${defaultTexturePath}`, error);
-                                });
-
-                                // Update the texture dropdown to match the current texture
-                                const floorTextureDropdown = document.getElementById('interior-floor-texture');
-                                if (floorTextureDropdown) {
-                                    floorTextureDropdown.value = currentFloorTexture;
-                                }
-                            }
-                        }
-                    }
-                    
-                    objLoader.setMaterials(mtlMaterials);
-                    
-                    // Then load the OBJ file
-                    objLoader.load('/assets/pk4.obj', function(object) {
                         // Center and scale the model
                         const box = new THREE.Box3().setFromObject(object);
                         const center = box.getCenter(new THREE.Vector3());
@@ -3597,449 +2526,110 @@ def repair_estimator_project():
 
                         object.position.sub(center.multiplyScalar(scale));
 
-                        scene.add(object);
-                        currentModel = object;
-                        
-                        // Populate the model groups menu with the loaded model
-                        populateModelGroupsMenu();
-
-                        // Reset camera position with closer zoom
-                        camera.position.set(0, 0, 8.0);
-                        controls.target.set(0, 0, 0);
-                        controls.update();
-                    });
-                });
-            }
-
-            function changeZoom(event) {
-                const zoomLevel = parseFloat(event.target.value);
-                camera.position.z = zoomLevel;
-                controls.update();
-            }
-
-            function zoomIn() {
-                const slider = document.getElementById('zoom-input');
-                let currentZoom = parseFloat(slider.value);
-                let newZoom = Math.max(parseFloat(slider.min), currentZoom - 2); // Decrease z for zoom in
-                slider.value = newZoom;
-                camera.position.z = newZoom;
-                controls.update();
-            }
-
-            function zoomOut() {
-                const slider = document.getElementById('zoom-input');
-                let currentZoom = parseFloat(slider.value);
-                let newZoom = Math.min(parseFloat(slider.max), currentZoom + 2); // Increase z for zoom out
-                slider.value = newZoom;
-                camera.position.z = newZoom;
-                controls.update();
-            }
-
-            // Function to change floor texture using TextureLoader
-            function changeFloorTexture(event) {
-                const textureType = event.target.value;
-                currentFloorTexture = textureType; // Store the selection globally
-                
-                // Reset color picker to default white
-                const colorPicker = document.getElementById('interior-floor-color');
-                if (colorPicker) {
-                    colorPicker.value = "#FFFFFF";
-                }
-                
-                if (materials['interior_floor']) {
-                    const floorMaterial = materials['interior_floor'];
-                    let texturePath = '';
-
-                    if (textureType === 'wood') {
-                        texturePath = '/assets/floor.jpg';
-                    } else if (textureType === 'carpet') {
-                        texturePath = '/assets/carpet.jpg';
-                    } else if (textureType === 'porcelain') { // Added condition for porcelain
-                        texturePath = '/assets/porcelain.jpg';
-                    } else {
-                        console.error("Unknown texture type:", textureType);
-                        return; // Exit if texture type is unknown
-                    }
-
-                    console.log(`Attempting to load texture: ${texturePath}`);
-
-                    // Load the new texture
-                    textureLoader.load(
-                        texturePath,
-                        // onLoad callback
-                        (texture) => {
-                            console.log(`Texture loaded successfully: ${texturePath}`, texture); // Log texture object
-                             if (texture.image) {
-                                 console.log('Texture image dimensions:', texture.image.width, texture.image.height);
-                            } else {
-                                 console.warn('Texture image not loaded.');
+                    // Store references to materials for color changing
+                    object.traverse((node) => {
+                        if (node.isMesh) {
+                            // Assign all meshes to 'shoe' material for uniform coloring
+                            if (node.material && node.material.color) {
+                                glbMaterials.shoe = node.material;
                             }
-                            // Configure texture wrapping and repetition
-                            texture.wrapS = THREE.RepeatWrapping;
-                            texture.wrapT = THREE.RepeatWrapping;
-                            texture.repeat.set( 1, 1 ); // Repeat texture 1 time (make pattern larger)
-
-                            floorMaterial.map = texture; // Assign the loaded texture to the material's map property
-                            floorMaterial.color.set(0xFFFFFF); // Set color to white to show texture directly
-                            floorMaterial.needsUpdate = true; // Signal Three.js to update the material
-                            console.log(`Changed floor texture to ${textureType}. Material map:`, floorMaterial.map); // Log map property
-                            console.log('Updated floor material color:', floorMaterial.color); // Log color
-                            console.log('Updated floor material FULL:', JSON.stringify(floorMaterial.toJSON(), null, 2)); // Log the full material state
-                        },
-                        // onProgress callback (optional)
-                        undefined,
-                        // onError callback
-                        (error) => {
-                            console.error(`Error loading texture: ${texturePath}`, error);
-                        }
-                    );
-                } else {
-                    console.warn("Interior floor material not found yet.");
-                }
-            }
-
-            // NEW Function to change lighting intensity
-            function changeLightingIntensity(event) {
-                const multiplier = parseFloat(event.target.value);
-                allLights.forEach(light => {
-                    if (initialIntensities[light.uuid] !== undefined) {
-                        light.intensity = initialIntensities[light.uuid] * multiplier;
-                    }
-                });
-            }
-
-            // NEW Function to change background color
-            function changeBackgroundColor(event) {
-                const color = new THREE.Color(event.target.value);
-                scene.background = color;
-            }
-
-            // Updated Click handler function
-            function onModelClick(event) {
-                const displayElement = document.getElementById('clicked-object-display');
-                const colorPicker = document.getElementById('selected-object-color-picker');
-                const visibilityButton = document.getElementById('toggle-object-visibility');
-                
-                // Reset selection state
-                selectedMaterialForEditing = null;
-                selectedMeshForEditing = null;
-                colorPicker.style.display = 'none';
-                visibilityButton.style.display = 'none';
-                
-                // Reset menu item backgrounds
-                document.querySelectorAll('.model-group-item').forEach(item => {
-                    item.style.backgroundColor = 'rgba(50, 50, 50, 0.7)';
-                });
-
-                const rect = renderer.domElement.getBoundingClientRect();
-                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-                raycaster.setFromCamera(mouse, camera);
-
-                let intersects = [];
-                if (currentModel) {
-                    intersects = raycaster.intersectObject(currentModel, true);
-                }
-
-                // Clear previous outline selection
-                outlinePass.selectedObjects = [];
-
-                if (intersects.length > 0) {
-                    const intersection = intersects[0];
-                    const object = intersection.object; // This is the mesh
-                    
-                    if (object instanceof THREE.Mesh) {
-                        selectedMeshForEditing = object; // Store the selected mesh
-                        
-                        // Highlight selected mesh with yellow outline
-                        outlinePass.selectedObjects = [selectedMeshForEditing];
-                        
-                        let targetMaterial;
-                        // Handle multi-materials used on a single mesh
-                        if (Array.isArray(object.material)) {
-                            if (intersection.face && object.material[intersection.face.materialIndex]) {
-                                targetMaterial = object.material[intersection.face.materialIndex];
-                            } else {
-                                // Fallback or decide how to handle if materialIndex is invalid
-                                targetMaterial = object.material[0]; // Default to first material?
-                                console.warn("Clicked mesh has multiple materials, but face index was invalid. Targeting first material.");
-                            }
-                        } else {
-                            // Single material
-                            targetMaterial = object.material;
-                        }
-
-                        if (targetMaterial) {
-                            selectedMaterialForEditing = targetMaterial;
-                            const objectName = object.name || 'Unnamed Mesh';
-                            displayElement.textContent = `Selected: ${objectName}`;
                             
-                            // Set picker color and show controls
-                            colorPicker.value = `#${selectedMaterialForEditing.color.getHexString()}`;
-                            colorPicker.style.display = 'inline-block';
-                            
-                            // Update and show visibility button
-                            visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
-                            visibilityButton.style.display = 'inline-block';
-                            
-                            // Find and highlight the corresponding menu item
-                            const menuItems = document.querySelectorAll('.model-group-item');
-                            menuItems.forEach(item => {
-                                const nameElement = item.querySelector('div > div:last-child');
-                                if (nameElement && nameElement.textContent === objectName) {
-                                    item.style.backgroundColor = 'rgba(80, 80, 80, 0.9)';
-                                    
-                                    // Scroll the menu to show the selected item if needed
-                                    const menuContainer = document.getElementById('model-groups-menu');
-                                    if (menuContainer) {
-                                        const itemRect = item.getBoundingClientRect();
-                                        const containerRect = menuContainer.getBoundingClientRect();
-                                        
-                                        if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
-                                            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                                        }
-                                    }
-                                }
-                            });
-                            
-                            console.log("Selected mesh:", selectedMeshForEditing);
-                            console.log("Selected material:", selectedMaterialForEditing);
-                        } else {
-                            displayElement.textContent = 'Clicked: (No material found)';
-                        }
-                    } else {
-                        displayElement.textContent = 'Clicked: (Not a mesh)';
-                    }
-                } else {
-                    displayElement.textContent = 'Clicked: (None)';
-                }
-            }
-
-            // NEW function to handle color change from the selected object picker
-            function onSelectedColorChange(event) {
-                if (selectedMaterialForEditing) {
-                    selectedMaterialForEditing.color.set(event.target.value);
-                    selectedMaterialForEditing.needsUpdate = true;
-                    console.log(`Tinted selected material with color ${event.target.value}`);
-                } else {
-                     console.warn("Color changed but no material selected for editing.");
-                }
-            }
-
-            // NEW function to toggle visibility
-            function onToggleVisibilityClick() {
-                if (selectedMeshForEditing) {
-                    selectedMeshForEditing.visible = !selectedMeshForEditing.visible;
-                    // Update button text
-                    const visibilityButton = document.getElementById('toggle-object-visibility');
-                    visibilityButton.textContent = selectedMeshForEditing.visible ? 'Hide' : 'Show';
-                    console.log(`Toggled visibility for ${selectedMeshForEditing.name}. Now visible: ${selectedMeshForEditing.visible}`);
-                } else {
-                    console.warn("Toggle visibility clicked, but no mesh selected.");
-                }
-            }
-
-            // Function to populate the model groups menu with actual model data
-            function populateModelGroupsMenu() {
-                const groupsContainer = document.getElementById('model-groups-container');
-                groupsContainer.innerHTML = ''; // Clear existing entries
-                
-                if (!currentModel) return;
-                
-                // Map to store unique groups/meshes
-                const groupsMap = new Map();
-                
-                // Traverse model to find all groups and meshes
-                currentModel.traverse((node) => {
-                    if (node instanceof THREE.Mesh) {
-                        const name = node.name || node.parent.name || 'Unnamed';
-                        
-                        // Skip duplicates
-                        if (groupsMap.has(name)) return;
-                        
-                        // Store node reference
-                        groupsMap.set(name, node);
-                    }
-                });
-                
-                // Sort groups alphabetically
-                const sortedGroups = Array.from(groupsMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-                
-                // Create UI elements for each group
-                sortedGroups.forEach(([name, node]) => {
-                    const groupItem = document.createElement('div');
-                    groupItem.className = 'model-group-item';
-                    groupItem.style.marginBottom = '10px';
-                    groupItem.style.padding = '8px';
-                    groupItem.style.borderRadius = '4px';
-                    groupItem.style.backgroundColor = 'rgba(60, 60, 60, 0.7)';
-                    
-                    // Create group name with icon
-                    const groupHeader = document.createElement('div');
-                    groupHeader.style.display = 'flex';
-                    groupHeader.style.alignItems = 'center';
-                    groupHeader.style.marginBottom = '8px';
-                    groupHeader.style.cursor = 'pointer';
-                    groupHeader.style.userSelect = 'none';
-                    
-                    // Add cube icon
-                    const groupIcon = document.createElement('div');
-                    groupIcon.innerHTML = '&#9632;'; // Cube symbol
-                    groupIcon.style.marginRight = '8px';
-                    groupIcon.style.fontSize = '12px';
-                    groupIcon.style.color = 'rgba(180, 180, 180, 1)';
-                    
-                    // Add group name
-                    const groupName = document.createElement('div');
-                    groupName.textContent = name;
-                    groupName.style.fontSize = '13px';
-                    groupName.style.fontWeight = 'bold';
-                    groupName.style.overflow = 'hidden';
-                    groupName.style.textOverflow = 'ellipsis';
-                    groupName.style.whiteSpace = 'nowrap';
-                    
-                    groupHeader.appendChild(groupIcon);
-                    groupHeader.appendChild(groupName);
-                    
-                    // Add click handler for the group header
-                    groupHeader.addEventListener('click', () => {
-                        // Clear any previous selections
-                        document.querySelectorAll('.model-group-item').forEach(item => {
-                            item.style.backgroundColor = 'rgba(50, 50, 50, 0.7)';
-                        });
-                        
-                        // Highlight this group item
-                        groupItem.style.backgroundColor = 'rgba(80, 80, 80, 0.9)';
-                        
-                        // Clear previous outline selection
-                        outlinePass.selectedObjects = [];
-                        
-                        // Set this object as the selection
-                        outlinePass.selectedObjects = [node];
-                        
-                        // Update the display element
-                        const displayElement = document.getElementById('clicked-object-display');
-                        if (displayElement) {
-                            displayElement.textContent = `Selected: ${name}`;
-                        }
-                        
-                        // Update color picker and visibility button in the main UI if they exist
-                        const colorPicker = document.getElementById('selected-object-color-picker');
-                        const visibilityButton = document.getElementById('toggle-object-visibility');
-                        
-                        if (colorPicker) {
-                            colorPicker.style.display = 'inline-block';
+                            // Make all materials responsive to lighting
                             if (node.material) {
-                                const material = Array.isArray(node.material) ? node.material[0] : node.material;
-                                if (material && material.color) {
-                                    colorPicker.value = '#' + material.color.getHexString();
+                                if (Array.isArray(node.material)) {
+                                    node.material.forEach(mat => {
+                                        mat.metalness = 0.3;
+                                        mat.roughness = 0.7;
+                                    });
+                    } else {
+                                    node.material.metalness = 0.3;
+                                    node.material.roughness = 0.7;
                                 }
                             }
                         }
-                        
-                        if (visibilityButton) {
-                            visibilityButton.style.display = 'inline-block';
-                            visibilityButton.textContent = node.visible ? 'Hide' : 'Show';
-                        }
-                        
-                        // Store references for the click handler
-                        selectedMeshForEditing = node;
-                        selectedMaterialForEditing = Array.isArray(node.material) ? node.material[0] : node.material;
                     });
-                    
-                    // Add hover effect for the header
-                    groupHeader.addEventListener('mouseover', () => {
-                        if (!outlinePass.selectedObjects.includes(node)) {
-                            groupHeader.style.backgroundColor = 'rgba(70, 70, 70, 0.5)';
-                        }
-                    });
-                    
-                    groupHeader.addEventListener('mouseout', () => {
-                        if (!outlinePass.selectedObjects.includes(node)) {
-                            groupHeader.style.backgroundColor = 'transparent';
-                        }
-                    });
-                    
-                    groupItem.appendChild(groupHeader);
-                    
-                    // Create controls container
-                    const controlsContainer = document.createElement('div');
-                    controlsContainer.style.display = 'flex';
-                    controlsContainer.style.flexDirection = 'column';
-                    controlsContainer.style.gap = '8px';
-                    
-                    // Create color picker
-                    const colorPicker = document.createElement('input');
-                    colorPicker.type = 'color';
-                    colorPicker.value = '#ffffff'; // Default color
-                    
-                    // Try to get the current material color
-                    if (node.material) {
-                        const material = Array.isArray(node.material) ? node.material[0] : node.material;
-                        if (material && material.color) {
-                            colorPicker.value = '#' + material.color.getHexString();
-                        }
-                    }
-                    
-                    colorPicker.style.width = '100%';
-                    colorPicker.style.marginTop = '5px';
-                    colorPicker.style.cursor = 'pointer';
-                    
-                    // Add event listener to color picker
-                    colorPicker.addEventListener('input', (e) => {
-                        const color = new THREE.Color(e.target.value);
-                        
-                        // Apply color to the mesh materials
-                        if (node.material) {
-                            if (Array.isArray(node.material)) {
-                                // Apply to all materials in the array
-                                node.material.forEach(mat => {
-                                    mat.color.set(color);
-                                    mat.needsUpdate = true;
-                                });
-                            } else {
-                                // Apply to single material
-                                node.material.color.set(color);
-                                node.material.needsUpdate = true;
-                            }
-                        }
-                    });
-                    
-                    controlsContainer.appendChild(colorPicker);
-                    
-                    // Create visibility toggle button
-                    const visibilityBtn = document.createElement('button');
-                    visibilityBtn.textContent = 'Toggle Visibility';
-                    visibilityBtn.style.marginTop = '5px';
-                    visibilityBtn.style.width = '100%';
-                    visibilityBtn.style.padding = '3px';
-                    visibilityBtn.style.backgroundColor = '#555';
-                    visibilityBtn.style.color = 'white';
-                    visibilityBtn.style.border = 'none';
-                    visibilityBtn.style.borderRadius = '3px';
-                    visibilityBtn.style.cursor = 'pointer';
-                    
-                    visibilityBtn.addEventListener('click', () => {
-                        node.visible = !node.visible;
-                        visibilityBtn.textContent = node.visible ? 'Hide' : 'Show';
-                    });
-                    
-                    controlsContainer.appendChild(visibilityBtn);
-                    groupItem.appendChild(controlsContainer);
-                    groupsContainer.appendChild(groupItem);
+
+                    glbScene.add(object);
+                    glbCurrentModel = object;
+
+                    // Set default camera position AFTER model loads
+                    glbCamera.position.set(0, 0, 25.0);
+                    glbControls.target.set(0, 0, 0);
+                    glbControls.update();
                 });
-                
-                // Show a message if no groups are found
-                if (sortedGroups.length === 0) {
-                    const noGroupsMsg = document.createElement('p');
-                    noGroupsMsg.textContent = 'No model groups found.';
-                    noGroupsMsg.style.fontStyle = 'italic';
-                    groupsContainer.appendChild(noGroupsMsg);
+            }
+
+            function changeGLBMaterialColor(materialName, colorHex) {
+                const material = glbMaterials[materialName];
+                if (material) {
+                    const color = new THREE.Color(colorHex);
+                    
+                    // Update the material's color
+                    material.color = color;
+                    material.needsUpdate = true;
+                    console.log(`Changed ${materialName} color to ${colorHex}`);
+                            } else {
+                    console.warn(`Material '${materialName}' not found for color change`);
                 }
             }
 
-            // Initialize viewer
-            init();
+            function changeGLBZoom(event) {
+                const zoomLevel = parseFloat(event.target.value);
+                console.log('GLB zoom level changed to:', zoomLevel);
+                glbCamera.position.z = zoomLevel;
+                glbControls.update();
+            }
+
+            function zoomGLBIn() {
+                const input = document.getElementById('glb-zoom-input');
+                let currentZoom = parseFloat(input.value);
+                let newZoom = Math.max(parseFloat(input.min), currentZoom - 2); // Decrease z for zoom in
+                input.value = newZoom;
+                glbCamera.position.z = newZoom;
+                glbControls.update();
+                console.log('GLB Zoom In clicked, new zoom:', newZoom);
+            }
+
+            function zoomGLBOut() {
+                const input = document.getElementById('glb-zoom-input');
+                let currentZoom = parseFloat(input.value);
+                let newZoom = Math.min(parseFloat(input.max), currentZoom + 2); // Increase z for zoom out
+                input.value = newZoom;
+                glbCamera.position.z = newZoom;
+                glbControls.update();
+                console.log('GLB Zoom Out clicked, new zoom:', newZoom);
+            }
+
+            function setGLBRotation(direction) {
+                glbRotationDirection = direction;
+                glbIsRotating = true;
+            }
+
+            function pauseGLBRotation() {
+                glbIsRotating = false;
+            }
+
+            // Initialize ONLY the GLB viewer when the DOM is loaded
+            document.addEventListener('DOMContentLoaded', function() {
+            // init(); // Removed OBJ init call
+            initGLBViewer(); // Keep GLB init call
+                
+                // Add window resize event listener for ONLY the GLB viewer
+                window.addEventListener('resize', function() {
+                    // Removed OBJ viewer resize handling
+                    
+                    // Handle GLB viewer resize if it exists
+                    const glbContainer = document.getElementById('glb-viewer');
+                    if (glbContainer && glbRenderer) {
+                        const aspect = 16 / 12;
+                        if (glbCamera) { // Check if glbCamera is initialized
+                            glbCamera.aspect = aspect;
+                            glbCamera.updateProjectionMatrix();
+                        }
+                        glbRenderer.setSize(glbContainer.clientWidth, glbContainer.clientWidth / aspect);
+                    }
+                });
+            });
         </script>
 
         <div class="footer">
