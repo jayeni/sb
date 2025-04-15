@@ -26,6 +26,10 @@ let selectedMeshForEditing = null; // Variable to hold the clicked mesh
 // RESTORE composer and outlinePass variables
 let composer;
 let outlinePass;
+let currentLightMultiplier = 1.0; // Track current overall multiplier
+const lightIntensityStep = 0.1;
+const minLightIntensity = 0.1;
+const maxLightIntensity = 2.5; // Max multiplier
 
 function init() {
     raycaster = new THREE.Raycaster(); // Initialize Raycaster
@@ -141,7 +145,6 @@ function init() {
     animate();
 
     // Add event listeners for controls
-    document.getElementById('zoom-input')?.addEventListener('input', changeZoom);
     document.getElementById('zoom-in')?.addEventListener('click', zoomIn);
     document.getElementById('zoom-out')?.addEventListener('click', zoomOut);
     document.getElementById('rotate-left')?.addEventListener('click', () => setRotation(-1));
@@ -149,7 +152,8 @@ function init() {
     document.getElementById('pause-rotation')?.addEventListener('click', pauseRotation);
                  
      // Add event listeners for Environment controls
-     document.getElementById('lighting-intensity')?.addEventListener('input', changeLightingIntensity);
+     document.getElementById('lighting-decrease-btn')?.addEventListener('click', decreaseLighting);
+    document.getElementById('lighting-increase-btn')?.addEventListener('click', increaseLighting);
     document.getElementById('background-color')?.addEventListener('input', changeBackgroundColor);
 
     // Add click listener for object identification and selection
@@ -329,96 +333,100 @@ function loadOBJFile(objPath) {
      });
 }
 
-function changeZoom(event) {
-     const zoomLevel = parseFloat(event.target.value);
-     // Adjust camera distance instead of just Z position for perspective camera
-     const direction = new THREE.Vector3();
-     camera.getWorldDirection(direction);
-     const currentDistance = camera.position.distanceTo(controls.target);
-     // Calculate the new position along the view direction
-     // This is a simplification; OrbitControls handles zoom more complexly.
-     // We'll directly manipulate controls zoom/distance if possible, or just Z.
-     camera.position.z = zoomLevel; // Simple Z adjustment remains
-     controls.update();
- }
- 
- function zoomIn() {
-     const slider = document.getElementById('zoom-input');
-     if (!slider) return;
-     let currentZoom = parseFloat(slider.value);
-     let newZoom = Math.max(parseFloat(slider.min), currentZoom - parseFloat(slider.step || 1)); // Use step value
-     slider.value = newZoom;
-     camera.position.z = newZoom; // Adjust Z
-     controls.update();
- }
+function zoomIn() {
+    if (!controls) return;
+    // Get direction vector from camera to target
+    const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+    // Scale the offset vector (e.g., by 0.9 to zoom in)
+    offset.multiplyScalar(0.9);
+    // Calculate new position and move camera
+    const newPosition = new THREE.Vector3().addVectors(controls.target, offset);
+    camera.position.copy(newPosition);
+    controls.update();
+}
 
- function zoomOut() {
-     const slider = document.getElementById('zoom-input');
-     if (!slider) return;
-     let currentZoom = parseFloat(slider.value);
-     let newZoom = Math.min(parseFloat(slider.max), currentZoom + parseFloat(slider.step || 1)); // Use step value
-     slider.value = newZoom;
-     camera.position.z = newZoom; // Adjust Z
-     controls.update();
- }
+function zoomOut() {
+    if (!controls) return;
+    // Get direction vector from camera to target
+    const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+    // Scale the offset vector (e.g., by 1.1 to zoom out)
+    offset.multiplyScalar(1.1);
+    // Calculate new position and move camera
+    const newPosition = new THREE.Vector3().addVectors(controls.target, offset);
+    camera.position.copy(newPosition);
+    controls.update();
+}
 
- // Function to change lighting intensity
- function changeLightingIntensity(event) {
-     const multiplier = parseFloat(event.target.value);
-     allLights.forEach(light => {
-         if (initialIntensities[light.uuid] !== undefined) {
-             light.intensity = initialIntensities[light.uuid] * multiplier;
-         }
+// Function to decrease lighting intensity
+function decreaseLighting() {
+    let newMultiplier = Math.max(minLightIntensity, currentLightMultiplier - lightIntensityStep);
+    updateAllLights(newMultiplier);
+}
+
+// Function to increase lighting intensity
+function increaseLighting() {
+    let newMultiplier = Math.min(maxLightIntensity, currentLightMultiplier + lightIntensityStep);
+    updateAllLights(newMultiplier);
+}
+
+// Helper function to update all lights based on a multiplier
+function updateAllLights(multiplier) {
+    currentLightMultiplier = multiplier; // Store the new multiplier
+    allLights.forEach(light => {
+        if (initialIntensities[light.uuid] !== undefined) {
+            light.intensity = initialIntensities[light.uuid] * currentLightMultiplier;
+        }
+    });
+    console.log(`Lighting multiplier set to: ${currentLightMultiplier.toFixed(2)}`);
+}
+
+// Function to change background color
+function changeBackgroundColor(event) {
+    const color = new THREE.Color(event.target.value);
+    scene.background = color;
+}
+
+// Event handler for object selection
+function onModelClick(event) {
+    const displayElement = document.getElementById('clicked-object-display');
+    const colorPicker = document.getElementById('selected-object-color-picker');
+    const visibilityButton = document.getElementById('toggle-object-visibility');
+    
+    // Calculate mouse position in normalized device coordinates (-1 to +1) for component
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    raycaster.setFromCamera(mouse, camera);
+
+    let intersects = [];
+    if (currentModel) {
+        intersects = raycaster.intersectObject(currentModel, true); // Check descendants
+    }
+
+    // Reset previous selection visuals (OutlinePass)
+    outlinePass.selectedObjects = []; 
+    selectedMeshForEditing = null;
+    selectedMaterialForEditing = null;
+    if(colorPicker) colorPicker.style.display = 'none';
+    if(visibilityButton) visibilityButton.style.display = 'none';
+    if(displayElement) displayElement.textContent = 'Clicked: (None)';
+     document.querySelectorAll('.model-group-item').forEach(item => {
+         item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)'; // Reset menu item background
      });
- }
 
- // Function to change background color
- function changeBackgroundColor(event) {
-     const color = new THREE.Color(event.target.value);
-     scene.background = color;
- }
-
- // Event handler for object selection
- function onModelClick(event) {
-     const displayElement = document.getElementById('clicked-object-display');
-     const colorPicker = document.getElementById('selected-object-color-picker');
-     const visibilityButton = document.getElementById('toggle-object-visibility');
-     
-     // Calculate mouse position in normalized device coordinates (-1 to +1) for component
-     const rect = renderer.domElement.getBoundingClientRect();
-     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-     
-     raycaster.setFromCamera(mouse, camera);
-
-     let intersects = [];
-     if (currentModel) {
-         intersects = raycaster.intersectObject(currentModel, true); // Check descendants
-     }
-
-     // Reset previous selection visuals (OutlinePass)
-     outlinePass.selectedObjects = []; 
-     selectedMeshForEditing = null;
-     selectedMaterialForEditing = null;
-     if(colorPicker) colorPicker.style.display = 'none';
-     if(visibilityButton) visibilityButton.style.display = 'none';
-     if(displayElement) displayElement.textContent = 'Clicked: (None)';
-      document.querySelectorAll('.model-group-item').forEach(item => {
-          item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)'; // Reset menu item background
-      });
-
-     if (intersects.length > 0) {
-         const intersection = intersects[0];
-         const object = intersection.object; // The intersected mesh
-         
-         if (object instanceof THREE.Mesh) {
-             selectObjectFromMenu(object); // Use the common selection function
-         } else {
-              // Might have clicked a line or point
-              if(displayElement) displayElement.textContent = `Clicked: (Not a mesh - ${object.type})`;
-         }
-     }
- }
+    if (intersects.length > 0) {
+        const intersection = intersects[0];
+        const object = intersection.object; // The intersected mesh
+        
+        if (object instanceof THREE.Mesh) {
+            selectObjectFromMenu(object); // Use the common selection function
+        } else {
+             // Might have clicked a line or point
+             if(displayElement) displayElement.textContent = `Clicked: (Not a mesh - ${object.type})`;
+        }
+    }
+}
  
   // Helper to get a more descriptive name including parents
   function getHierarchicalName(obj) {

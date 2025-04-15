@@ -756,6 +756,7 @@ body {
      background-color: rgba(60, 60, 60, 0.7);
      border: none;
      border-radius: 4px;
+     box-sizing: border-box; /* Ensure padding is included in width */
  }
  
 #right-menu-control-settings-content .controls h4 {
@@ -783,6 +784,7 @@ body {
  }
  
 #right-menu-control-settings-content .controls button {
+     width: 100%; /* Force buttons to take full width */
      padding: 4px;
      font-size: 12px;
      background-color: #555;
@@ -790,6 +792,8 @@ body {
      border: 1px solid #777;
      border-radius: 3px;
      margin: 0; 
+     transform: scale(1.0);
+     vertical-align: baseline;
  }
 #right-menu-control-settings-content .controls button:hover {
      background-color: #666;
@@ -823,22 +827,25 @@ body {
      vertical-align: baseline;
  }
  
-#right-menu-control-settings-content .camera-controls div:has(#zoom-input) {
-     display: flex;
-     align-items: center;
-     gap: 5px;
- }
-#right-menu-control-settings-content .camera-controls div:has(#zoom-input) label {
-     flex-shrink: 0; 
-     margin-bottom: 0;
- }
-#right-menu-control-settings-content .camera-controls div:has(#zoom-input) input {
-     flex-grow: 1;
- }
-#right-menu-control-settings-content .camera-controls div:has(#zoom-input) button {
-     flex-shrink: 0;
- }
+/* Group Zoom buttons - Input removed, no longer needed */
 
+/* Ensure +/- buttons are grouped */
+#right-menu-control-settings-content .camera-controls div.zoom-buttons {
+    display: flex;
+    gap: 5px;
+}
+#right-menu-control-settings-content .camera-controls div.zoom-buttons button {
+    flex-grow: 1; /* Allow + and - to share space */
+}
+
+/* Group Lighting +/- buttons */
+#right-menu-control-settings-content .environment-controls div.lighting-buttons {
+    display: flex;
+    gap: 5px;
+}
+#right-menu-control-settings-content .environment-controls div.lighting-buttons button {
+    flex-grow: 1; /* Allow + and - to share space */
+}
 
 /* Responsive adjustments for LEFT menu */
 @media (max-width: 768px) {

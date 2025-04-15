@@ -63,10 +63,10 @@
                             <div class="control-section">
                                  <h4>Camera Controls:</h4>
                                  <div class="camera-controls">
-                                     <label for="zoom-input">Zoom:</label>
-                                     <button id="zoom-out">-</button>
-                                     <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
-                                     <button id="zoom-in">+</button>
+                                    <div class="zoom-buttons">
+                                        <button id="zoom-out">-</button>
+                                        <button id="zoom-in">+</button>
+                                    </div>
                                      
                                      <button id="rotate-left">Rotate Left</button>
                                      <button id="rotate-right">Rotate Right</button>
@@ -77,8 +77,11 @@
                              <div class="control-section">
                                  <h4>Environment Controls:</h4>
                                  <div class="environment-controls">
-                                     <label for="lighting-intensity">Lighting:</label>
-                                     <input type="range" id="lighting-intensity" min="0.1" max="2.5" step="0.1" value="1.0">
+                                     <label>Lighting:</label>
+                                     <div class="lighting-buttons">
+                                         <button id="lighting-decrease-btn">-</button>
+                                         <button id="lighting-increase-btn">+</button>
+                                     </div>
                                      <label for="background-color">Background:</label>
                                      <input type="color" id="background-color" value="#000000">
                                 </div>
