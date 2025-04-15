@@ -20,8 +20,12 @@ let raycaster; // Re-add for detecting clicks
 let mouse;     // Re-add for mouse coordinates
 let selectedMaterialForEditing = null; // Variable to hold the clicked material
 let selectedMeshForEditing = null; // Variable to hold the clicked mesh
-let composer; // For post-processing
-let outlinePass; // For highlighting
+// REMOVE Emissive highlight variables
+// let originalEmissiveColors = new Map(); 
+// const highlightEmissiveColor = new THREE.Color(0xffff00); 
+// RESTORE composer and outlinePass variables
+let composer;
+let outlinePass;
 
 function init() {
     raycaster = new THREE.Raycaster(); // Initialize Raycaster
@@ -32,6 +36,7 @@ function init() {
     // Create scene
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000); // Changed to black background
+    scene.fog = null; // Explicitly disable fog
 
     // Create camera with fixed aspect ratio
     const container = document.getElementById('threejs-viewer');
@@ -40,36 +45,39 @@ function init() {
         return;
     }
     const aspect = 16 / 12; // Match the container's aspect ratio
-    camera = new THREE.PerspectiveCamera(30, aspect, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(30, aspect, 1.0, 10000); // Increased near plane + far plane
     
     // Initialize Texture Loader
     textureLoader = new THREE.TextureLoader();
 
     // Create renderer with responsive sizing
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({ 
+        antialias: true, 
+        logarithmicDepthBuffer: true // Improve depth precision
+    });
     renderer.setSize(container.clientWidth, container.clientWidth / aspect);
     renderer.physicallyCorrectLights = true; // Enable physically correct lighting
     renderer.shadowMap.enabled = true; // Enable shadow mapping
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
     container.appendChild(renderer.domElement);
 
-    // Post-processing Composer Setup
+    // RESTORE Post-processing Composer and OutlinePass Setup
     composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
 
-    // Set up the outline pass
     outlinePass = new OutlinePass(
         new THREE.Vector2(container.clientWidth, container.clientWidth / aspect), 
         scene, 
         camera
     );
-    outlinePass.edgeStrength = 3.0;
-    outlinePass.edgeGlow = 0.5;
-    outlinePass.edgeThickness = 1.0;
+    // Adjusted settings
+    outlinePass.edgeStrength = 2.0; // Reduced strength
+    outlinePass.edgeGlow = 0.0; // Disabled glow
+    outlinePass.edgeThickness = 0.8; // Reduced thickness
     outlinePass.pulsePeriod = 0;
-    outlinePass.visibleEdgeColor.set('#ffff00'); // Yellow outline
-    outlinePass.hiddenEdgeColor.set('#ffff00'); // Yellow outline for hidden parts
+    outlinePass.visibleEdgeColor.set('#ffff00');
+    outlinePass.hiddenEdgeColor.set('#ffff00');
     composer.addPass(outlinePass);
 
     // Add enhanced lighting setup
@@ -213,7 +221,8 @@ function animate() {
         currentModel.rotation.y += rotationDirection * 0.01;
     }
     controls.update(); // Required if damping or auto-rotation is enabled
-    composer.render(); // Render using the EffectComposer
+    // RESTORE composer rendering
+    composer.render(); 
 }
 
 function loadOBJFile(objPath) {
@@ -249,7 +258,6 @@ function loadOBJFile(objPath) {
                  // Ensure depthWrite is false for transparent materials to render correctly
                  currentMaterial.depthWrite = false; 
                  currentMaterial.depthTest = true; // Still test depth
-                 currentMaterial.alphaTest = 0.5; // Increase threshold significantly
              }
              // Setup default floor texture
              else if (materialName === 'interior_floor') {
@@ -260,14 +268,12 @@ function loadOBJFile(objPath) {
                  currentMaterial.transparent = false;
                  currentMaterial.depthWrite = true;
                  currentMaterial.depthTest = true;
-                 currentMaterial.alphaTest = 0.5; // Increase threshold significantly
              }
              else {
                  // For all other materials, ensure they are opaque and write depth
                  currentMaterial.transparent = false;
                  currentMaterial.depthWrite = true;
                  currentMaterial.depthTest = true;
-                 currentMaterial.alphaTest = 0.5; // Increase threshold significantly
                  currentMaterial.side = THREE.FrontSide;
              }
         }); // End loop
@@ -390,8 +396,8 @@ function changeZoom(event) {
          intersects = raycaster.intersectObject(currentModel, true); // Check descendants
      }
 
-     // Reset previous selection visuals
-     outlinePass.selectedObjects = [];
+     // Reset previous selection visuals (OutlinePass)
+     outlinePass.selectedObjects = []; 
      selectedMeshForEditing = null;
      selectedMaterialForEditing = null;
      if(colorPicker) colorPicker.style.display = 'none';
@@ -704,15 +710,15 @@ function changeZoom(event) {
       if (!(node instanceof THREE.Mesh)) return;
 
       // Reset previous selection visuals ONLY in side menu
-      outlinePass.selectedObjects = [];
       document.querySelectorAll('.model-group-item').forEach(item => { // Only query side menu items
           item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)';
       });
       // REMOVED: Querying/resetting .material-control items
 
       // Set new selection
+      // Reset previous highlight (OutlinePass handles this implicitly)
       selectedMeshForEditing = node;
-      outlinePass.selectedObjects = [node];
+      outlinePass.selectedObjects = [node]; // Use OutlinePass again
 
       // Determine material (use primary if multi-material)
       const primaryMaterial = Array.isArray(node.material) ? node.material[0] : node.material;
@@ -790,8 +796,9 @@ function changeZoom(event) {
 
      // Update renderer size
      renderer.setSize(newWidth, newHeight);
-     composer.setSize(newWidth, newHeight); // Also resize the composer
-     outlinePass.resolution.set(newWidth, newHeight); // Update outline pass resolution
+     // RESTORE composer and outlinePass resize
+     composer.setSize(newWidth, newHeight);
+     outlinePass.resolution.set(newWidth, newHeight);
 
      console.log(`Resized to: ${newWidth}x${newHeight}, Fullscreen: ${!!isFullscreen}`);
  }
