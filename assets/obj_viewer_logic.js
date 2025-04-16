@@ -359,10 +359,10 @@ function initViewer() {
      });
 
     // Add listeners for panel switcher buttons
-    document.getElementById('show-objects-library-btn')?.addEventListener('click', () => switchRightPanel('objects-library'));
-    document.getElementById('show-model-groups-btn')?.addEventListener('click', () => switchRightPanel('model-groups'));
-    document.getElementById('show-control-settings-btn')?.addEventListener('click', () => switchRightPanel('control-settings'));
     document.getElementById('show-rooms-btn')?.addEventListener('click', () => switchRightPanel('show-rooms'));
+    document.getElementById('show-model-groups-btn')?.addEventListener('click', () => switchRightPanel('model-groups'));
+    document.getElementById('show-objects-library-btn')?.addEventListener('click', () => switchRightPanel('objects-library'));
+    document.getElementById('show-control-settings-btn')?.addEventListener('click', () => switchRightPanel('control-settings'));
     
     // Initialize the Objects Library
     populateObjectsLibrary();
@@ -1488,8 +1488,8 @@ function isChildOf(child, parent) {
          console.log("Room meshes mapped:", roomMeshesMap);
          populateRoomToggles(); // Create the checkboxes
          
-         // Switch to the Rooms tab to make it obvious to the user
-         switchRightPanel('show-rooms');
+         // Rooms tab is now the default, so no need to switch
+         // switchRightPanel('show-rooms');
      } else {
          // If another model is loaded, clear the map and toggles
          roomMeshesMap.clear();
