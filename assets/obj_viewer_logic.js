@@ -31,6 +31,120 @@ const lightIntensityStep = 0.1;
 const minLightIntensity = 0.1;
 const maxLightIntensity = 2.5; // Max multiplier
 
+// Available flooring textures from model_images directory
+let flooringTextures = [];
+
+// Function to apply texture to material
+function applyTextureToMaterial(material, textureType) {
+    if (!material || !textureLoader) return;
+    
+    // Find matching texture based on name
+    const matchingTexture = flooringTextures.find(texture => 
+        texture.value === textureType || 
+        (texture.fileName && texture.fileName.toLowerCase().includes(textureType.toLowerCase()))
+    );
+    
+    if (matchingTexture) {
+        const texturePath = `/assets/model_images/${matchingTexture.fileName}`;
+        console.log(`Applying texture: ${texturePath}`);
+        
+        textureLoader.load(texturePath, (texture) => {
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(2, 2); // Better tiling for floor textures
+            
+            // Keep track of the current texture for comparing later
+            texture.userData = { 
+                textureType: textureType,
+                fileName: matchingTexture.fileName 
+            };
+            
+            material.map = texture;
+            material.needsUpdate = true;
+        }, 
+        // onProgress callback - can be used for loading indicator
+        undefined, 
+        // onError callback
+        (error) => {
+            console.error(`Error loading texture ${texturePath}:`, error);
+            material.map = null;
+            material.needsUpdate = true;
+        });
+    } else {
+        console.warn(`Texture not found: ${textureType}`);
+        material.map = null;
+        material.needsUpdate = true;
+    }
+}
+
+// Load available flooring textures function
+function loadFlooringTextures() {
+    // Since directory listing might not be supported, we'll directly scan the model_images
+    // directory for files with "_flooring" in their names by listing known files.
+    
+    // Check if any flooring textures exist in assets/model_images
+    fetch('/assets/model_images/wooden_flooring.jpg', { method: 'HEAD' })
+        .then(response => {
+            // If we can access the model_images directory directly, use that path
+            const basePath = '/assets/model_images/';
+            
+            // Manually check for known flooring texture files
+            // This is a fallback approach since directory listing may not be supported
+            const knownTextureFiles = [
+                'wooden_flooring.jpg',
+                'carpet_flooring.jpg',
+                'porcelain_flooring.jpg',
+                'epoxy_flooring.jpg',
+                'concrete_flooring.jpg',
+                'wooden_flooring_1.jpg',
+                'wooden_flooring_4.jpg',
+                'asphalt.jpg' // Not flooring but included if used
+            ];
+            
+            flooringTextures = [];
+            
+            // Process each known file
+            knownTextureFiles.forEach(fileName => {
+                // Only include files with "_flooring" in the name as per requirements
+                if (fileName.includes('_flooring') || fileName === 'asphalt.jpg') {
+                    // Extract display name from filename
+                    let displayName = fileName.replace(/\.[^/.]+$/, '').replace('_flooring', '');
+                    displayName = displayName.replace(/_/g, ' ');
+                    displayName = displayName.replace(/\b\w/g, c => c.toUpperCase());
+                    
+                    // Create value from the base name
+                    const value = displayName.toLowerCase();
+                    
+                    flooringTextures.push({
+                        fileName,
+                        text: displayName || 'Texture',
+                        value: value || fileName.split('.')[0]
+                    });
+                    
+                    // Preload the texture to ensure it's available
+                    textureLoader.load(basePath + fileName, 
+                        texture => console.log(`Preloaded texture: ${fileName}`),
+                        undefined,
+                        error => console.warn(`Could not preload texture: ${fileName}`, error)
+                    );
+                }
+            });
+            
+            console.log('Available flooring textures:', flooringTextures);
+        })
+        .catch(error => {
+            console.error('Error checking model_images directory:', error);
+            // Fallback to default textures
+            flooringTextures = [
+                { fileName: 'wooden_flooring.jpg', text: 'Wood', value: 'wood' },
+                { fileName: 'carpet_flooring.jpg', text: 'Carpet', value: 'carpet' },
+                { fileName: 'porcelain_flooring.jpg', text: 'Porcelain', value: 'porcelain' },
+                { fileName: 'epoxy_flooring.jpg', text: 'Epoxy', value: 'epoxy' },
+                { fileName: 'concrete_flooring.jpg', text: 'Concrete', value: 'concrete' }
+            ];
+        });
+}
+
 // --- Room Visibility --- 
 const roomPrefixes = [
     "Bedroom_1", "Bedroom_2", "Bathroom", "Kitchen", 
@@ -86,6 +200,9 @@ function initViewer() {
     
     // Initialize Texture Loader
     textureLoader = new THREE.TextureLoader();
+    
+    // Load available flooring textures
+    loadFlooringTextures();
 
     // Create renderer with responsive sizing
     renderer = new THREE.WebGLRenderer({ 
@@ -638,29 +755,28 @@ function isChildOf(child, parent) {
 
          const textureSelect = document.createElement('select');
          textureSelect.id = textureSelectId;
-         const textureOptions = [
-             { value: '', text: 'None' },
-             { value: 'wood', text: 'Wood' },
-             { value: 'carpet', text: 'Carpet' },
-             { value: 'porcelain', text: 'Porcelain' },
-             { value: 'epoxy', text: 'Epoxy' },
-             { value: 'concrete', text: 'Concrete' }
-         ];
-         textureOptions.forEach(function(opt) { 
-             textureSelect.add(new Option(opt.text, opt.value)); 
+         
+         // Add "None" option
+         textureSelect.add(new Option('None', ''));
+         
+         // Add all available flooring textures from the dynamic list
+         flooringTextures.forEach(texture => {
+             textureSelect.add(new Option(texture.text, texture.value));
          });
 
-         // Set initial texture value
-         if (primaryMaterial && primaryMaterial.map) {
-             if (primaryMaterial.map.image?.src?.includes('floor.jpg')) textureSelect.value = 'wood';
-             else if (primaryMaterial.map.image?.src?.includes('carpet.jpg')) textureSelect.value = 'carpet';
-             else if (primaryMaterial.map.image?.src?.includes('porcelain.jpg')) textureSelect.value = 'porcelain';
-             else if (primaryMaterial.map.image?.src?.includes('epoxy')) textureSelect.value = 'epoxy';
-             else if (primaryMaterial.map.image?.src?.includes('concrete')) textureSelect.value = 'concrete';
-             else textureSelect.value = '';
-         } else {
-             textureSelect.value = '';
+         // Set initial texture value based on current material map
+         let initialTextureValue = '';
+         if (primaryMaterial && primaryMaterial.map && primaryMaterial.map.image) {
+             const currentTextureSrc = primaryMaterial.map.image.src;
+             // Find matching texture by comparing image paths
+             for (const texture of flooringTextures) {
+                 if (currentTextureSrc.includes(texture.fileName)) {
+                     initialTextureValue = texture.value;
+                     break;
+                 }
+             }
          }
+         textureSelect.value = initialTextureValue;
 
          textureSelect.style.width = '100%'; // Side menu style
          textureSelect.style.backgroundColor = '#555';

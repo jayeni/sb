@@ -15,14 +15,6 @@ Tf 1.0000 1.0000 1.0000
 d 1.0000
 Ns 255.0000
 Ni 1.0000
-newmtl Custom (5)
-Ka 0.0000 0.0000 0.0000
-Kd 0.9804 0.9804 0.9804
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 0.0000
-Ni 1.0000
 newmtl white_paint
 Ka 0.0000 0.0000 0.0000
 Kd 1.0000 1.0000 1.0000
@@ -31,9 +23,25 @@ Tf 1.0000 1.0000 1.0000
 d 1.0000
 Ns 255.0000
 Ni 1.0000
+newmtl Custom (5)
+Ka 0.0000 0.0000 0.0000
+Kd 0.9804 0.9804 0.9804
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
 newmtl WALLS_01
 Ka 0.0000 0.0000 0.0000
 Kd 0.9961 0.9294 0.9294
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
+newmtl diffuse_189_207_228_255
+Ka 0.0000 0.0000 0.0000
+Kd 0.7412 0.8118 0.8941
 Ks 1.0000 1.0000 1.0000
 Tf 1.0000 1.0000 1.0000
 d 1.0000
@@ -47,35 +55,109 @@ Tf 1.0000 1.0000 1.0000
 d 1.0000
 Ns 204.0000
 Ni 1.5200
-map_Kd 360_F_310285583_ILKFCwTerYFhqcIGiNL9zuY68sy7xd16.jpg
-newmtl diffuse_189_207_228_255
+map_Kd carpet_flooring.jpg
+newmtl grass
 Ka 0.0000 0.0000 0.0000
-Kd 0.7412 0.8118 0.8941
+Kd 1.0000 1.0000 1.0000
 Ks 1.0000 1.0000 1.0000
 Tf 1.0000 1.0000 1.0000
 d 1.0000
 Ns 0.0000
 Ni 1.0000
-newmtl c536b805189dfdacf915529c3fce906c
+map_Kd grass.jpg
+newmtl concrete_flooring
 Ka 0.0000 0.0000 0.0000
 Kd 1.0000 1.0000 1.0000
-Ks 0.0000 0.0000 0.0000
+Ks 1.0000 1.0000 1.0000
 Tf 1.0000 1.0000 1.0000
 d 1.0000
 Ns 0.0000
-Ni 1.5200
-map_Kd c536b805189dfdacf915529c3fce906c.jpg
+Ni 1.0000
+map_Kd concrete_flooring.jpg
+newmtl asphalt
+Ka 0.0000 0.0000 0.0000
+Kd 1.0000 1.0000 1.0000
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
+map_Kd asphalt.jpg
+newmtl kitchen floor
+Ka 0.0000 0.0000 0.0000
+Kd 1.0000 1.0000 1.0000
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
+map_Kd porcelain_flooring.jpg
+newmtl dining room floor
+Ka 0.0000 0.0000 0.0000
+Kd 1.0000 1.0000 1.0000
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
+map_Kd wooden_flooring.jpg
+newmtl living room floor
+Ka 0.0000 0.0000 0.0000
+Kd 1.0000 1.0000 1.0000
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
+map_Kd wooden_flooring.jpg
+newmtl bathroom floor
+Ka 0.0000 0.0000 0.0000
+Kd 1.0000 1.0000 1.0000
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
+map_Kd porcelain_flooring.jpg
+newmtl garage floor
+Ka 0.0000 0.0000 0.0000
+Kd 1.0000 1.0000 1.0000
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
+map_Kd concrete_flooring.jpg
+newmtl bedroom 2 floor
+Ka 0.0000 0.0000 0.0000
+Kd 1.0000 1.0000 1.0000
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
+map_Kd carpet_flooring.jpg
+newmtl bedroom 1 floor
+Ka 0.0000 0.0000 0.0000
+Kd 1.0000 1.0000 1.0000
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
+map_Kd epoxy_flooring.jpg
+newmtl hallway floor
+Ka 0.0000 0.0000 0.0000
+Kd 1.0000 1.0000 1.0000
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 0.0000
+Ni 1.0000
+map_Kd wooden_flooring_4.jpg
 newmtl bedroom_1_walls_color
 Ka 0.0000 0.0000 0.0000
 Kd 0.2471 0.7490 0.7490
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 255.0000
-Ni 1.0000
-newmtl living_room_walls_color
-Ka 0.0000 0.0000 0.0000
-Kd 0.2471 0.7490 0.4980
 Ks 1.0000 1.0000 1.0000
 Tf 1.0000 1.0000 1.0000
 d 1.0000
@@ -92,6 +174,14 @@ Ni 1.0000
 newmtl bathroom_walls_color
 Ka 0.0000 0.0000 0.0000
 Kd 0.7490 1.0000 0.7490
+Ks 1.0000 1.0000 1.0000
+Tf 1.0000 1.0000 1.0000
+d 1.0000
+Ns 255.0000
+Ni 1.0000
+newmtl living_room_walls_color
+Ka 0.0000 0.0000 0.0000
+Kd 0.2471 0.7490 0.4980
 Ks 1.0000 1.0000 1.0000
 Tf 1.0000 1.0000 1.0000
 d 1.0000
@@ -128,84 +218,4 @@ Ks 1.0000 1.0000 1.0000
 Tf 1.0000 1.0000 1.0000
 d 1.0000
 Ns 255.0000
-Ni 1.0000
-newmtl kitchen floor
-Ka 0.0000 0.0000 0.0000
-Kd 1.0000 1.0000 1.0000
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 0.0000
-Ni 1.0000
-map_Kd porcelain_1.jpg
-newmtl dining room floor
-Ka 0.0000 0.0000 0.0000
-Kd 1.0000 1.0000 1.0000
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 0.0000
-Ni 1.0000
-map_Kd istockphoto-185250199-612x612.jpg
-newmtl garage floor
-Ka 0.0000 0.0000 0.0000
-Kd 1.0000 1.0000 1.0000
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 0.0000
-Ni 1.0000
-map_Kd 360_F_310285583_ILKFCwTerYFhqcIGiNL9zuY68sy7xd16_2.jpg
-newmtl living room floor
-Ka 0.0000 0.0000 0.0000
-Kd 1.0000 1.0000 1.0000
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 0.0000
-Ni 1.0000
-map_Kd istockphoto-185250199-612x612_3.jpg
-newmtl bathroom floor
-Ka 0.0000 0.0000 0.0000
-Kd 1.0000 1.0000 1.0000
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 0.0000
-Ni 1.0000
-map_Kd porcelain_4.jpg
-newmtl hallway floor
-Ka 0.0000 0.0000 0.0000
-Kd 1.0000 1.0000 1.0000
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 0.0000
-Ni 1.0000
-map_Kd istockphoto-185250199-612x612_5.jpg
-newmtl bedroom 2 floor
-Ka 0.0000 0.0000 0.0000
-Kd 1.0000 1.0000 1.0000
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 0.0000
-Ni 1.0000
-map_Kd carpet.jpg
-newmtl bedroom 1 floor
-Ka 0.0000 0.0000 0.0000
-Kd 1.0000 1.0000 1.0000
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 0.0000
-Ni 1.0000
-map_Kd 600-epoxy-flooring-ideas-sample.jpg
-newmtl diffuse_191_191_255_255
-Ka 0.0000 0.0000 0.0000
-Kd 0.7490 0.7490 1.0000
-Ks 1.0000 1.0000 1.0000
-Tf 1.0000 1.0000 1.0000
-d 1.0000
-Ns 0.0000
 Ni 1.0000
