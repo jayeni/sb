@@ -31,6 +31,15 @@ const lightIntensityStep = 0.1;
 const minLightIntensity = 0.1;
 const maxLightIntensity = 2.5; // Max multiplier
 
+// --- Room Visibility --- 
+const roomPrefixes = [
+    "Bedroom_1", "Bedroom_2", "Bathroom", "Kitchen", 
+    "Living_Room", "Garage", "Dining_Room", "Hallway"
+];
+let roomMeshesMap = new Map(); // Map prefix -> Set<THREE.Mesh>
+const MISC_CATEGORY = "Misc"; // Category for objects not matching any room prefix
+// --- End Room Visibility ---
+
 function init() {
     raycaster = new THREE.Raycaster(); // Initialize Raycaster
     mouse = new THREE.Vector2();     // Initialize mouse vector
@@ -205,9 +214,14 @@ function init() {
          }
      });
 
-     // Add listeners for panel switcher buttons
-     document.getElementById('show-model-groups-btn')?.addEventListener('click', () => switchRightPanel('model-groups'));
-     document.getElementById('show-control-settings-btn')?.addEventListener('click', () => switchRightPanel('control-settings'));
+    // Add listeners for panel switcher buttons
+    document.getElementById('show-model-groups-btn')?.addEventListener('click', () => switchRightPanel('model-groups'));
+    document.getElementById('show-control-settings-btn')?.addEventListener('click', () => switchRightPanel('control-settings'));
+    document.getElementById('show-rooms-btn')?.addEventListener('click', () => switchRightPanel('show-rooms'));
+    
+    // --- Room Visibility Functions ---
+    populateRoomToggles();
+    // --- End Room Visibility Functions ---
 }
 
 function setRotation(direction) {
@@ -287,41 +301,8 @@ function loadOBJFile(objPath) {
            objLoader.load(objPath, function(object) {
                console.log("OBJ loaded:", object);
                
-                // Enable shadows for all meshes in the loaded object
-                object.traverse(function (child) {
-                    if (child.isMesh) {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                    }
-                });
-                
-               // Center and scale
-               const box = new THREE.Box3().setFromObject(object);
-               const center = box.getCenter(new THREE.Vector3());
-               const size = box.getSize(new THREE.Vector3());
-               const maxDim = Math.max(size.x, size.y, size.z);
-               const scale = 7 / maxDim; // Adjust scale factor if needed
-               object.scale.set(scale, scale, scale);
-               object.position.sub(center.multiplyScalar(scale));
-               
-               // Add to scene
-               if (currentModel) { // Remove previous model if reloading
-                   scene.remove(currentModel);
-               }
-               scene.add(object);
-               currentModel = object;
-               
-               // Populate the groups menu
-               populateModelGroupsMenu();
-
-               // Set initial camera position
-               camera.position.set(0, 2, 8.0); // Slightly higher Y position
-               controls.target.set(0, 0, 0); // Look at the center
-               controls.update();
-               
-               // Ensure controls know the new target
-                controls.target.copy(object.position);
-                controls.update();
+               // Setup the loaded model (centralize all setup here)
+               setupLoadedModel(object, objPath.split('/').pop());
 
            }, undefined, (error) => {
                 console.error("Error loading OBJ file:", error);
@@ -601,7 +582,9 @@ function onModelClick(event) {
              { value: 'epoxy', text: 'Epoxy' },
              { value: 'concrete', text: 'Concrete' }
          ];
-         textureOptions.forEach(opt => { textureSelect.add(new Option(opt.text, opt.value)); });
+         textureOptions.forEach(function(opt) { 
+             textureSelect.add(new Option(opt.text, opt.value)); 
+         });
 
          // Set initial texture value
          if (primaryMaterial && primaryMaterial.map) {
@@ -868,29 +851,262 @@ function onModelClick(event) {
      setTimeout(onWindowResize, 50); // Small delay often helps rendering
  }
  
- // Function to switch panels in the right menu
+ // Function to switch panels in the RIGHT menu
  function switchRightPanel(panelToShow) {
      const modelGroupsPanel = document.getElementById('right-menu-model-groups-content');
      const controlSettingsPanel = document.getElementById('right-menu-control-settings-content');
+     const showRoomsPanel = document.getElementById('right-menu-show-rooms-content'); // New panel
      const modelGroupsBtn = document.getElementById('show-model-groups-btn');
      const controlSettingsBtn = document.getElementById('show-control-settings-btn');
-
-     if (!modelGroupsPanel || !controlSettingsPanel || !modelGroupsBtn || !controlSettingsBtn) return;
-
+     const showRoomsBtn = document.getElementById('show-rooms-btn'); // New button
+     
+     if (!modelGroupsPanel || !controlSettingsPanel || !showRoomsPanel || 
+         !modelGroupsBtn || !controlSettingsBtn || !showRoomsBtn) {
+         console.error("One or more right menu panels/buttons not found");
+         return;
+     }
+     
+     // Hide all panels first
+     modelGroupsPanel.style.display = 'none';
+     controlSettingsPanel.style.display = 'none';
+     showRoomsPanel.style.display = 'none';
+     modelGroupsBtn.classList.remove('active');
+     controlSettingsBtn.classList.remove('active');
+     showRoomsBtn.classList.remove('active');
+     
      if (panelToShow === 'model-groups') {
          modelGroupsPanel.style.display = 'block';
-         controlSettingsPanel.style.display = 'none';
          modelGroupsBtn.classList.add('active');
-         controlSettingsBtn.classList.remove('active');
-     } else { // 'control-settings'
-         modelGroupsPanel.style.display = 'none';
+     } else if (panelToShow === 'control-settings') {
          controlSettingsPanel.style.display = 'block';
-         modelGroupsBtn.classList.remove('active');
          controlSettingsBtn.classList.add('active');
+     } else if (panelToShow === 'show-rooms') {
+         showRoomsPanel.style.display = 'block';
+         showRoomsBtn.classList.add('active');
      }
      // Ensure the content area can scroll if needed
      document.getElementById('right-menu-content-area')?.scrollTo(0, 0);
  }
  
+ // --- Room Visibility Functions ---
+ function populateRoomToggles() {
+     const contentDiv = document.getElementById('right-menu-show-rooms-content');
+     if (!contentDiv) return;
+
+     // Clear existing toggles except 'All Rooms'
+     const existingToggles = contentDiv.querySelectorAll('.room-toggle-item:not(:first-child)');
+     existingToggles.forEach(el => el.remove());
+
+     // Add 'All' listener
+     const allRoomsCheckbox = document.getElementById('toggle-all-rooms');
+     if (allRoomsCheckbox) {
+         allRoomsCheckbox.removeEventListener('change', handleRoomToggleChange);
+         allRoomsCheckbox.addEventListener('change', handleRoomToggleChange);
+         allRoomsCheckbox.checked = true; // Set to checked by default
+     }
+
+     // Create toggles for discovered rooms based on map keys
+     roomPrefixes.forEach(prefix => {
+         // Check if map has the prefix AND the set is not empty
+         if (roomMeshesMap.has(prefix) && roomMeshesMap.get(prefix).size > 0) { 
+             const itemDiv = document.createElement('div');
+             itemDiv.className = 'room-toggle-item';
+
+             const checkbox = document.createElement('input');
+             checkbox.type = 'checkbox';
+             checkbox.id = `toggle-${prefix}`;
+             checkbox.dataset.roomPrefix = prefix;
+             checkbox.checked = true; // Set to checked when "All" is checked
+             checkbox.addEventListener('change', handleRoomToggleChange);
+
+             const label = document.createElement('label');
+             label.htmlFor = checkbox.id;
+             label.textContent = prefix.replace(/_/g, ' '); // Make label readable
+
+             itemDiv.appendChild(checkbox);
+             itemDiv.appendChild(label);
+             contentDiv.appendChild(itemDiv);
+         }
+     });
+     
+     // Add Misc category if it has items
+     if (roomMeshesMap.has(MISC_CATEGORY) && roomMeshesMap.get(MISC_CATEGORY).size > 0) {
+         const itemDiv = document.createElement('div');
+         itemDiv.className = 'room-toggle-item';
+
+         const checkbox = document.createElement('input');
+         checkbox.type = 'checkbox';
+         checkbox.id = `toggle-${MISC_CATEGORY}`;
+         checkbox.dataset.roomPrefix = MISC_CATEGORY;
+         checkbox.checked = true; // Set to checked when "All" is checked
+         checkbox.addEventListener('change', handleRoomToggleChange);
+
+         const label = document.createElement('label');
+         label.htmlFor = checkbox.id;
+         label.textContent = MISC_CATEGORY; // No need to replace underscores
+
+         itemDiv.appendChild(checkbox);
+         itemDiv.appendChild(label);
+         contentDiv.appendChild(itemDiv);
+     }
+ }
+
+ function handleRoomToggleChange(event) {
+     const targetId = event.target.id;
+     const isChecked = event.target.checked;
+
+     if (targetId === 'toggle-all-rooms') {
+         // Toggle all individual room checkboxes
+         document.querySelectorAll('#right-menu-show-rooms-content input[type="checkbox"]').forEach(cb => {
+             cb.checked = isChecked;
+         });
+     } else {
+         // If unchecking an individual room, uncheck 'All Rooms'
+         if (!isChecked) {
+             const allRoomsCheckbox = document.getElementById('toggle-all-rooms');
+             if (allRoomsCheckbox) allRoomsCheckbox.checked = false;
+         } 
+         // Check if all individual rooms are now checked
+         else {
+              const allIndividualCheckboxes = document.querySelectorAll('#right-menu-show-rooms-content .room-toggle-item:not(:first-child) input[type="checkbox"]');
+              // Check if *all* existing individual checkboxes are checked
+              const allChecked = allIndividualCheckboxes.length > 0 && Array.from(allIndividualCheckboxes).every(cb => cb.checked);
+              if (allChecked) {
+                   const allRoomsCheckbox = document.getElementById('toggle-all-rooms');
+                   if (allRoomsCheckbox) allRoomsCheckbox.checked = true;
+              }
+         }
+     }
+     updateRoomVisibility();
+ }
+
+ function updateRoomVisibility() {
+     // First, hide all objects that are mapped to any room prefix or Misc
+     const allCategories = [...roomPrefixes, MISC_CATEGORY];
+     allCategories.forEach(category => {
+         if (roomMeshesMap.has(category)) {
+             roomMeshesMap.get(category).forEach(mesh => {
+                 if (mesh) mesh.visible = false;
+             });
+         }
+     });
+     
+     // Then, show only objects that belong to checked rooms or Misc
+     allCategories.forEach(category => {
+         const checkbox = document.getElementById(`toggle-${category}`);
+         const shouldBeVisible = checkbox ? checkbox.checked : false;
+         
+         if (shouldBeVisible && roomMeshesMap.has(category)) {
+             roomMeshesMap.get(category).forEach(mesh => {
+                 if (mesh) mesh.visible = true;
+             });
+         }
+     });
+     
+     // Update the visibility of objects in the model groups menu
+     if (currentModel) {
+         currentModel.traverse(node => {
+             if (node instanceof THREE.Mesh) {
+                 const menuItem = document.getElementById(`right-menu-model-groups-content-vis-${node.uuid}`)?.closest('.model-group-item');
+                 const visBtn = document.getElementById(`right-menu-model-groups-content-vis-${node.uuid}`);
+                 
+                 if (menuItem) {
+                     menuItem.style.opacity = node.visible ? '1' : '0.5';
+                 }
+                 if (visBtn) {
+                     visBtn.textContent = node.visible ? 'Hide' : 'Show';
+                 }
+             }
+         });
+     }
+     
+     console.log("Room visibility updated.");
+ }
+ // --- End Room Visibility Functions ---
+
+ // Helper function to set up the model once loaded
+ function setupLoadedModel(object, modelName) {
+     console.log(`Setting up model: ${modelName}`);
+
+     // Map rooms only if it's the house model
+     if (modelName === 'pk4.obj') {
+         roomMeshesMap.clear();
+         roomPrefixes.forEach(prefix => roomMeshesMap.set(prefix, new Set()));
+         roomMeshesMap.set(MISC_CATEGORY, new Set()); // Add Misc category
+
+         // First set all meshes to visible since "All" is checked by default
+         object.traverse((node) => {
+             if (node instanceof THREE.Mesh) {
+                 node.visible = true;
+             }
+         });
+
+         // Then map meshes to room prefixes 
+         object.traverse((node) => {
+             if (node instanceof THREE.Mesh && node.name) {
+                 let matched = false;
+                 for (const prefix of roomPrefixes) {
+                     // Use startsWith for prefix matching
+                     if (node.name.startsWith(prefix)) { 
+                         roomMeshesMap.get(prefix)?.add(node); 
+                         matched = true;
+                         break; 
+                     }
+                 }
+                 // If no room prefix matched, add to Misc category
+                 if (!matched) {
+                     roomMeshesMap.get(MISC_CATEGORY)?.add(node);
+                 }
+             }
+         });
+         console.log("Room meshes mapped:", roomMeshesMap);
+         populateRoomToggles(); // Create the checkboxes
+         updateRoomVisibility(); // Set initial visibility based on default checks
+         
+         // Switch to the Rooms tab to make it obvious to the user
+         switchRightPanel('show-rooms');
+     } else {
+         // If another model is loaded, clear the map and toggles
+         roomMeshesMap.clear();
+         populateRoomToggles(); 
+     }
+
+     // Enable shadows for all meshes in the loaded object
+     object.traverse(function (child) {
+         if (child.isMesh) {
+             child.castShadow = true;
+             child.receiveShadow = true;
+         }
+     });
+     
+     // Center and scale
+     const box = new THREE.Box3().setFromObject(object);
+     const center = box.getCenter(new THREE.Vector3());
+     const size = box.getSize(new THREE.Vector3());
+     const maxDim = Math.max(size.x, size.y, size.z);
+     const scale = 7 / maxDim; // Adjust scale factor if needed
+     object.scale.set(scale, scale, scale);
+     object.position.sub(center.multiplyScalar(scale));
+     
+     // Add to scene
+     if (currentModel) { // Remove previous model if reloading
+         scene.remove(currentModel);
+     }
+     scene.add(object);
+     currentModel = object;
+     
+     // Populate the groups menu
+     populateModelGroupsMenu();
+
+     // Set initial camera position
+     camera.position.set(0, 2, 8.0); // Slightly higher Y position
+     controls.target.set(0, 0, 0); // Look at the center
+     controls.update();
+     
+     // Ensure controls know the new target
+      controls.target.copy(object.position);
+      controls.update();
+ }
+
  // Initialize when the DOM is ready
  document.addEventListener('DOMContentLoaded', init); 

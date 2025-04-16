@@ -39,6 +39,7 @@
                 <div id="right-menu-switcher">
                     <button id="show-model-groups-btn" class="switcher-btn">Model Objects</button>
                     <button id="show-control-settings-btn" class="switcher-btn active">Control Settings</button>
+                    <button id="show-rooms-btn" class="switcher-btn">Rooms</button>
                 </div>
 
                 <!-- Content Area for Panels -->
@@ -88,7 +89,18 @@
                              </div>
                         </div>
                     </div> 
-
+                    
+                    <!-- Room Visibility Panel (Initially hidden) -->
+                    <div id="right-menu-show-rooms-content" style="display: none;">
+                        <div class="room-toggle-container">
+                            <!-- All Rooms toggle -->
+                            <div class="room-toggle-item">
+                                <input type="checkbox" id="toggle-all-rooms" checked>
+                                <label for="toggle-all-rooms">All</label>
+                            </div>
+                            <!-- Individual room toggles will be added here dynamically -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

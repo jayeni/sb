@@ -858,4 +858,42 @@ body {
 
 #model-groups-menu h3 {
     margin: 0 0 15px 0; /* Adjusted margin */
+}
+
+/* Room Visibility Panel Styles */
+#right-menu-show-rooms-content {
+    padding: 10px;
+}
+
+.room-toggle-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.room-toggle-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: rgba(60, 60, 60, 0.7);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.room-toggle-item:hover {
+    background-color: rgba(75, 75, 75, 0.8);
+}
+
+.room-toggle-item input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.room-toggle-item label {
+    font-size: 14px;
+    cursor: pointer;
+    flex-grow: 1;
+    color: #eee;
 } 
