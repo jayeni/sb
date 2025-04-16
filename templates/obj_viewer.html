@@ -37,6 +37,7 @@
                 
                 <!-- Panel Switcher -->
                 <div id="right-menu-switcher">
+                    <button id="show-objects-library-btn" class="switcher-btn">Objects Library</button>
                     <button id="show-model-groups-btn" class="switcher-btn">Model Objects</button>
                     <button id="show-control-settings-btn" class="switcher-btn active">Control Settings</button>
                     <button id="show-rooms-btn" class="switcher-btn">Rooms</button>
@@ -44,6 +45,16 @@
 
                 <!-- Content Area for Panels -->
                 <div id="right-menu-content-area">
+                    
+                    <!-- Objects Library Panel (Initially hidden) -->
+                    <div id="right-menu-objects-library-content" style="display: none;">
+                        <div class="objects-library-container">
+                            <h4>Drag objects to scene</h4>
+                            <div class="draggable-objects-list">
+                                <!-- Objects will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Model Groups Panel (Initially hidden) -->
                     <div id="right-menu-model-groups-content" style="display: none;">

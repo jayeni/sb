@@ -40,6 +40,22 @@ let roomMeshesMap = new Map(); // Map prefix -> Set<THREE.Mesh>
 const MISC_CATEGORY = "Misc"; // Category for objects not matching any room prefix
 // --- End Room Visibility ---
 
+// List of available objects for the library
+const availableObjects = [
+    { name: 'Cube', type: 'shape', icon: 'fas fa-cube', color: 0x3366FF },
+    { name: 'Sphere', type: 'shape', icon: 'fas fa-globe', color: 0xFF6633 },
+    { name: 'Cylinder', type: 'shape', icon: 'fas fa-battery-full fa-rotate-90', color: 0x66CC33 },
+    { name: 'Cone', type: 'shape', icon: 'fas fa-chess-pawn', color: 0xFF3366 },
+    { name: 'Torus', type: 'shape', icon: 'fas fa-circle-notch', color: 0xFFCC33 },
+    { name: 'Pyramid', type: 'shape', icon: 'fas fa-triangle', color: 0x33CCFF },
+    { name: 'Trapezoid', type: 'shape', icon: 'fas fa-draw-polygon', color: 0xCC33FF }
+];
+
+// Drag and drop variables
+let isDragging = false;
+let draggedObject = null;
+let dropIndicator = null;
+
 function init() {
     raycaster = new THREE.Raycaster(); // Initialize Raycaster
     mouse = new THREE.Vector2();     // Initialize mouse vector
@@ -218,9 +234,13 @@ function init() {
      });
 
     // Add listeners for panel switcher buttons
+    document.getElementById('show-objects-library-btn')?.addEventListener('click', () => switchRightPanel('objects-library'));
     document.getElementById('show-model-groups-btn')?.addEventListener('click', () => switchRightPanel('model-groups'));
     document.getElementById('show-control-settings-btn')?.addEventListener('click', () => switchRightPanel('control-settings'));
     document.getElementById('show-rooms-btn')?.addEventListener('click', () => switchRightPanel('show-rooms'));
+    
+    // Initialize the Objects Library
+    populateObjectsLibrary();
     
     // --- Room Visibility Functions ---
     populateRoomToggles();
@@ -381,13 +401,17 @@ function onModelClick(event) {
     
     raycaster.setFromCamera(mouse, camera);
 
-    let intersects = [];
-    if (currentModel) {
-        intersects = raycaster.intersectObject(currentModel, true); // Check descendants
-    }
-
     // First clear any existing selection
     clearSelection();
+
+    // Check for intersections with ALL objects in the scene, not just currentModel
+    let intersects = [];
+    
+    // Get all selectable objects in the scene
+    const selectableObjects = getSelectableObjects();
+    if (selectableObjects.length > 0) {
+        intersects = raycaster.intersectObjects(selectableObjects, false);
+    }
 
     if (intersects.length > 0) {
         const intersection = intersects[0];
@@ -400,6 +424,42 @@ function onModelClick(event) {
              if(displayElement) displayElement.textContent = `Clicked: (Not a mesh - ${object.type})`;
         }
     }
+}
+
+// Helper function to get all selectable objects in the scene
+function getSelectableObjects() {
+    const objects = [];
+    
+    // Add the currentModel objects if available
+    if (currentModel) {
+        currentModel.traverse(child => {
+            if (child instanceof THREE.Mesh) {
+                objects.push(child);
+            }
+        });
+    }
+    
+    // Add other objects added to the scene (e.g., from the Objects Library)
+    scene.traverse(child => {
+        // Only include meshes that aren't part of currentModel
+        if (child instanceof THREE.Mesh && (!currentModel || !isChildOf(child, currentModel))) {
+            objects.push(child);
+        }
+    });
+    
+    return objects;
+}
+
+// Helper function to check if an object is a child of another object
+function isChildOf(child, parent) {
+    let current = child.parent;
+    while (current) {
+        if (current === parent) {
+            return true;
+        }
+        current = current.parent;
+    }
+    return false;
 }
  
   // Helper to get a more descriptive name including parents
@@ -843,28 +903,35 @@ function onModelClick(event) {
  
  // Function to switch panels in the RIGHT menu
  function switchRightPanel(panelToShow) {
+     const objectsLibraryPanel = document.getElementById('right-menu-objects-library-content');
      const modelGroupsPanel = document.getElementById('right-menu-model-groups-content');
      const controlSettingsPanel = document.getElementById('right-menu-control-settings-content');
      const showRoomsPanel = document.getElementById('right-menu-show-rooms-content'); // New panel
+     const objectsLibraryBtn = document.getElementById('show-objects-library-btn');
      const modelGroupsBtn = document.getElementById('show-model-groups-btn');
      const controlSettingsBtn = document.getElementById('show-control-settings-btn');
      const showRoomsBtn = document.getElementById('show-rooms-btn'); // New button
      
-     if (!modelGroupsPanel || !controlSettingsPanel || !showRoomsPanel || 
-         !modelGroupsBtn || !controlSettingsBtn || !showRoomsBtn) {
+     if (!objectsLibraryPanel || !modelGroupsPanel || !controlSettingsPanel || !showRoomsPanel || 
+         !objectsLibraryBtn || !modelGroupsBtn || !controlSettingsBtn || !showRoomsBtn) {
          console.error("One or more right menu panels/buttons not found");
          return;
      }
      
      // Hide all panels first
+     objectsLibraryPanel.style.display = 'none';
      modelGroupsPanel.style.display = 'none';
      controlSettingsPanel.style.display = 'none';
      showRoomsPanel.style.display = 'none';
+     objectsLibraryBtn.classList.remove('active');
      modelGroupsBtn.classList.remove('active');
      controlSettingsBtn.classList.remove('active');
      showRoomsBtn.classList.remove('active');
      
-     if (panelToShow === 'model-groups') {
+     if (panelToShow === 'objects-library') {
+         objectsLibraryPanel.style.display = 'block';
+         objectsLibraryBtn.classList.add('active');
+     } else if (panelToShow === 'model-groups') {
          modelGroupsPanel.style.display = 'block';
          modelGroupsBtn.classList.add('active');
      } else if (panelToShow === 'control-settings') {
@@ -1361,6 +1428,320 @@ function onModelClick(event) {
      });
      
      console.log('Selection cleared');
+ }
+
+ // Function to populate the objects library with draggable items
+ function populateObjectsLibrary() {
+     const container = document.getElementById('right-menu-objects-library-content');
+     if (!container) return;
+     
+     const objectsList = container.querySelector('.draggable-objects-list');
+     if (!objectsList) return;
+     
+     // Clear existing items
+     objectsList.innerHTML = '';
+     
+     // Create drop indicator element if it doesn't exist
+     if (!dropIndicator) {
+         dropIndicator = document.createElement('div');
+         dropIndicator.className = 'drop-indicator';
+         document.getElementById('threejs-viewer')?.appendChild(dropIndicator);
+     }
+     
+     // Add each object as a draggable item
+     availableObjects.forEach(obj => {
+         const item = document.createElement('div');
+         item.className = 'draggable-object-item';
+         item.draggable = true;
+         item.dataset.objectName = obj.name;
+         item.dataset.objectType = obj.type;
+         item.dataset.objectColor = obj.color;
+         
+         const iconDiv = document.createElement('div');
+         iconDiv.className = 'draggable-object-icon';
+         iconDiv.style.color = '#' + obj.color.toString(16).padStart(6, '0');
+         
+         // Use icon
+         const icon = document.createElement('i');
+         icon.className = obj.icon;
+         iconDiv.appendChild(icon);
+         
+         const nameDiv = document.createElement('div');
+         nameDiv.className = 'draggable-object-name';
+         nameDiv.textContent = obj.name;
+         
+         item.appendChild(iconDiv);
+         item.appendChild(nameDiv);
+         
+         // Add drag event listeners
+         item.addEventListener('dragstart', handleDragStart);
+         item.addEventListener('dragend', handleDragEnd);
+         
+         objectsList.appendChild(item);
+     });
+     
+     // Add events to the viewer for drop functionality
+     const viewer = document.getElementById('threejs-viewer');
+     if (viewer) {
+         viewer.addEventListener('dragover', handleDragOver);
+         viewer.addEventListener('dragleave', handleDragLeave);
+         viewer.addEventListener('drop', handleDrop);
+     }
+ }
+
+ // Handle drag start
+ function handleDragStart(event) {
+     isDragging = true;
+     draggedObject = event.target;
+     
+     // Add dragging class for visual feedback
+     draggedObject.classList.add('dragging');
+     
+     // Set data transfer properties
+     event.dataTransfer.setData('text/plain', draggedObject.dataset.objectName);
+     event.dataTransfer.effectAllowed = 'copy';
+     
+     // For Firefox compatibility (needs to set data)
+     if (event.dataTransfer.setDragImage) {
+         const dragIcon = draggedObject.querySelector('.draggable-object-icon');
+         if (dragIcon) {
+             event.dataTransfer.setDragImage(dragIcon, 32, 32);
+         }
+     }
+ }
+
+ // Handle drag end
+ function handleDragEnd(event) {
+     isDragging = false;
+     if (draggedObject) {
+         draggedObject.classList.remove('dragging');
+     }
+     draggedObject = null;
+     
+     // Hide drop indicator
+     if (dropIndicator) {
+         dropIndicator.style.display = 'none';
+     }
+ }
+
+ // Handle drag over viewer
+ function handleDragOver(event) {
+     // Prevent default to allow drop
+     event.preventDefault();
+     
+     // Set drop effect
+     event.dataTransfer.dropEffect = 'copy';
+     
+     // Show and position the drop indicator
+     if (dropIndicator) {
+         dropIndicator.style.display = 'block';
+         dropIndicator.style.left = (event.clientX - 25) + 'px';
+         dropIndicator.style.top = (event.clientY - 25) + 'px';
+     }
+ }
+
+ // Handle drag leave
+ function handleDragLeave(event) {
+     // Hide drop indicator
+     if (dropIndicator) {
+         dropIndicator.style.display = 'none';
+     }
+ }
+
+ // Handle drop
+ function handleDrop(event) {
+     // Prevent default browser behavior
+     event.preventDefault();
+     
+     // Hide drop indicator
+     if (dropIndicator) {
+         dropIndicator.style.display = 'none';
+     }
+     
+     // Get the dropped object name
+     const objectName = event.dataTransfer.getData('text/plain');
+     if (!objectName) return;
+     
+     // Get object details
+     const objectData = availableObjects.find(obj => obj.name === objectName);
+     if (!objectData) return;
+     
+     // Get drop position in 3D space
+     const dropPosition = getDropPosition(event);
+     
+     // Create and place the object
+     createAndPlaceShape(objectData, dropPosition);
+ }
+
+ // Function to create and place a 3D shape in the scene
+ function createAndPlaceShape(objectData, position) {
+     // Create geometry based on shape type
+     let geometry;
+     const name = objectData.name.toLowerCase();
+     
+     switch (name) {
+         case 'cube':
+             geometry = new THREE.BoxGeometry(1, 1, 1);
+             break;
+         case 'sphere':
+             geometry = new THREE.SphereGeometry(0.5, 32, 32);
+             break;
+         case 'cylinder':
+             geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
+             break;
+         case 'cone':
+             geometry = new THREE.ConeGeometry(0.5, 1, 32);
+             break;
+         case 'torus':
+             geometry = new THREE.TorusGeometry(0.5, 0.2, 16, 32);
+             break;
+         case 'pyramid':
+             geometry = new THREE.ConeGeometry(0.5, 1, 4);
+             break;
+         case 'trapezoid':
+             // Create a custom trapezoid geometry
+             geometry = createTrapezoidGeometry(1, 0.6, 0.5, 1);
+             break;
+         default:
+             geometry = new THREE.BoxGeometry(1, 1, 1);
+             break;
+     }
+     
+     // Create material with the color
+     const material = new THREE.MeshStandardMaterial({
+         color: objectData.color,
+         metalness: 0.3,
+         roughness: 0.6
+     });
+     
+     // Create mesh
+     const mesh = new THREE.Mesh(geometry, material);
+     mesh.name = `placed_${name}_${Date.now()}`;
+     
+     // Enable shadows
+     mesh.castShadow = true;
+     mesh.receiveShadow = true;
+     
+     // Position the mesh
+     mesh.position.copy(position);
+     
+     // Add to scene
+     scene.add(mesh);
+     
+     // Add to the Misc category for room visibility
+     if (roomMeshesMap.has(MISC_CATEGORY)) {
+         roomMeshesMap.get(MISC_CATEGORY).add(mesh);
+     }
+     
+     console.log(`Shape ${name} added to scene at position:`, position);
+     
+     // Update the model groups menu to include the new shape
+     populateModelGroupsMenu();
+     
+     // Update room toggles to include the new object
+     populateRoomToggles();
+     
+     // Select the newly added object
+     selectObjectFromMenu(mesh);
+ }
+
+ // Custom function to create a trapezoid geometry
+ function createTrapezoidGeometry(topWidth, bottomWidth, height, depth) {
+     const geometry = new THREE.BufferGeometry();
+     
+     // Define the vertices
+     const halfTopWidth = topWidth / 2;
+     const halfBottomWidth = bottomWidth / 2;
+     const halfHeight = height / 2;
+     const halfDepth = depth / 2;
+     
+     const vertices = new Float32Array([
+         // Top face
+         -halfTopWidth, halfHeight, halfDepth,
+         halfTopWidth, halfHeight, halfDepth,
+         halfTopWidth, halfHeight, -halfDepth,
+         -halfTopWidth, halfHeight, -halfDepth,
+         
+         // Bottom face
+         -halfBottomWidth, -halfHeight, halfDepth,
+         halfBottomWidth, -halfHeight, halfDepth,
+         halfBottomWidth, -halfHeight, -halfDepth,
+         -halfBottomWidth, -halfHeight, -halfDepth
+     ]);
+     
+     // Define the faces (triangles)
+     const indices = [
+         // Top face
+         0, 1, 2,
+         0, 2, 3,
+         
+         // Bottom face
+         4, 6, 5,
+         4, 7, 6,
+         
+         // Side faces
+         0, 3, 7,
+         0, 7, 4,
+         
+         1, 5, 6,
+         1, 6, 2,
+         
+         0, 4, 5,
+         0, 5, 1,
+         
+         3, 2, 6,
+         3, 6, 7
+     ];
+     
+     // Add normals
+     const normals = [];
+     for (let i = 0; i < vertices.length / 3; i++) {
+         normals.push(0, 1, 0); // Simplified - just pointing up
+     }
+     
+     // Set attributes
+     geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+     geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+     geometry.setIndex(indices);
+     
+     // Compute vertex normals for better lighting
+     geometry.computeVertexNormals();
+     
+     return geometry;
+ }
+
+ // Function to convert 2D screen coordinates to 3D world position
+ function getDropPosition(event) {
+     // Get viewer dimensions and position
+     const viewer = document.getElementById('threejs-viewer');
+     if (!viewer) return new THREE.Vector3(0, 0, 0);
+     
+     const rect = viewer.getBoundingClientRect();
+     
+     // Calculate normalized coordinates
+     const normalizedX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+     const normalizedY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+     
+     // Create a ray from the camera
+     const raycaster = new THREE.Raycaster();
+     raycaster.setFromCamera({ x: normalizedX, y: normalizedY }, camera);
+     
+     // Check for intersections with the floor or existing objects
+     const intersects = raycaster.intersectObjects(scene.children, true);
+     
+     // If we hit something, return that position
+     if (intersects.length > 0) {
+         return intersects[0].point;
+     }
+     
+     // Default position if no intersection found
+     // Project a point at the ground level (y=0)
+     const defaultDistance = 5;
+     return new THREE.Vector3(
+         camera.position.x + raycaster.ray.direction.x * defaultDistance,
+         0, // Ground level
+         camera.position.z + raycaster.ray.direction.z * defaultDistance
+     );
  }
 
  // Initialize when the DOM is ready

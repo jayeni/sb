@@ -987,4 +987,89 @@ body {
     max-width: 250px;
     word-wrap: break-word;
     visibility: visible;
+}
+
+/* Objects Library Panel Styles */
+#right-menu-objects-library-content {
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.objects-library-container h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #FFD700;
+    font-size: 16px;
+    text-align: center;
+}
+
+.draggable-objects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.draggable-object-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    background-color: rgba(60, 60, 60, 0.7);
+    border-radius: 4px;
+    cursor: move;
+    transition: all 0.2s ease;
+    user-select: none; /* Prevent text selection during drag */
+}
+
+.draggable-object-item:hover {
+    background-color: rgba(80, 80, 80, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.draggable-object-item.dragging {
+    opacity: 0.7;
+    transform: scale(0.95);
+}
+
+.draggable-object-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 8px;
+    background-color: rgba(40, 40, 40, 0.6);
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.draggable-object-icon img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+.draggable-object-icon i {
+    font-size: 32px;
+    color: #FFD700;
+}
+
+.draggable-object-name {
+    font-size: 14px;
+    color: #eee;
+    text-align: center;
+}
+
+/* Drop indicator styles */
+.drop-indicator {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px dashed #FFD700;
+    background-color: rgba(255, 215, 0, 0.2);
+    pointer-events: none;
+    display: none;
+    z-index: 1000;
 } 
