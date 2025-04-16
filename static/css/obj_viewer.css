@@ -1072,4 +1072,86 @@ body {
     pointer-events: none;
     display: none;
     z-index: 1000;
+}
+
+/* Object Manipulation Toolbar */
+.object-toolbar {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(40, 40, 40, 0.85);
+    border-radius: 8px;
+    padding: 10px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s;
+}
+
+.object-toolbar.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.toolbar-title {
+    font-size: 14px;
+    color: #FFD700;
+    margin-bottom: 8px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.toolbar-tools {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.tool-btn {
+    background-color: rgba(70, 70, 70, 0.8);
+    color: white;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tool-btn i {
+    margin-right: 4px;
+}
+
+.tool-btn:hover {
+    background-color: rgba(90, 90, 90, 0.9);
+    transform: translateY(-2px);
+}
+
+.tool-btn.active {
+    background-color: rgba(255, 215, 0, 0.3);
+    border-color: #FFD700;
+    color: #FFD700;
+}
+
+.tool-btn-danger {
+    background-color: rgba(180, 40, 40, 0.7);
+}
+
+.tool-btn-danger:hover {
+    background-color: rgba(220, 50, 50, 0.8);
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background-color: #666;
+    margin: 0 4px;
 } 

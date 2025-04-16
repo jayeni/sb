@@ -56,7 +56,15 @@ let isDragging = false;
 let draggedObject = null;
 let dropIndicator = null;
 
-function init() {
+// Object manipulation variables
+let isTransforming = false;
+let transformType = null; // 'rotate' or 'move'
+let transformAxis = null; // 'x', 'y', or 'z'
+let transformStartPosition = new THREE.Vector2();
+let transformStep = 0.1; // How much to move/rotate per pixel of mouse movement
+
+// Initialize the viewer
+function initViewer() {
     raycaster = new THREE.Raycaster(); // Initialize Raycaster
     mouse = new THREE.Vector2();     // Initialize mouse vector
     selectedMaterialForEditing = null; // Ensure it's null on init
@@ -245,6 +253,12 @@ function init() {
     // --- Room Visibility Functions ---
     populateRoomToggles();
     // --- End Room Visibility Functions ---
+
+    // Initialize object tools only - remove non-existent function calls
+    // initMenus();
+    // initLoadButton(); 
+    // initSliceControls();
+    initObjectTools(); // Initialize object manipulation tools
 }
 
 function setRotation(direction) {
@@ -814,6 +828,14 @@ function isChildOf(child, parent) {
            }
       }
       // REMOVED: Highlighting/scrolling in the removed main controls area
+      
+      // Only show the object toolbar if the object was added from the objects library
+      // Objects added from the library have names that start with "placed_"
+      if (node.name && node.name.startsWith("placed_")) {
+          showObjectToolbar();
+      } else {
+          hideObjectToolbar();
+      }
  }
  
   // Handle window resize AND fullscreen changes
@@ -1405,30 +1427,38 @@ function isChildOf(child, parent) {
 
  // Clear the current object selection
  function clearSelection() {
-     // Reset previous selection visuals (OutlinePass)
-     outlinePass.selectedObjects = []; 
-     selectedMeshForEditing = null;
-     selectedMaterialForEditing = null;
-     
-     // Update UI elements
-     const displayElement = document.getElementById('clicked-object-display');
-     const colorPicker = document.getElementById('selected-object-color-picker');
-     const visibilityButton = document.getElementById('toggle-object-visibility');
-     
-     if(colorPicker) colorPicker.style.display = 'none';
-     if(visibilityButton) visibilityButton.style.display = 'none';
-     if(displayElement) displayElement.textContent = 'Clicked: (None)';
-     
-     // Reset model groups menu item highlights
-     document.querySelectorAll('.model-group-item').forEach(item => {
-         item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)'; // Reset menu item background
-         // Reset text color as well
-         const nameEl = item.querySelector('.model-group-name');
-         if (nameEl) nameEl.style.color = '#eee'; // Default/reset color
-     });
-     
-     console.log('Selection cleared');
- }
+    // Reset previous selection visuals (OutlinePass)
+    outlinePass.selectedObjects = []; 
+    selectedMeshForEditing = null;
+    selectedMaterialForEditing = null;
+    
+    // Update UI elements
+    const displayElement = document.getElementById('clicked-object-display');
+    const colorPicker = document.getElementById('selected-object-color-picker');
+    const visibilityButton = document.getElementById('toggle-object-visibility');
+    
+    if(colorPicker) colorPicker.style.display = 'none';
+    if(visibilityButton) visibilityButton.style.display = 'none';
+    if(displayElement) displayElement.textContent = 'Clicked: (None)';
+    
+    // Reset model groups menu item highlights
+    document.querySelectorAll('.model-group-item').forEach(item => {
+        item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)'; // Reset menu item background
+        // Reset text color as well
+        const nameEl = item.querySelector('.model-group-name');
+        if (nameEl) nameEl.style.color = '#eee'; // Default/reset color
+    });
+    
+    // Always hide the object toolbar when selection is cleared
+    hideObjectToolbar();
+    
+    // Reset transform state
+    isTransforming = false;
+    transformType = null;
+    transformAxis = null;
+    
+    console.log('Selection cleared');
+}
 
  // Function to populate the objects library with draggable items
  function populateObjectsLibrary() {
@@ -1579,31 +1609,34 @@ function isChildOf(child, parent) {
      let geometry;
      const name = objectData.name.toLowerCase();
      
+     // Reduce size by 75% - make shapes much smaller
+     const scaleFactor = 0.25; // 25% of original size
+     
      switch (name) {
          case 'cube':
-             geometry = new THREE.BoxGeometry(1, 1, 1);
+             geometry = new THREE.BoxGeometry(scaleFactor, scaleFactor, scaleFactor);
              break;
          case 'sphere':
-             geometry = new THREE.SphereGeometry(0.5, 32, 32);
+             geometry = new THREE.SphereGeometry(0.5 * scaleFactor, 32, 32);
              break;
          case 'cylinder':
-             geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
+             geometry = new THREE.CylinderGeometry(0.5 * scaleFactor, 0.5 * scaleFactor, 1 * scaleFactor, 32);
              break;
          case 'cone':
-             geometry = new THREE.ConeGeometry(0.5, 1, 32);
+             geometry = new THREE.ConeGeometry(0.5 * scaleFactor, 1 * scaleFactor, 32);
              break;
          case 'torus':
-             geometry = new THREE.TorusGeometry(0.5, 0.2, 16, 32);
+             geometry = new THREE.TorusGeometry(0.5 * scaleFactor, 0.2 * scaleFactor, 16, 32);
              break;
          case 'pyramid':
-             geometry = new THREE.ConeGeometry(0.5, 1, 4);
+             geometry = new THREE.ConeGeometry(0.5 * scaleFactor, 1 * scaleFactor, 4);
              break;
          case 'trapezoid':
              // Create a custom trapezoid geometry
-             geometry = createTrapezoidGeometry(1, 0.6, 0.5, 1);
+             geometry = createTrapezoidGeometry(1 * scaleFactor, 0.6 * scaleFactor, 0.5 * scaleFactor, 1 * scaleFactor);
              break;
          default:
-             geometry = new THREE.BoxGeometry(1, 1, 1);
+             geometry = new THREE.BoxGeometry(scaleFactor, scaleFactor, scaleFactor);
              break;
      }
      
@@ -1744,5 +1777,244 @@ function isChildOf(child, parent) {
      );
  }
 
+ // Show the object manipulation toolbar
+ function showObjectToolbar() {
+     const toolbar = document.getElementById('object-toolbar');
+     if (toolbar) {
+         toolbar.classList.add('visible');
+     }
+ }
+
+ // Hide the object manipulation toolbar
+ function hideObjectToolbar() {
+     const toolbar = document.getElementById('object-toolbar');
+     if (toolbar) {
+         toolbar.classList.remove('visible');
+         
+         // Reset all tool buttons
+         document.querySelectorAll('.tool-btn').forEach(btn => {
+             btn.classList.remove('active');
+         });
+     }
+ }
+
+ // Initialize object manipulation tools
+ function initObjectTools() {
+    console.log("Initializing object tools");
+    
+    // Rotation tools
+    document.getElementById('tool-rotate-x')?.addEventListener('click', () => startTransform('rotate', 'x'));
+    document.getElementById('tool-rotate-y')?.addEventListener('click', () => startTransform('rotate', 'y'));
+    document.getElementById('tool-rotate-z')?.addEventListener('click', () => startTransform('rotate', 'z'));
+    
+    // Movement tools
+    document.getElementById('tool-move-x')?.addEventListener('click', () => startTransform('move', 'x'));
+    document.getElementById('tool-move-y')?.addEventListener('click', () => startTransform('move', 'y'));
+    document.getElementById('tool-move-z')?.addEventListener('click', () => startTransform('move', 'z'));
+    
+    // Delete tool - use a more direct approach without an event handler function
+    const deleteBtn = document.getElementById('tool-delete');
+    console.log("Delete button element:", deleteBtn);
+    
+    if (deleteBtn) {
+        console.log("Delete button found, adding click listener");
+        
+        // Remove any existing event listeners if there might be duplicates
+        deleteBtn.removeEventListener('click', deleteSelectedObject);
+        
+        // Add a simple direct click handler
+        deleteBtn.onclick = function() {
+            console.log("Delete button clicked directly");
+            if (selectedMeshForEditing) {
+                console.log("Deleting selected object:", selectedMeshForEditing.name);
+                scene.remove(selectedMeshForEditing);
+                
+                // Remove from roomMeshesMap if it exists there
+                roomPrefixes.forEach(prefix => {
+                    if (roomMeshesMap.has(prefix)) {
+                        roomMeshesMap.get(prefix).delete(selectedMeshForEditing);
+                    }
+                });
+                
+                // Also check Misc category
+                if (roomMeshesMap.has(MISC_CATEGORY)) {
+                    roomMeshesMap.get(MISC_CATEGORY).delete(selectedMeshForEditing);
+                }
+                
+                console.log(`Deleted object: ${selectedMeshForEditing.name}`);
+                
+                // Clear selection
+                clearSelection();
+                
+                // Update UI
+                populateModelGroupsMenu();
+                populateRoomToggles();
+            } else {
+                console.log("No object selected to delete");
+            }
+        };
+    } else {
+        console.error("Delete button element not found!");
+    }
+    
+    // Add mouse move listener for transformation
+    renderer.domElement.addEventListener('mousemove', handleTransformMouseMove);
+    
+    // Add click listener to end transformation
+    renderer.domElement.addEventListener('click', endTransform);
+    
+    // Add escape key listener to cancel transformation
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') endTransform();
+    });
+}
+
+ // Start object transformation
+ function startTransform(type, axis) {
+     if (!selectedMeshForEditing) return;
+     
+     // If already transforming the same way, end it (toggle behavior)
+     if (isTransforming && transformType === type && transformAxis === axis) {
+         endTransform();
+         return;
+     }
+     
+     // End any previous transformation
+     endTransform();
+     
+     // Set new transformation state
+     isTransforming = true;
+     transformType = type;
+     transformAxis = axis;
+     
+     // Store initial mouse position
+     transformStartPosition.set(mouse.x, mouse.y);
+     
+     // Highlight the active tool button
+     const buttonId = `tool-${type}-${axis}`;
+     const button = document.getElementById(buttonId);
+     if (button) button.classList.add('active');
+     
+     // Change cursor
+     renderer.domElement.style.cursor = 'move';
+     
+     console.log(`Started ${type} on ${axis} axis`);
+ }
+
+ // Handle mouse movement for transformation
+ function handleTransformMouseMove(event) {
+     if (!isTransforming || !selectedMeshForEditing) return;
+     
+     // Get current mouse position
+     const rect = renderer.domElement.getBoundingClientRect();
+     const currentX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+     const currentY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+     
+     // Calculate delta from start position
+     const deltaX = currentX - transformStartPosition.x;
+     const deltaY = currentY - transformStartPosition.y;
+     
+     // Use the larger of the deltas for manipulation
+     const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY;
+     
+     // Apply transformation based on type and axis
+     if (transformType === 'rotate') {
+         rotateObject(selectedMeshForEditing, transformAxis, delta);
+     } else if (transformType === 'move') {
+         moveObject(selectedMeshForEditing, transformAxis, delta);
+     }
+     
+     // Update start position for next movement
+     transformStartPosition.set(currentX, currentY);
+ }
+
+ // Rotate the object on the specified axis
+ function rotateObject(object, axis, delta) {
+     // Scale delta for smoother rotation
+     const rotationAmount = delta * Math.PI; // Full circle for full screen drag
+     
+     // Apply rotation
+     switch (axis) {
+         case 'x':
+             object.rotation.x += rotationAmount;
+             break;
+         case 'y':
+             object.rotation.y += rotationAmount;
+             break;
+         case 'z':
+             object.rotation.z += rotationAmount;
+             break;
+     }
+ }
+
+ // Move the object on the specified axis
+ function moveObject(object, axis, delta) {
+     // Scale delta for smoother movement
+     const moveAmount = delta * 2; // Scale factor for more natural movement
+     
+     // Apply movement
+     switch (axis) {
+         case 'x':
+             object.position.x += moveAmount;
+             break;
+         case 'y':
+             object.position.y += moveAmount;
+             break;
+         case 'z':
+             object.position.z += moveAmount;
+             break;
+     }
+ }
+
+ // End the current transformation
+ function endTransform() {
+     if (!isTransforming) return;
+     
+     // Reset transformation state
+     isTransforming = false;
+     transformType = null;
+     transformAxis = null;
+     
+     // Reset cursor
+     renderer.domElement.style.cursor = 'auto';
+     
+     // Reset all tool buttons
+     document.querySelectorAll('.tool-btn').forEach(btn => {
+         btn.classList.remove('active');
+     });
+     
+     console.log('Ended transformation');
+ }
+
+ // Delete the selected object
+ function deleteSelectedObject() {
+    console.log("deleteSelectedObject called, selectedMeshForEditing:", selectedMeshForEditing);
+    if (!selectedMeshForEditing) return;
+    
+    // Remove from scene
+    scene.remove(selectedMeshForEditing);
+    
+    // Remove from roomMeshesMap if it exists there
+    roomPrefixes.forEach(prefix => {
+        if (roomMeshesMap.has(prefix)) {
+            roomMeshesMap.get(prefix).delete(selectedMeshForEditing);
+        }
+    });
+    
+    // Also check Misc category
+    if (roomMeshesMap.has(MISC_CATEGORY)) {
+        roomMeshesMap.get(MISC_CATEGORY).delete(selectedMeshForEditing);
+    }
+    
+    console.log(`Deleted object: ${selectedMeshForEditing.name}`);
+    
+    // Clear selection
+    clearSelection();
+    
+    // Update UI
+    populateModelGroupsMenu();
+    populateRoomToggles();
+}
+
  // Initialize when the DOM is ready
- document.addEventListener('DOMContentLoaded', init); 
+ document.addEventListener('DOMContentLoaded', initViewer); 
