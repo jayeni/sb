@@ -626,7 +626,7 @@ body {
     /* Remove right property */
     /* right: 0; */ 
     top: 0;
-    width: 250px;
+    width: 300px; /* Increased width from 250px */
     height: 100%;
     background-color: rgba(30, 30, 30, 0.9);
     color: white;
@@ -646,71 +646,71 @@ body {
     justify-content: space-between;
     align-items: center;
     /* Restore margin */
-    margin-bottom: 10px;
+    margin-bottom: 15px; /* Increased from 10px */
     flex-shrink: 0;
-    padding-bottom: 5px;
+    padding-bottom: 8px; /* Increased from 5px */
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 #right-menu-header h3 {
     margin: 0;
     /* Restore size */
-    font-size: 16px;
+    font-size: 18px; /* Increased from 16px */
+    color: #FFD700; /* Gold color to make it stand out */
 }
 
 #right-menu-collapse-btn {
     /* Keep previous right-side styles */
     background: none;
-    border: 1px solid white;
-    color: white;
-    width: 24px;
-    height: 24px;
+    border: 1px solid #FFD700; /* Gold border to match header */
+    color: #FFD700; /* Gold text to match header */
+    width: 28px; /* Increased from 24px */
+    height: 28px; /* Increased from 24px */
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 3px;
-    font-size: 16px;
+    border-radius: 4px; /* Increased from 3px */
+    font-size: 18px; /* Increased from 16px */
     line-height: 1;
+    transition: all 0.2s ease; /* Added transition */
+}
+
+#right-menu-collapse-btn:hover {
+    background-color: rgba(255, 215, 0, 0.2); /* Light gold background on hover */
 }
 
 /* Panel Switcher Styling */
 #right-menu-switcher {
     display: flex;
-    margin-bottom: 10px;
+    margin-bottom: 15px; /* Increased from 10px */
     flex-shrink: 0;
+    border-radius: 4px;
+    overflow: hidden; /* Keep buttons within the border radius */
+    border: 1px solid #555;
 }
 
 .switcher-btn {
     flex-grow: 1;
-    padding: 5px;
-    background-color: #444;
-    border: 1px solid #666;
+    padding: 8px 5px; /* Increased height */
+    background-color: #333;
+    border: none;
+    border-right: 1px solid #555;
     color: #ccc;
     cursor: pointer;
     text-align: center;
-    font-size: 12px;
+    font-size: 13px; /* Increased from 12px */
     transition: background-color 0.2s ease;
 }
 
-.switcher-btn:first-child {
-    border-top-left-radius: 3px;
-    border-bottom-left-radius: 3px;
-    border-right: none;
-}
-
-.switcher-btn:last-child {
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-}
-
 .switcher-btn:hover {
-    background-color: #555;
+    background-color: #444;
 }
 
 .switcher-btn.active {
-    background-color: #666;
+    background-color: #555;
     color: white;
+    font-weight: bold;
 }
 
 /* Content Area for Panels */
@@ -718,6 +718,7 @@ body {
     flex-grow: 1;
     position: relative; /* Needed for absolute positioning if required */
     overflow-y: auto; /* Allow scrolling within the content area */
+    padding-right: 5px; /* Add a bit of padding for scrollbar space */
 }
 
 /* Panel Styling */
@@ -863,18 +864,19 @@ body {
 /* Room Visibility Panel Styles */
 #right-menu-show-rooms-content {
     padding: 10px;
+    overflow-y: auto;
 }
 
 .room-toggle-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px; /* Increased from 10px */
 }
 
 .room-toggle-item {
     display: flex;
     align-items: center;
-    padding: 8px;
+    padding: 10px; /* Increased from 8px */
     background-color: rgba(60, 60, 60, 0.7);
     border-radius: 4px;
     transition: background-color 0.2s ease;
@@ -885,15 +887,104 @@ body {
 }
 
 .room-toggle-item input[type="checkbox"] {
-    margin-right: 10px;
+    margin-right: 12px; /* Increased from 10px */
     cursor: pointer;
     width: 18px;
     height: 18px;
 }
 
 .room-toggle-item label {
-    font-size: 14px;
+    font-size: 15px; /* Increased from 14px */
     cursor: pointer;
     flex-grow: 1;
     color: #eee;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Nested checkboxes for objects within a room */
+.room-toggle-item .dropdown-toggle {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 16px;
+    transition: transform 0.2s;
+    min-width: 24px; /* Added fixed width */
+    text-align: center; /* Center the icon */
+}
+
+.room-toggle-item .dropdown-toggle.expanded {
+    transform: rotate(90deg);
+}
+
+.room-objects-container {
+    display: none;
+    margin-top: 10px; /* Increased from 8px */
+    margin-left: 24px; /* Increased from 20px */
+    flex-direction: column;
+    gap: 8px; /* Increased from 6px */
+    width: calc(100% - 24px); /* Make sure it fits within its parent */
+}
+
+.room-objects-container.visible {
+    display: flex;
+}
+
+.object-toggle-item {
+    display: flex;
+    align-items: center;
+    padding: 7px;
+    background-color: rgba(50, 50, 50, 0.7);
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.object-toggle-item:hover {
+    background-color: rgba(65, 65, 65, 0.8);
+}
+
+.object-toggle-item input[type="checkbox"] {
+    margin-right: 10px; /* Increased from 8px */
+    cursor: pointer;
+    width: 15px;
+    height: 15px;
+}
+
+.object-toggle-item label {
+    font-size: 13px;
+    cursor: pointer;
+    flex-grow: 1;
+    color: #ddd;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: calc(100% - 25px); /* Account for checkbox width */
+    display: inline-block;
+}
+
+/* Show tooltip on hover for longer labels */
+.object-toggle-item label:hover {
+    position: relative;
+}
+
+.object-toggle-item label:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: normal;
+    max-width: 250px;
+    word-wrap: break-word;
+    visibility: visible;
 } 

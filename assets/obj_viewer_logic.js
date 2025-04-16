@@ -190,6 +190,9 @@ function init() {
      document.addEventListener('mozfullscreenchange', handleFullscreenChange);
      document.addEventListener('MSFullscreenChange', handleFullscreenChange);
      
+     // Add keyboard listener for ESC key to deselect objects
+     document.addEventListener('keydown', handleKeyPress);
+     
      // Add listener for right controls menu collapse button
      document.getElementById('right-menu-collapse-btn')?.addEventListener('click', () => {
          const menu = document.getElementById('right-controls-menu');
@@ -370,8 +373,6 @@ function changeBackgroundColor(event) {
 // Event handler for object selection
 function onModelClick(event) {
     const displayElement = document.getElementById('clicked-object-display');
-    const colorPicker = document.getElementById('selected-object-color-picker');
-    const visibilityButton = document.getElementById('toggle-object-visibility');
     
     // Calculate mouse position in normalized device coordinates (-1 to +1) for component
     const rect = renderer.domElement.getBoundingClientRect();
@@ -385,19 +386,8 @@ function onModelClick(event) {
         intersects = raycaster.intersectObject(currentModel, true); // Check descendants
     }
 
-    // Reset previous selection visuals (OutlinePass)
-    outlinePass.selectedObjects = []; 
-    selectedMeshForEditing = null;
-    selectedMaterialForEditing = null;
-    if(colorPicker) colorPicker.style.display = 'none';
-    if(visibilityButton) visibilityButton.style.display = 'none';
-    if(displayElement) displayElement.textContent = 'Clicked: (None)';
-     document.querySelectorAll('.model-group-item').forEach(item => {
-         item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)'; // Reset menu item background
-         // Reset text color as well
-         const nameEl = item.querySelector('.model-group-name');
-         if (nameEl) nameEl.style.color = '#eee'; // Default/reset color
-     });
+    // First clear any existing selection
+    clearSelection();
 
     if (intersects.length > 0) {
         const intersection = intersects[0];
@@ -893,62 +883,267 @@ function onModelClick(event) {
      const contentDiv = document.getElementById('right-menu-show-rooms-content');
      if (!contentDiv) return;
 
-     // Clear existing toggles except 'All Rooms'
-     const existingToggles = contentDiv.querySelectorAll('.room-toggle-item:not(:first-child)');
-     existingToggles.forEach(el => el.remove());
+     // Clear existing toggles
+     contentDiv.innerHTML = '';
 
-     // Add 'All' listener
-     const allRoomsCheckbox = document.getElementById('toggle-all-rooms');
-     if (allRoomsCheckbox) {
-         allRoomsCheckbox.removeEventListener('change', handleRoomToggleChange);
-         allRoomsCheckbox.addEventListener('change', handleRoomToggleChange);
-         allRoomsCheckbox.checked = true; // Set to checked by default
-     }
+     // Add 'All' toggle
+     const allItemDiv = document.createElement('div');
+     allItemDiv.className = 'room-toggle-item';
 
-     // Create toggles for discovered rooms based on map keys
+     const allCheckbox = document.createElement('input');
+     allCheckbox.type = 'checkbox';
+     allCheckbox.id = 'toggle-all-rooms';
+     allCheckbox.checked = true;
+     allCheckbox.addEventListener('change', handleRoomToggleChange);
+
+     const allLabel = document.createElement('label');
+     allLabel.htmlFor = 'toggle-all-rooms';
+     allLabel.textContent = 'All';
+
+     allItemDiv.appendChild(allCheckbox);
+     allItemDiv.appendChild(allLabel);
+     contentDiv.appendChild(allItemDiv);
+
+     // Create toggles for discovered rooms with nested object toggles
      roomPrefixes.forEach(prefix => {
          // Check if map has the prefix AND the set is not empty
-         if (roomMeshesMap.has(prefix) && roomMeshesMap.get(prefix).size > 0) { 
-             const itemDiv = document.createElement('div');
-             itemDiv.className = 'room-toggle-item';
-
-             const checkbox = document.createElement('input');
-             checkbox.type = 'checkbox';
-             checkbox.id = `toggle-${prefix}`;
-             checkbox.dataset.roomPrefix = prefix;
-             checkbox.checked = true; // Set to checked when "All" is checked
-             checkbox.addEventListener('change', handleRoomToggleChange);
-
-             const label = document.createElement('label');
-             label.htmlFor = checkbox.id;
-             label.textContent = prefix.replace(/_/g, ' '); // Make label readable
-
-             itemDiv.appendChild(checkbox);
-             itemDiv.appendChild(label);
-             contentDiv.appendChild(itemDiv);
+         if (roomMeshesMap.has(prefix) && roomMeshesMap.get(prefix).size > 0) {
+             const roomObjects = Array.from(roomMeshesMap.get(prefix));
+             
+             // Main room toggle item
+             const roomDiv = document.createElement('div');
+             roomDiv.className = 'room-toggle-item';
+             
+             // Room checkbox
+             const roomCheckbox = document.createElement('input');
+             roomCheckbox.type = 'checkbox';
+             roomCheckbox.id = `toggle-${prefix}`;
+             roomCheckbox.dataset.roomPrefix = prefix;
+             roomCheckbox.checked = true;
+             roomCheckbox.addEventListener('change', e => {
+                 // Update all child checkboxes
+                 const objectsContainer = document.getElementById(`objects-${prefix}`);
+                 if (objectsContainer) {
+                     const childCheckboxes = objectsContainer.querySelectorAll('input[type="checkbox"]');
+                     childCheckboxes.forEach(cb => cb.checked = e.target.checked);
+                 }
+                 
+                 handleRoomToggleChange(e);
+             });
+             
+             // Room label
+             const roomLabel = document.createElement('label');
+             roomLabel.htmlFor = `toggle-${prefix}`;
+             roomLabel.textContent = prefix.replace(/_/g, ' ');
+             
+             // Dropdown toggle button (▶)
+             const dropdownBtn = document.createElement('button');
+             dropdownBtn.className = 'dropdown-toggle';
+             dropdownBtn.innerHTML = '▶';
+             dropdownBtn.addEventListener('click', () => {
+                 const objectsContainer = document.getElementById(`objects-${prefix}`);
+                 if (objectsContainer) {
+                     const isVisible = objectsContainer.classList.toggle('visible');
+                     dropdownBtn.classList.toggle('expanded', isVisible);
+                 }
+             });
+             
+             // Add room toggle elements
+             roomDiv.appendChild(roomCheckbox);
+             roomDiv.appendChild(roomLabel);
+             roomDiv.appendChild(dropdownBtn);
+             contentDiv.appendChild(roomDiv);
+             
+             // Create container for object toggles
+             const objectsContainer = document.createElement('div');
+             objectsContainer.className = 'room-objects-container';
+             objectsContainer.id = `objects-${prefix}`;
+             
+             // Add individual object toggles
+             roomObjects.forEach(obj => {
+                 const objDiv = document.createElement('div');
+                 objDiv.className = 'object-toggle-item';
+                 
+                 const objCheckbox = document.createElement('input');
+                 objCheckbox.type = 'checkbox';
+                 objCheckbox.id = `toggle-object-${obj.uuid}`;
+                 objCheckbox.dataset.objectId = obj.uuid;
+                 objCheckbox.dataset.roomPrefix = prefix;
+                 objCheckbox.checked = true;
+                 objCheckbox.addEventListener('change', e => {
+                     // Update object visibility directly
+                     obj.visible = e.target.checked;
+                     
+                     // Update room checkbox if needed
+                     updateRoomCheckboxState(prefix);
+                     
+                     // Update "All" checkbox
+                     updateAllCheckboxState();
+                 });
+                 
+                 const objLabel = document.createElement('label');
+                 objLabel.htmlFor = `toggle-object-${obj.uuid}`;
+                 objLabel.textContent = getObjectDisplayName(obj, prefix);
+                 objLabel.title = obj.name; // Add full name as title for tooltip
+                 
+                 objDiv.appendChild(objCheckbox);
+                 objDiv.appendChild(objLabel);
+                 objectsContainer.appendChild(objDiv);
+             });
+             
+             contentDiv.appendChild(objectsContainer);
          }
      });
      
-     // Add Misc category if it has items
+     // Add Misc category with all unmatched objects
      if (roomMeshesMap.has(MISC_CATEGORY) && roomMeshesMap.get(MISC_CATEGORY).size > 0) {
-         const itemDiv = document.createElement('div');
-         itemDiv.className = 'room-toggle-item';
-
-         const checkbox = document.createElement('input');
-         checkbox.type = 'checkbox';
-         checkbox.id = `toggle-${MISC_CATEGORY}`;
-         checkbox.dataset.roomPrefix = MISC_CATEGORY;
-         checkbox.checked = true; // Set to checked when "All" is checked
-         checkbox.addEventListener('change', handleRoomToggleChange);
-
-         const label = document.createElement('label');
-         label.htmlFor = checkbox.id;
-         label.textContent = MISC_CATEGORY; // No need to replace underscores
-
-         itemDiv.appendChild(checkbox);
-         itemDiv.appendChild(label);
-         contentDiv.appendChild(itemDiv);
+         const miscObjects = Array.from(roomMeshesMap.get(MISC_CATEGORY));
+         
+         // Main misc toggle
+         const miscDiv = document.createElement('div');
+         miscDiv.className = 'room-toggle-item';
+         
+         const miscCheckbox = document.createElement('input');
+         miscCheckbox.type = 'checkbox';
+         miscCheckbox.id = `toggle-${MISC_CATEGORY}`;
+         miscCheckbox.dataset.roomPrefix = MISC_CATEGORY;
+         miscCheckbox.checked = true;
+         miscCheckbox.addEventListener('change', e => {
+             // Update all child checkboxes
+             const objectsContainer = document.getElementById(`objects-${MISC_CATEGORY}`);
+             if (objectsContainer) {
+                 const childCheckboxes = objectsContainer.querySelectorAll('input[type="checkbox"]');
+                 childCheckboxes.forEach(cb => cb.checked = e.target.checked);
+             }
+             
+             handleRoomToggleChange(e);
+         });
+         
+         const miscLabel = document.createElement('label');
+         miscLabel.htmlFor = `toggle-${MISC_CATEGORY}`;
+         miscLabel.textContent = MISC_CATEGORY;
+         
+         // Dropdown toggle
+         const dropdownBtn = document.createElement('button');
+         dropdownBtn.className = 'dropdown-toggle';
+         dropdownBtn.innerHTML = '▶';
+         dropdownBtn.addEventListener('click', () => {
+             const objectsContainer = document.getElementById(`objects-${MISC_CATEGORY}`);
+             if (objectsContainer) {
+                 const isVisible = objectsContainer.classList.toggle('visible');
+                 dropdownBtn.classList.toggle('expanded', isVisible);
+             }
+         });
+         
+         miscDiv.appendChild(miscCheckbox);
+         miscDiv.appendChild(miscLabel);
+         miscDiv.appendChild(dropdownBtn);
+         contentDiv.appendChild(miscDiv);
+         
+         // Container for misc objects
+         const miscObjectsContainer = document.createElement('div');
+         miscObjectsContainer.className = 'room-objects-container';
+         miscObjectsContainer.id = `objects-${MISC_CATEGORY}`;
+         
+         // Add individual misc object toggles
+         miscObjects.forEach(obj => {
+             const objDiv = document.createElement('div');
+             objDiv.className = 'object-toggle-item';
+             
+             const objCheckbox = document.createElement('input');
+             objCheckbox.type = 'checkbox';
+             objCheckbox.id = `toggle-object-${obj.uuid}`;
+             objCheckbox.dataset.objectId = obj.uuid;
+             objCheckbox.dataset.roomPrefix = MISC_CATEGORY;
+             objCheckbox.checked = true;
+             objCheckbox.addEventListener('change', e => {
+                 // Update object visibility directly
+                 obj.visible = e.target.checked;
+                 
+                 // Update misc checkbox if needed
+                 updateRoomCheckboxState(MISC_CATEGORY);
+                 
+                 // Update "All" checkbox
+                 updateAllCheckboxState();
+             });
+             
+             const objLabel = document.createElement('label');
+             objLabel.htmlFor = `toggle-object-${obj.uuid}`;
+             objLabel.textContent = getObjectDisplayName(obj, MISC_CATEGORY);
+             objLabel.title = obj.name; // Add full name as title for tooltip
+             
+             objDiv.appendChild(objCheckbox);
+             objDiv.appendChild(objLabel);
+             miscObjectsContainer.appendChild(objDiv);
+         });
+         
+         contentDiv.appendChild(miscObjectsContainer);
      }
+ }
+
+ // Helper function to get a more user-friendly object name
+ function getObjectDisplayName(obj, category) {
+     if (!obj || !obj.name) return 'Unnamed';
+     
+     // For Misc category, show the full name
+     if (category === MISC_CATEGORY) {
+         return obj.name;
+     }
+     
+     // Remove any prefix paths like "path/to/model/"
+     let name = obj.name.split('/').pop();
+     
+     // Show only the last part after underscore if it has one
+     if (name.includes('_')) {
+         const parts = name.split('_');
+         if (parts.length > 1) {
+             // Return last part, keeping the part after the last underscore
+             return parts[parts.length-1];
+         }
+     }
+     
+     return name;
+ }
+
+ // Helper function to update a room checkbox based on its object checkboxes
+ function updateRoomCheckboxState(prefix) {
+     const roomCheckbox = document.getElementById(`toggle-${prefix}`);
+     const objectsContainer = document.getElementById(`objects-${prefix}`);
+     
+     if (roomCheckbox && objectsContainer) {
+         const childCheckboxes = objectsContainer.querySelectorAll('input[type="checkbox"]');
+         if (childCheckboxes.length === 0) return;
+         
+         const allChecked = Array.from(childCheckboxes).every(cb => cb.checked);
+         const anyChecked = Array.from(childCheckboxes).some(cb => cb.checked);
+         
+         // Set the checkbox state based on child checkboxes
+         roomCheckbox.checked = anyChecked;
+         
+         // In the future, could use indeterminate state when some are checked
+         // roomCheckbox.indeterminate = anyChecked && !allChecked;
+     }
+ }
+
+ // Helper function to update the "All" checkbox state
+ function updateAllCheckboxState() {
+     const allCheckbox = document.getElementById('toggle-all-rooms');
+     if (!allCheckbox) return;
+     
+     const roomCheckboxes = document.querySelectorAll(
+         '.room-toggle-item > input[type="checkbox"]:not(#toggle-all-rooms)'
+     );
+     
+     if (roomCheckboxes.length === 0) return;
+     
+     const allChecked = Array.from(roomCheckboxes).every(cb => cb.checked);
+     const anyChecked = Array.from(roomCheckboxes).some(cb => cb.checked);
+     
+     // Set the "All" checkbox state
+     allCheckbox.checked = anyChecked;
+     
+     // In the future, could use indeterminate state when some are checked
+     // allCheckbox.indeterminate = anyChecked && !allChecked;
  }
 
  function handleRoomToggleChange(event) {
@@ -956,54 +1151,82 @@ function onModelClick(event) {
      const isChecked = event.target.checked;
 
      if (targetId === 'toggle-all-rooms') {
-         // Toggle all individual room checkboxes
-         document.querySelectorAll('#right-menu-show-rooms-content input[type="checkbox"]').forEach(cb => {
+         // Toggle all room checkboxes
+         document.querySelectorAll('.room-toggle-item > input[type="checkbox"]:not(#toggle-all-rooms)').forEach(cb => {
              cb.checked = isChecked;
+             
+             // Also update object checkboxes within each room
+             const prefix = cb.dataset.roomPrefix;
+             if (prefix) {
+                 const objectsContainer = document.getElementById(`objects-${prefix}`);
+                 if (objectsContainer) {
+                     objectsContainer.querySelectorAll('input[type="checkbox"]').forEach(objCb => {
+                         objCb.checked = isChecked;
+                     });
+                 }
+             }
          });
+         
+         // Update all object visibilities
+         updateAllObjectVisibilities();
      } else {
-         // If unchecking an individual room, uncheck 'All Rooms'
-         if (!isChecked) {
-             const allRoomsCheckbox = document.getElementById('toggle-all-rooms');
-             if (allRoomsCheckbox) allRoomsCheckbox.checked = false;
-         } 
-         // Check if all individual rooms are now checked
-         else {
-              const allIndividualCheckboxes = document.querySelectorAll('#right-menu-show-rooms-content .room-toggle-item:not(:first-child) input[type="checkbox"]');
-              // Check if *all* existing individual checkboxes are checked
-              const allChecked = allIndividualCheckboxes.length > 0 && Array.from(allIndividualCheckboxes).every(cb => cb.checked);
-              if (allChecked) {
-                   const allRoomsCheckbox = document.getElementById('toggle-all-rooms');
-                   if (allRoomsCheckbox) allRoomsCheckbox.checked = true;
-              }
+         // A room checkbox was clicked
+         const prefix = event.target.dataset.roomPrefix;
+         if (prefix) {
+             // Update "All" checkbox based on all room checkboxes
+             updateAllCheckboxState();
+             
+             // Update visibility directly without using updateRoomVisibility
+             // since we're now controlling visibility at the object level
+             updateVisibilityForRoom(prefix);
          }
      }
-     updateRoomVisibility();
  }
 
- function updateRoomVisibility() {
-     // First, hide all objects that are mapped to any room prefix or Misc
+ // Update visibility for all objects in a specific room
+ function updateVisibilityForRoom(prefix) {
+     if (!roomMeshesMap.has(prefix)) return;
+     
+     const roomCheckbox = document.getElementById(`toggle-${prefix}`);
+     if (!roomCheckbox) return;
+     
+     const isVisible = roomCheckbox.checked;
+     
+     // Get all object checkboxes for this room
+     const objectsContainer = document.getElementById(`objects-${prefix}`);
+     if (objectsContainer) {
+         const objectCheckboxes = objectsContainer.querySelectorAll('input[type="checkbox"]');
+         
+         // For each object in this room
+         roomMeshesMap.get(prefix).forEach(mesh => {
+             if (mesh) {
+                 // Find the corresponding checkbox
+                 const checkbox = document.getElementById(`toggle-object-${mesh.uuid}`);
+                 // Set visibility based on checkbox (or room checkbox if no specific object checkbox)
+                 mesh.visible = checkbox ? checkbox.checked : isVisible;
+             }
+         });
+     } else {
+         // Fallback: set visibility based on room checkbox
+         roomMeshesMap.get(prefix).forEach(mesh => {
+             if (mesh) mesh.visible = isVisible;
+         });
+     }
+     
+     // Update the model groups menu
+     updateModelGroupsVisibility();
+ }
+
+ // Update visibility for all objects in all rooms
+ function updateAllObjectVisibilities() {
      const allCategories = [...roomPrefixes, MISC_CATEGORY];
      allCategories.forEach(category => {
-         if (roomMeshesMap.has(category)) {
-             roomMeshesMap.get(category).forEach(mesh => {
-                 if (mesh) mesh.visible = false;
-             });
-         }
+         updateVisibilityForRoom(category);
      });
-     
-     // Then, show only objects that belong to checked rooms or Misc
-     allCategories.forEach(category => {
-         const checkbox = document.getElementById(`toggle-${category}`);
-         const shouldBeVisible = checkbox ? checkbox.checked : false;
-         
-         if (shouldBeVisible && roomMeshesMap.has(category)) {
-             roomMeshesMap.get(category).forEach(mesh => {
-                 if (mesh) mesh.visible = true;
-             });
-         }
-     });
-     
-     // Update the visibility of objects in the model groups menu
+ }
+
+ // Update the model groups menu to reflect current visibility
+ function updateModelGroupsVisibility() {
      if (currentModel) {
          currentModel.traverse(node => {
              if (node instanceof THREE.Mesh) {
@@ -1019,8 +1242,6 @@ function onModelClick(event) {
              }
          });
      }
-     
-     console.log("Room visibility updated.");
  }
  // --- End Room Visibility Functions ---
 
@@ -1061,7 +1282,6 @@ function onModelClick(event) {
          });
          console.log("Room meshes mapped:", roomMeshesMap);
          populateRoomToggles(); // Create the checkboxes
-         updateRoomVisibility(); // Set initial visibility based on default checks
          
          // Switch to the Rooms tab to make it obvious to the user
          switchRightPanel('show-rooms');
@@ -1106,6 +1326,41 @@ function onModelClick(event) {
      // Ensure controls know the new target
       controls.target.copy(object.position);
       controls.update();
+ }
+
+ // Handle keyboard events
+ function handleKeyPress(event) {
+     // Handle ESC key (key code 27)
+     if (event.key === 'Escape' || event.keyCode === 27) {
+         clearSelection();
+     }
+ }
+
+ // Clear the current object selection
+ function clearSelection() {
+     // Reset previous selection visuals (OutlinePass)
+     outlinePass.selectedObjects = []; 
+     selectedMeshForEditing = null;
+     selectedMaterialForEditing = null;
+     
+     // Update UI elements
+     const displayElement = document.getElementById('clicked-object-display');
+     const colorPicker = document.getElementById('selected-object-color-picker');
+     const visibilityButton = document.getElementById('toggle-object-visibility');
+     
+     if(colorPicker) colorPicker.style.display = 'none';
+     if(visibilityButton) visibilityButton.style.display = 'none';
+     if(displayElement) displayElement.textContent = 'Clicked: (None)';
+     
+     // Reset model groups menu item highlights
+     document.querySelectorAll('.model-group-item').forEach(item => {
+         item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)'; // Reset menu item background
+         // Reset text color as well
+         const nameEl = item.querySelector('.model-group-name');
+         if (nameEl) nameEl.style.color = '#eee'; // Default/reset color
+     });
+     
+     console.log('Selection cleared');
  }
 
  // Initialize when the DOM is ready
