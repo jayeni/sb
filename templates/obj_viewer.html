@@ -67,10 +67,10 @@
                 
                 <!-- Panel Switcher -->
                 <div id="right-menu-switcher">
-                    <button id="show-objects-library-btn" class="switcher-btn">Objects Library</button>
+                    <button id="show-rooms-btn" class="switcher-btn active">Rooms</button>
                     <button id="show-model-groups-btn" class="switcher-btn">Model Objects</button>
-                    <button id="show-control-settings-btn" class="switcher-btn active">Control Settings</button>
-                    <button id="show-rooms-btn" class="switcher-btn">Rooms</button>
+                    <button id="show-objects-library-btn" class="switcher-btn">Objects Library</button>
+                    <button id="show-control-settings-btn" class="switcher-btn">Control Settings</button>
                 </div>
 
                 <!-- Content Area for Panels -->
@@ -91,8 +91,8 @@
                         <!-- Dynamically created #model-groups-menu content will go here -->
                     </div>
                     
-                    <!-- Control Settings Panel (Initially visible) -->
-                    <div id="right-menu-control-settings-content" style="display: block;">
+                    <!-- Control Settings Panel (Initially hidden) -->
+                    <div id="right-menu-control-settings-content" style="display: none;">
                         <!-- Object Interaction Area -->
                         <div id="object-interaction-area">
                             <span id="clicked-object-display">Clicked: (None)</span>
@@ -131,8 +131,8 @@
                         </div>
                     </div> 
                     
-                    <!-- Room Visibility Panel (Initially hidden) -->
-                    <div id="right-menu-show-rooms-content" style="display: none;">
+                    <!-- Room Visibility Panel (Initially visible) -->
+                    <div id="right-menu-show-rooms-content" style="display: block;">
                         <div class="room-toggle-container">
                             <!-- All Rooms toggle -->
                             <div class="room-toggle-item">
