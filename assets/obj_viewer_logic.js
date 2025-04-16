@@ -168,10 +168,10 @@ const availableObjects = [
 // Drag and drop variables
 let isDragging = false;
 let draggedObject = null;
-let dropIndicator = null;
 
 // Object manipulation variables
 let isTransforming = false;
+let isActiveMovement = false; // Track if we're in an active movement
 let transformType = null; // 'rotate' or 'move'
 let transformAxis = null; // 'x', 'y', or 'z'
 let transformStartPosition = new THREE.Vector2();
@@ -1587,13 +1587,6 @@ function isChildOf(child, parent) {
      // Clear existing items
      objectsList.innerHTML = '';
      
-     // Create drop indicator element if it doesn't exist
-     if (!dropIndicator) {
-         dropIndicator = document.createElement('div');
-         dropIndicator.className = 'drop-indicator';
-         document.getElementById('threejs-viewer')?.appendChild(dropIndicator);
-     }
-     
      // Add each object as a draggable item
      availableObjects.forEach(obj => {
          const item = document.createElement('div');
@@ -1663,11 +1656,6 @@ function isChildOf(child, parent) {
          draggedObject.classList.remove('dragging');
      }
      draggedObject = null;
-     
-     // Hide drop indicator
-     if (dropIndicator) {
-         dropIndicator.style.display = 'none';
-     }
  }
 
  // Handle drag over viewer
@@ -1677,32 +1665,16 @@ function isChildOf(child, parent) {
      
      // Set drop effect
      event.dataTransfer.dropEffect = 'copy';
-     
-     // Show and position the drop indicator
-     if (dropIndicator) {
-         dropIndicator.style.display = 'block';
-         dropIndicator.style.left = (event.clientX - 25) + 'px';
-         dropIndicator.style.top = (event.clientY - 25) + 'px';
-     }
  }
 
  // Handle drag leave
  function handleDragLeave(event) {
-     // Hide drop indicator
-     if (dropIndicator) {
-         dropIndicator.style.display = 'none';
-     }
  }
 
  // Handle drop
  function handleDrop(event) {
      // Prevent default browser behavior
      event.preventDefault();
-     
-     // Hide drop indicator
-     if (dropIndicator) {
-         dropIndicator.style.display = 'none';
-     }
      
      // Get the dropped object name
      const objectName = event.dataTransfer.getData('text/plain');
@@ -1987,35 +1959,36 @@ function isChildOf(child, parent) {
 
  // Start object transformation
  function startTransform(type, axis) {
-     if (!selectedMeshForEditing) return;
-     
-     // If already transforming the same way, end it (toggle behavior)
-     if (isTransforming && transformType === type && transformAxis === axis) {
-         endTransform();
-         return;
-     }
-     
-     // End any previous transformation
-     endTransform();
-     
-     // Set new transformation state
-     isTransforming = true;
-     transformType = type;
-     transformAxis = axis;
-     
-     // Store initial mouse position
-     transformStartPosition.set(mouse.x, mouse.y);
-     
-     // Highlight the active tool button
-     const buttonId = `tool-${type}-${axis}`;
-     const button = document.getElementById(buttonId);
-     if (button) button.classList.add('active');
-     
-     // Change cursor
-     renderer.domElement.style.cursor = 'move';
-     
-     console.log(`Started ${type} on ${axis} axis`);
- }
+    if (!selectedMeshForEditing) return;
+    
+    // If already transforming the same way, end it (toggle behavior)
+    if (isTransforming && transformType === type && transformAxis === axis) {
+        endTransform();
+        return;
+    }
+    
+    // End any previous transformation
+    endTransform();
+    
+    // Set new transformation state
+    isTransforming = true;
+    isActiveMovement = false; // Reset active movement flag when starting a new transform
+    transformType = type;
+    transformAxis = axis;
+    
+    // Store initial mouse position
+    transformStartPosition.set(mouse.x, mouse.y);
+    
+    // Highlight the active tool button
+    const buttonId = `tool-${type}-${axis}`;
+    const button = document.getElementById(buttonId);
+    if (button) button.classList.add('active');
+    
+    // Change cursor
+    renderer.domElement.style.cursor = 'move';
+    
+    console.log(`Started ${type} on ${axis} axis`);
+}
 
  // Handle mouse movement for transformation
  function handleTransformMouseMove(event) {
@@ -2026,58 +1999,99 @@ function isChildOf(child, parent) {
      const currentX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
      const currentY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
      
-     // Calculate delta from start position
-     const deltaX = currentX - transformStartPosition.x;
-     const deltaY = currentY - transformStartPosition.y;
+     // Get object screen position for rotation tools
+     const objectWorldPos = new THREE.Vector3();
+     selectedMeshForEditing.getWorldPosition(objectWorldPos);
+     const objectScreenPos = objectWorldPos.clone().project(camera);
      
-     // Use the larger of the deltas for manipulation
-     const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY;
-     
-     // Apply transformation based on type and axis
+     // Different handling based on transformation type
      if (transformType === 'rotate') {
-         rotateObject(selectedMeshForEditing, transformAxis, delta);
+         // For rotation tools, use proximity check
+         const distance = Math.sqrt(
+             Math.pow(currentX - objectScreenPos.x, 2) + 
+             Math.pow(currentY - objectScreenPos.y, 2)
+         );
+         
+         // Only allow rotation when cursor is close to the object
+         const proximityThreshold = 0.5;
+         if (distance <= proximityThreshold) {
+             // Calculate angle change for rotation
+             const prevAngle = Math.atan2(transformStartPosition.y - objectScreenPos.y, 
+                                         transformStartPosition.x - objectScreenPos.x);
+             const currentAngle = Math.atan2(currentY - objectScreenPos.y, 
+                                           currentX - objectScreenPos.x);
+             
+             let rotationDelta = (currentAngle - prevAngle) * 2.0;
+             rotateObject(selectedMeshForEditing, transformAxis, rotationDelta);
+             
+             // Update start position for next rotation
+             transformStartPosition.set(currentX, currentY);
+         }
      } else if (transformType === 'move') {
-         moveObject(selectedMeshForEditing, transformAxis, delta);
+         // Check if cursor is within reasonable distance of the object
+         const distance = Math.sqrt(
+             Math.pow(currentX - objectScreenPos.x, 2) + 
+             Math.pow(currentY - objectScreenPos.y, 2)
+         );
+         
+         // Increased proximity threshold for movement
+         const proximityThreshold = 0.8; // Larger threshold to make it easier to move
+         
+         if (distance <= proximityThreshold) {
+             // For movement, revert to using delta-based movement which is more reliable
+             const deltaX = currentX - transformStartPosition.x;
+             const deltaY = currentY - transformStartPosition.y;
+             
+             // Use the appropriate delta based on the transformation axis
+             let moveDelta = 0;
+             if (transformAxis === 'y') {
+                 moveDelta = deltaY * 2; // Move up when cursor goes up, amplified
+             } else if (transformAxis === 'x') {
+                 moveDelta = deltaX * 2; // Match cursor direction for X axis, amplified
+             } else { // z-axis
+                 moveDelta = -deltaX * 2; // Invert Z axis movement again
+             }
+             
+             // Apply the movement
+             moveObject(selectedMeshForEditing, transformAxis, moveDelta);
+             
+             // Update start position for next movement
+             transformStartPosition.set(currentX, currentY);
+         } else {
+             // Cursor is too far from the object
+             isActiveMovement = false;
+         }
      }
-     
-     // Update start position for next movement
-     transformStartPosition.set(currentX, currentY);
  }
 
  // Rotate the object on the specified axis
  function rotateObject(object, axis, delta) {
-     // Scale delta for smoother rotation
-     const rotationAmount = delta * Math.PI; // Full circle for full screen drag
-     
      // Apply rotation
      switch (axis) {
          case 'x':
-             object.rotation.x += rotationAmount;
+             object.rotation.x += delta;
              break;
          case 'y':
-             object.rotation.y += rotationAmount;
+             object.rotation.y += delta;
              break;
          case 'z':
-             object.rotation.z += rotationAmount;
+             object.rotation.z += delta;
              break;
      }
  }
 
  // Move the object on the specified axis
  function moveObject(object, axis, delta) {
-     // Scale delta for smoother movement
-     const moveAmount = delta * 2; // Scale factor for more natural movement
-     
      // Apply movement
      switch (axis) {
          case 'x':
-             object.position.x += moveAmount;
+             object.position.x += delta;
              break;
          case 'y':
-             object.position.y += moveAmount;
+             object.position.y += delta;
              break;
          case 'z':
-             object.position.z += moveAmount;
+             object.position.z += delta;
              break;
      }
  }
@@ -2088,6 +2102,7 @@ function isChildOf(child, parent) {
      
      // Reset transformation state
      isTransforming = false;
+     isActiveMovement = false; // Reset active movement flag
      transformType = null;
      transformAxis = null;
      
