@@ -691,20 +691,48 @@ body {
     background: none;
     border: 1px solid #FFD700; /* Gold border to match header */
     color: #FFD700; /* Gold text to match header */
-    width: 28px; /* Increased from 24px */
-    height: 28px; /* Increased from 24px */
+    width: 32px; /* Default size when menu is open */
+    height: 32px; /* Default size when menu is open */
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 4px; /* Increased from 3px */
-    font-size: 18px; /* Increased from 16px */
+    border-radius: 4px; /* Default border radius */
+    font-size: 20px; /* Default font size */
     line-height: 1;
     transition: all 0.2s ease; /* Added transition */
+    /* Ensure it's positioned relative to the header when open */
+    position: relative; 
+    top: auto;
+    left: auto;
+    z-index: auto;
 }
 
 #right-menu-collapse-btn:hover {
-    background-color: rgba(255, 215, 0, 0.2); /* Light gold background on hover */
+    background-color: rgba(255, 215, 0, 0.2); /* Light gold background on hover (only when open) */
+}
+
+/* Style for the button when the menu is collapsed - make it poke out */
+#right-controls-menu[data-collapsed="true"] #right-menu-collapse-btn {
+    position: absolute; /* Position relative to viewport or nearest positioned ancestor */
+    top: 15px;  /* Position from top, similar to fullscreen */
+    left: 10px; /* Position from left */
+    width: 60px; /* Large size, similar to fullscreen */
+    height: 60px; /* Large size */
+    font-size: 30px; /* Large plus symbol */
+    background-color: rgba(0, 0, 0, 0.5); /* Dark background like fullscreen */
+    border: 2px solid #FFD700; /* Keep gold border */
+    color: #FFD700; /* Keep gold plus */
+    border-radius: 50%; /* Make it round */
+    z-index: 1001; /* Ensure it's above the menu */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Add shadow */
+    /* Reset hover effect for the collapsed state or define a new one */
+    background-color: rgba(0, 0, 0, 0.5) !important; /* Force background */
+}
+
+/* Override hover for collapsed state if needed */
+#right-controls-menu[data-collapsed="true"] #right-menu-collapse-btn:hover {
+     background-color: rgba(0, 0, 0, 0.7) !important; /* Darker on hover */
 }
 
 /* Panel Switcher Styling */
@@ -881,6 +909,12 @@ body {
         width: 200px;
     }
     /* REMOVED: redundant #model-groups-menu style */
+    
+    #right-menu-collapse-btn {
+        width: 40px; /* Further increase size for mobile tap */
+        height: 40px; /* Further increase size for mobile tap */
+        font-size: 24px; /* Make symbol larger */
+    }
 }
 
 

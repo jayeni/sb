@@ -356,7 +356,9 @@ function initViewer() {
      document.addEventListener('keydown', handleKeyPress);
      
      // Add listener for right controls menu collapse button
-     document.getElementById('right-menu-collapse-btn')?.addEventListener('click', () => {
+     document.getElementById('right-menu-collapse-btn')?.addEventListener('click', (event) => {
+         event.stopPropagation(); // Prevent this click from bubbling to the menu listener
+
          const menu = document.getElementById('right-controls-menu');
          const btn = document.getElementById('right-menu-collapse-btn');
          if (!menu || !btn) return;
@@ -402,6 +404,18 @@ function initViewer() {
     // Add mobile-specific swipe functionality for the right menu
     if (isMobile) {
         setupRightMenuSwipe();
+    }
+
+    // Add listener to the menu itself to expand on tap when collapsed
+    const menuElement = document.getElementById('right-controls-menu');
+    if (menuElement) {
+        menuElement.addEventListener('click', (event) => {
+            // Only expand if the menu is collapsed and the click is directly on the menu or header area
+            if (menuElement.dataset.collapsed === 'true' && 
+                (event.target === menuElement || event.target.closest('#right-menu-header'))) {
+                expandRightMenu();
+            }
+        });
     }
 }
 
@@ -552,10 +566,11 @@ function onTouchStart(event) {
         
         // Detect if we touched an object
         const touchedObject = detectTouchedObject();
-        if (touchedObject && touchedObject.name.startsWith("placed_")) {
-            // If we touch a placed object, start movement automatically
-            startTransform('move', 'x');
-            transformStartPosition.set(mouse.x, mouse.y);
+        if (touchedObject) {
+            // Object detected on touch start, but do nothing here.
+            // Selection is handled by detectTouchedObject -> selectObjectFromMenu.
+            // Transformation is initiated by clicking a tool button.
+            // NOTE: Tap selection is handled in onTouchEnd
         }
     }
 }
@@ -596,7 +611,27 @@ function onTouchMove(event) {
             const objectScreenPos = objectWorldPos.clone().project(camera);
             
             // Calculate movement based on transform type
-            if (transformType === 'move') {
+            if (transformType === 'rotate') {
+                // Added rotation logic similar to handleTransformMouseMove
+                const prevAngle = Math.atan2(mouse.y - objectScreenPos.y, 
+                                            mouse.x - objectScreenPos.x);
+                const currentAngle = Math.atan2(currentY - objectScreenPos.y, 
+                                              currentX - objectScreenPos.x);
+                
+                // Adjust sensitivity for touch
+                let rotationDelta = (currentAngle - prevAngle) * 3.0; // Increased sensitivity for touch
+                rotateObject(objectToTransform, transformAxis, rotationDelta);
+                
+                // Ensure the object remains selected during transformation
+                if (!isActiveMovement) {
+                    selectObjectFromMenu(objectToTransform);
+                    isActiveMovement = true;
+                }
+                
+                // Update start position (stored in mouse vector) for next rotation frame
+                // No need to update transformStartPosition here, mouse gets updated later
+                
+            } else if (transformType === 'move') {
                 // REMOVED: Proximity check was not implemented here, but ensure logic works anywhere
                 const deltaX = currentX - mouse.x;
                 const deltaY = currentY - mouse.y;
@@ -3082,13 +3117,9 @@ function isChildOf(child, parent) {
      // Detect if an object is under the cursor
      const draggedObj = detectDraggedObject(event);
      if (draggedObj) {
-         // If we're starting a drag on a placed object, automatically start the move transform
-         if (draggedObj.name && draggedObj.name.startsWith("placed_")) {
-             startTransform('move', 'x'); // Default to x-axis movement
-             
-             // Store the mouse position for the transform
-             transformStartPosition.set(mouse.x, mouse.y);
-         }
+         // Object detected on mousedown, but do nothing here.
+         // Selection is handled by detectDraggedObject -> selectObjectFromMenu.
+         // Transformation is initiated by clicking a tool button.
      }
  });
 
@@ -3128,8 +3159,14 @@ function isChildOf(child, parent) {
      const swipeThreshold = 50; // Min pixels to swipe to trigger collapse/expand
      
      menu.addEventListener('touchstart', (e) => {
-         // Only track single touches that start on the menu itself (not content)
-         if (e.touches.length === 1 && e.target === menu) {
+         // Track single touches starting on the menu OR its header when collapsed
+         const isCollapsed = menu.dataset.collapsed === 'true';
+         const touchTarget = e.target;
+         const canStartSwipe = 
+             (touchTarget === menu) || // Touch directly on menu background
+             (isCollapsed && touchTarget.closest('#right-menu-header')); // Touch on header/button when collapsed
+
+         if (e.touches.length === 1 && canStartSwipe) {
              touchStartX = e.touches[0].clientX;
              isSwiping = true;
              touchCurrentX = touchStartX; // Initialize current X
@@ -3174,9 +3211,12 @@ function isChildOf(child, parent) {
  }
 
  // Modify the existing button click listener to use the new functions
- document.getElementById('right-menu-collapse-btn')?.addEventListener('click', () => {
+ document.getElementById('right-menu-collapse-btn')?.addEventListener('click', (event) => {
+     event.stopPropagation(); // Prevent this click from bubbling to the menu listener
+
      const menu = document.getElementById('right-controls-menu');
-     if (!menu) return;
+     const btn = document.getElementById('right-menu-collapse-btn');
+     if (!menu || !btn) return;
      const isCollapsed = menu.dataset.collapsed === 'true';
      
      if (isCollapsed) {
