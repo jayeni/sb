@@ -398,6 +398,11 @@ function initViewer() {
     // Log device type for debugging
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     console.log(`Device initialized: ${isMobile ? 'Mobile' : 'Desktop'}`);
+    
+    // Add mobile-specific swipe functionality for the right menu
+    if (isMobile) {
+        setupRightMenuSwipe();
+    }
 }
 
 // Function to apply mobile-specific styles
@@ -461,11 +466,36 @@ function applyMobileStyles() {
     // Increase the size of the object toolbar buttons
     const toolButtons = document.querySelectorAll('.tool-btn');
     toolButtons.forEach(btn => {
-        btn.style.width = '40px';
-        btn.style.height = '40px';
-        btn.style.margin = '4px';
-        btn.style.fontSize = '18px';
+        btn.style.width = '44px'; // Make slightly larger
+        btn.style.height = '44px';
+        btn.style.margin = '5px'; // Increase margin
+        btn.style.fontSize = '20px'; // Increase font size
+        btn.style.padding = '8px'; // Add padding
+        btn.style.lineHeight = '1'; // Ensure icon and text align
     });
+    
+    // Style the object toolbar itself
+    const objectToolbar = document.getElementById('object-toolbar');
+    if (objectToolbar) {
+        objectToolbar.style.padding = '10px';
+        objectToolbar.style.bottom = '15px'; // Adjust position slightly
+        objectToolbar.style.left = '15px';
+        objectToolbar.style.borderRadius = '8px'; // Slightly rounder corners
+        
+        // Make the toolbar title larger
+        const toolbarTitle = objectToolbar.querySelector('.toolbar-title');
+        if (toolbarTitle) {
+            toolbarTitle.style.fontSize = '16px';
+            toolbarTitle.style.marginBottom = '8px';
+        }
+        
+        // Make dividers thicker
+        const dividers = objectToolbar.querySelectorAll('.toolbar-divider');
+        dividers.forEach(div => {
+            div.style.height = '35px';
+            div.style.margin = '0 10px'; // Add more space around dividers
+        });
+    }
     
     // Increase the size of menu toggles and buttons
     const menuButtons = document.querySelectorAll('#right-menu-tabs button');
@@ -556,13 +586,14 @@ function onTouchMove(event) {
                 objectToTransform = selectedMeshForEditing.parent;
             }
             
-            // Get object screen position
+            // Get object screen position for rotation calculations (if implemented later)
             const objectWorldPos = new THREE.Vector3();
             objectToTransform.getWorldPosition(objectWorldPos);
             const objectScreenPos = objectWorldPos.clone().project(camera);
             
             // Calculate movement based on transform type
             if (transformType === 'move') {
+                // REMOVED: Proximity check was not implemented here, but ensure logic works anywhere
                 const deltaX = currentX - mouse.x;
                 const deltaY = currentY - mouse.y;
                 
@@ -2696,80 +2727,62 @@ function isChildOf(child, parent) {
          objectToTransform = selectedMeshForEditing.parent;
      }
      
-     // Get object screen position for proximity checks
+     // Get object screen position for rotation calculations
      const objectWorldPos = new THREE.Vector3();
      objectToTransform.getWorldPosition(objectWorldPos);
      const objectScreenPos = objectWorldPos.clone().project(camera);
      
      // Different handling based on transformation type
      if (transformType === 'rotate') {
-         // For rotation tools, use proximity check
-         const distance = Math.sqrt(
-             Math.pow(currentX - objectScreenPos.x, 2) + 
-             Math.pow(currentY - objectScreenPos.y, 2)
-         );
+         // REMOVED: Proximity check removed
          
-         // Only allow rotation when cursor is close to the object
-         const proximityThreshold = 0.5;
-         if (distance <= proximityThreshold) {
-             // Calculate angle change for rotation
-             const prevAngle = Math.atan2(transformStartPosition.y - objectScreenPos.y, 
-                                         transformStartPosition.x - objectScreenPos.x);
-             const currentAngle = Math.atan2(currentY - objectScreenPos.y, 
-                                           currentX - objectScreenPos.x);
-             
-             let rotationDelta = (currentAngle - prevAngle) * 2.0;
-             rotateObject(objectToTransform, transformAxis, rotationDelta);
-             
-             // Ensure the object remains selected during transformation
-             if (!isActiveMovement) {
-                 selectObjectFromMenu(objectToTransform);
-                 isActiveMovement = true;
-             }
-             
-             // Update start position for next rotation
-             transformStartPosition.set(currentX, currentY);
+         // Calculate angle change for rotation based on screen position
+         const prevAngle = Math.atan2(transformStartPosition.y - objectScreenPos.y, 
+                                     transformStartPosition.x - objectScreenPos.x);
+         const currentAngle = Math.atan2(currentY - objectScreenPos.y, 
+                                       currentX - objectScreenPos.x);
+         
+         let rotationDelta = (currentAngle - prevAngle) * 2.0;
+         rotateObject(objectToTransform, transformAxis, rotationDelta);
+         
+         // Ensure the object remains selected during transformation
+         if (!isActiveMovement) {
+             selectObjectFromMenu(objectToTransform);
+             isActiveMovement = true;
          }
+         
+         // Update start position for next rotation
+         transformStartPosition.set(currentX, currentY);
+         
      } else if (transformType === 'move') {
-         // Check if cursor is within reasonable distance of the object
-         const distance = Math.sqrt(
-             Math.pow(currentX - objectScreenPos.x, 2) + 
-             Math.pow(currentY - objectScreenPos.y, 2)
-         );
+         // REMOVED: Proximity check removed
          
-         // Increased proximity threshold for movement
-         const proximityThreshold = 0.8; // Larger threshold to make it easier to move
+         // For movement, use delta-based movement
+         const deltaX = currentX - transformStartPosition.x;
+         const deltaY = currentY - transformStartPosition.y;
          
-         if (distance <= proximityThreshold) {
-             // For movement, revert to using delta-based movement which is more reliable
-             const deltaX = currentX - transformStartPosition.x;
-             const deltaY = currentY - transformStartPosition.y;
-             
-             // Use the appropriate delta based on the transformation axis
-             let moveDelta = 0;
-             if (transformAxis === 'y') {
-                 moveDelta = deltaY * 2; // Move up when cursor goes up, amplified
-             } else if (transformAxis === 'x') {
-                 moveDelta = deltaX * 2; // Match cursor direction for X axis, amplified
-             } else { // z-axis
-                 moveDelta = -deltaX * 2; // Invert Z axis movement again
-             }
-             
-             // Apply the movement to the appropriate object
-             moveObject(objectToTransform, transformAxis, moveDelta);
-             
-             // Ensure the object remains selected during transformation
-             if (!isActiveMovement) {
-                 selectObjectFromMenu(objectToTransform);
-                 isActiveMovement = true;
-             }
-             
-             // Update start position for next movement
-             transformStartPosition.set(currentX, currentY);
-         } else {
-             // Cursor is too far from the object
-             isActiveMovement = false;
+         // Use the appropriate delta based on the transformation axis
+         let moveDelta = 0;
+         if (transformAxis === 'y') {
+             moveDelta = deltaY * 2; // Move up when cursor goes up, amplified
+         } else if (transformAxis === 'x') {
+             moveDelta = deltaX * 2; // Match cursor direction for X axis, amplified
+         } else { // z-axis
+             moveDelta = -deltaX * 2; // Invert Z axis movement again
          }
+         
+         // Apply the movement to the appropriate object
+         moveObject(objectToTransform, transformAxis, moveDelta);
+         
+         // Ensure the object remains selected during transformation
+         if (!isActiveMovement) {
+             selectObjectFromMenu(objectToTransform);
+             isActiveMovement = true;
+         }
+         
+         // Update start position for next movement
+         transformStartPosition.set(currentX, currentY);
+         
      } else if (transformType === 'surfaceMove') {
          // Cast a ray from the camera through the mouse position
          raycaster.setFromCamera({ x: currentX, y: currentY }, camera);
@@ -2939,5 +2952,99 @@ function isChildOf(child, parent) {
              // Store the mouse position for the transform
              transformStartPosition.set(mouse.x, mouse.y);
          }
+     }
+ });
+
+ // --- Menu Collapse/Expand Logic ---
+ function collapseRightMenu() {
+     const menu = document.getElementById('right-controls-menu');
+     const btn = document.getElementById('right-menu-collapse-btn');
+     if (!menu || !btn) return;
+     
+     const menuWidth = menu.offsetWidth;
+     const hiddenWidth = Math.max(0, menuWidth - 30);
+     menu.style.transform = `translateX(-${hiddenWidth}px)`; // Negative value for left slide
+     menu.dataset.collapsed = 'true';
+     btn.innerHTML = '&plus;';
+     console.log("Right menu collapsed");
+ }
+
+ function expandRightMenu() {
+     const menu = document.getElementById('right-controls-menu');
+     const btn = document.getElementById('right-menu-collapse-btn');
+     if (!menu || !btn) return;
+     
+     menu.style.transform = 'translateX(0)';
+     menu.dataset.collapsed = 'false';
+     btn.innerHTML = '&minus;';
+     console.log("Right menu expanded");
+ }
+
+ // Setup swipe listeners for the right menu on mobile
+ function setupRightMenuSwipe() {
+     const menu = document.getElementById('right-controls-menu');
+     if (!menu) return;
+     
+     let touchStartX = 0;
+     let touchCurrentX = 0;
+     let isSwiping = false;
+     const swipeThreshold = 50; // Min pixels to swipe to trigger collapse/expand
+     
+     menu.addEventListener('touchstart', (e) => {
+         // Only track single touches that start on the menu itself (not content)
+         if (e.touches.length === 1 && e.target === menu) {
+             touchStartX = e.touches[0].clientX;
+             isSwiping = true;
+             touchCurrentX = touchStartX; // Initialize current X
+         }
+     }, { passive: true });
+     
+     menu.addEventListener('touchmove', (e) => {
+         if (!isSwiping || e.touches.length !== 1) return;
+         
+         touchCurrentX = e.touches[0].clientX;
+         const deltaX = touchCurrentX - touchStartX;
+         
+         // Optional: Add visual feedback during swipe (e.g., slightly move the menu)
+         // Check if horizontal swipe is dominant to avoid blocking scroll
+         // For now, keep it simple and only act on touchend
+         
+     }, { passive: false }); // Use passive: false if we need preventDefault for visual feedback
+     
+     menu.addEventListener('touchend', (e) => {
+         if (!isSwiping) return;
+         
+         const deltaX = touchCurrentX - touchStartX;
+         const isCollapsed = menu.dataset.collapsed === 'true';
+         
+         if (Math.abs(deltaX) > swipeThreshold) {
+             // Swipe detected
+             if (deltaX < 0 && !isCollapsed) {
+                 // Swiped Left - Collapse
+                 collapseRightMenu();
+             } else if (deltaX > 0 && isCollapsed) {
+                 // Swiped Right - Expand
+                 expandRightMenu();
+             }
+         }
+         
+         isSwiping = false;
+         touchStartX = 0;
+         touchCurrentX = 0;
+     });
+     
+     console.log("Swipe listeners added to right menu for mobile.");
+ }
+
+ // Modify the existing button click listener to use the new functions
+ document.getElementById('right-menu-collapse-btn')?.addEventListener('click', () => {
+     const menu = document.getElementById('right-controls-menu');
+     if (!menu) return;
+     const isCollapsed = menu.dataset.collapsed === 'true';
+     
+     if (isCollapsed) {
+         expandRightMenu();
+     } else {
+         collapseRightMenu();
      }
  });
