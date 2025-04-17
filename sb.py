@@ -5,6 +5,11 @@ app = Flask(__name__, static_folder="assets", static_url_path="/assets")
 
 app.register_blueprint(obj_viewer_bp) # Register the Blueprint
 
+# Add route to serve static files from the main directory
+@app.route('/<path:filename>')
+def serve_root_files(filename):
+    return send_from_directory('.', filename)
+
 @app.route("/")
 def mission():
     html = '''
@@ -1024,16 +1029,16 @@ def mission():
                 gltfLoader.load(path, function(gltf) {
                     const object = gltf.scene;
 
-                    // Center and scale the model
-                    const box = new THREE.Box3().setFromObject(object);
-                    const center = box.getCenter(new THREE.Vector3());
-                    const size = box.getSize(new THREE.Vector3());
+                        // Center and scale the model
+                        const box = new THREE.Box3().setFromObject(object);
+                        const center = box.getCenter(new THREE.Vector3());
+                        const size = box.getSize(new THREE.Vector3());
 
-                    const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 7 / maxDim;
-                    object.scale.multiplyScalar(scale);
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const scale = 7 / maxDim;
+                        object.scale.multiplyScalar(scale);
 
-                    object.position.sub(center.multiplyScalar(scale));
+                        object.position.sub(center.multiplyScalar(scale));
 
                     // Store references to materials for color changing
                     object.traverse((node) => {
@@ -1050,7 +1055,7 @@ def mission():
                                         mat.metalness = 0.3;
                                         mat.roughness = 0.7;
                                     });
-                                } else {
+                    } else {
                                     node.material.metalness = 0.3;
                                     node.material.roughness = 0.7;
                                 }
@@ -1077,7 +1082,7 @@ def mission():
                     material.color = color;
                     material.needsUpdate = true;
                     console.log(`Changed ${materialName} color to ${colorHex}`);
-                } else {
+                            } else {
                     console.warn(`Material '${materialName}' not found for color change`);
                 }
             }
@@ -1132,8 +1137,8 @@ def mission():
                     if (glbContainer && glbRenderer) {
                         const aspect = 16 / 12;
                         if (glbCamera) { // Check if glbCamera is initialized
-                        glbCamera.aspect = aspect;
-                        glbCamera.updateProjectionMatrix();
+                            glbCamera.aspect = aspect;
+                            glbCamera.updateProjectionMatrix();
                         }
                         glbRenderer.setSize(glbContainer.clientWidth, glbContainer.clientWidth / aspect);
                     }
@@ -1884,220 +1889,6 @@ def repair_estimator_project():
                 transform: translateX(-5px);
             }
 
-            .threejs-container {
-                width: 100%;
-                max-width: 1200px;
-                margin: 30px auto 0 auto; /* Adjust margin for spacing */
-                padding: 0;
-                background: transparent;
-                aspect-ratio: 16 / 12; /* Keep aspect ratio for the viewer box */
-            }
-
-            #threejs-viewer {
-                width: 100%;
-                height: 100%;
-                display: block;
-                margin: 0 auto;
-                border: 4px solid #FFD700;
-                border-radius: 10px;
-                box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-                outline: 4px solid #ec128c;
-                overflow: hidden;
-            }
-
-            /* Apply consistent control styles from main page */
-            .controls {
-                max-width: 1200px;
-                margin: 20px auto 10px auto;
-                text-align: center;
-                width: 95%;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                align-items: center;
-                gap: 10px;
-            }
-
-            .controls h4 {
-                width: 100%;
-                text-align: center;
-                font-family: 'Oswald', sans-serif;
-                color: #000080;
-                margin-bottom: 15px;
-                font-size: 22px;
-                display: block;
-            }
-
-            .controls label, .controls button {
-                font-size: 20px;
-                margin: 0 5px;
-                font-family: 'Oswald', sans-serif;
-                font-weight: bold;
-                color: #000080;
-            }
-
-            .controls input[type="range"] {
-                margin: 0 10px;
-                transform: scale(1.2);
-            }
-
-            .controls input[type="number"], .controls select {
-                font-size: 18px;
-                padding: 5px;
-                margin: 0 5px;
-                font-family: 'Oswald', sans-serif;
-            }
-
-            .controls input[type="number"]#zoom-input {
-                width: 60px;
-                text-align: center;
-                font-weight: bold;
-                background-color: #f0f0f0;
-                border: 2px solid #000080;
-                border-radius: 4px;
-            }
-
-            .controls button {
-                padding: 8px 16px;
-                font-size: 16px;
-                background: #000080;
-                color: #FFD700;
-                border: 2px solid #FFD700;
-                border-radius: 5px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                margin: 5px;
-            }
-            
-            .controls button:hover {
-                background: #FFD700;
-                color: #000080;
-                transform: scale(1.05);
-            }
-
-            .material-controls {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 15px;
-                margin-bottom: 15px;
-                width: 100%;
-            }
-            
-            .material-control {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 10px;
-                background-color: rgba(240, 240, 240, 0.7);
-                border: 1px solid #ccc;
-                border-radius: 8px;
-            }
-            
-            .material-control:hover {
-                box-shadow: 0 0 10px rgba(0, 0, 128, 0.3);
-                transform: translateY(-2px);
-            }
-            
-            .material-control label {
-                font-size: 16px;
-                margin-bottom: 8px;
-                font-weight: bold;
-                color: #000080;
-                text-align: center;
-            }
-            
-            .material-control input[type="color"] {
-                width: 80px;
-                height: 50px;
-                cursor: pointer;
-                border: 3px solid #FFD700;
-                border-radius: 6px;
-                background: none;
-                margin-bottom: 12px;
-                padding: 2px;
-            }
-            
-            .texture-dropdown {
-                margin-top: 5px;
-                padding: 5px;
-                border: 2px solid #000080;
-                border-radius: 4px;
-                background-color: white;
-                color: #000080;
-                font-family: 'Oswald', sans-serif;
-                font-size: 14px;
-                cursor: pointer;
-                width: 120px;
-                transition: all 0.2s ease;
-            }
-            
-            .texture-dropdown:hover {
-                border-color: #FFD700;
-            }
-
-            .viewer-instructions {
-                max-width: 1200px; /* Match container width */
-                margin: 10px auto 30px auto; /* Spacing below controls */
-                padding: 10px;
-                background-color: rgba(240, 240, 240, 0.9);
-                border-radius: 8px;
-                border: 1px solid #ccc;
-                width: 95%; /* Slightly less than 100% for padding */
-            }
-            
-            .interactive-note {
-                text-align: center;
-                font-family: 'Oswald', sans-serif;
-                font-size: 18px;
-                color: #000080;
-                margin: 5px 0;
-            }
-
-            /* Ensure responsive styles apply correctly */
-            @media (max-width: 768px) {
-                .controls {
-                    flex-direction: column;
-                    gap: 5px;
-                }
-                
-                .controls button {
-                    margin: 3px;
-                    font-size: 14px;
-                    padding: 6px 10px;
-                }
-                
-                .controls label {
-                    font-size: 16px;
-                    margin: 3px;
-                }
-                
-                .controls input[type="number"] {
-                    width: 50px;
-                    font-size: 14px;
-                    padding: 3px;
-                }
-                
-                /* Add responsive styles for material controls if needed */
-                .material-control {
-                    min-width: 110px;
-                }
-
-                .material-control input[type="color"] {
-                    width: 70px;
-                    height: 40px;
-                }
-                
-                .texture-dropdown {
-                    width: 100px;
-                    font-size: 12px;
-                }
-                
-                .interactive-note {
-                    font-size: 16px;
-                }
-            }
-
             .coming-soon-text {
                 position: relative;
                 display: inline-block;
@@ -2122,6 +1913,37 @@ def repair_estimator_project():
 
             .coming-soon-text {
                 z-index: 2;
+            }
+            
+            .viewer-link-card {
+                 background: #000080;
+                 border: 2px solid #FFD700;
+                 border-radius: 10px;
+                 padding: 20px;
+                 text-decoration: none;
+                 transition: transform 0.3s ease;
+                 display: block;
+                 text-align: center;
+                 color: #FFD700; /* Make text gold */
+                 font-family: 'Backso', sans-serif;
+                 font-size: 24px;
+            }
+            
+            .viewer-link-card:hover {
+                 transform: translateY(-5px);
+                 background: #FFD700; /* Swap colors on hover */
+                 color: #000080;
+            }
+            
+            .viewer-link-card p { /* Style paragraph inside link */
+                 color: white;
+                 font-family: 'Oswald', sans-serif;
+                 margin-top: 10px; /* Add some space */
+                 font-size: 16px;
+            }
+            
+            .viewer-link-card:hover p { /* Change paragraph color on hover too */
+                 color: #000080;
             }
 
             /* Footer styles - Copied from main page */
@@ -2208,429 +2030,17 @@ def repair_estimator_project():
             Users can also change the color of the walls using different paint options. Each paint color will have a cost, which helps users plan their budget. In the future, the tool may also let users add furniture to the rooms. Each piece of furniture will have a price too. This will help users see what their space could look like when it's fully set up, with all costs included.
         </div>
 
-            <div class="threejs-container">
-                <div id="threejs-viewer"></div>
-        </div>
-        
-        <div id="object-interaction-area" style="text-align: center; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
-            <span id="clicked-object-display" style="font-family: 'Oswald', sans-serif; color: #000080; font-weight: bold;">
-                Clicked: (None)
-            </span>
-            <input type="color" id="selected-object-color-picker" style="display: none; width: 40px; height: 30px; border: 1px solid #ccc; padding: 2px; cursor: pointer;">
-            <button id="toggle-object-visibility" style="display: none; padding: 4px 8px; font-size: 12px;">Hide</button> 
-        </div>
-        
-        <div class="controls">
-            <h4>Customize Materials:</h4>
-                    <div class="material-controls">
-                        <div class="material-control">
-                            <label for="outside-walls-color">Outside Walls:</label>
-                            <input type="color" id="outside-walls-color" value="#FFFFFF">
-                        </div>
-                        <div class="material-control">
-                            <label for="interior-walls-color">Interior Walls:</label>
-                            <input type="color" id="interior-walls-color" value="#FFFFFF">
-                        </div>
-                        <div class="material-control">
-                            <label for="garage-door-color">Garage Door:</label>
-                            <input type="color" id="garage-door-color" value="#FFFFFF">
-                        </div>
-                        <div class="material-control">
-                            <label for="interior-floor-color">Interior Floor:</label>
-                            <input type="color" id="interior-floor-color" value="#FFFFFF">
-                            <label for="interior-floor-texture" style="margin-top: 8px;">Floor Texture:</label> <!-- Added label for dropdown -->
-                            <select id="interior-floor-texture" class="texture-dropdown">
-                                <option value="wood">Wooden Tile</option>
-                                <option value="carpet">Carpet</option>
-                                <option value="porcelain">Porcelain Tile</option>  <!-- Added porcelain option -->
-                                <option value="epoxy">Epoxy</option>  <!-- Added epoxy option -->
-                                <option value="concrete">Concrete</option>  <!-- Added concrete option -->
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="control-section">
-                        <h4>Camera Controls:</h4>
-                        <div class="camera-controls">
-                            <label for="zoom-input">Zoom:</label>
-                            <button id="zoom-out">-</button>
-                            <input type="number" id="zoom-input" min="1" max="100" value="8" step="1">
-                            <button id="zoom-in">+</button>
-                            
-                            <button id="rotate-left">Rotate Left</button>
-                            <button id="rotate-right">Rotate Right</button>
-                            <button id="pause-rotation">Pause</button>
-                        </div>
-                    </div>
-            
-            <!-- Added Environment Controls -->
-            <div class="control-section">
-                 <h4>Environment Controls:</h4>
-                 <div class="environment-controls">
-                     <label for="lighting-intensity">Lighting:</label>
-                     <input type="range" id="lighting-intensity" min="0.1" max="2.5" step="0.1" value="1.0">
-                     <label for="background-color">Background:</label>
-                     <input type="color" id="background-color" value="#000000">
-                </div>
-            </div>
-        </div>
-        <div class="viewer-instructions">
-            <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
-            <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
+        <div class="subtitle">
+            <span class="combined-bubble-text gold" data-text="3D MODEL VIEWER - OBJ">3D MODEL VIEWER - OBJ</span>
         </div>
 
-        <div class="threejs-container">
-                <div id="glb-viewer"></div>
+        <!-- Link to the separate OBJ viewer page -->
+        <div style="max-width: 1200px; margin: 30px auto; padding: 0 20px;">
+             <a href="/obj-viewer" class="viewer-link-card">
+                 <div>View Interactive House Model</div>
+                 <p>(Click here to open the detailed OBJ model viewer)</p>
+            </a>
         </div>
-        
-        <div id="object-interaction-area" style="text-align: center; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
-            <span id="clicked-object-display" style="font-family: 'Oswald', sans-serif; color: #000080; font-weight: bold;">
-                Clicked: (None)
-            </span>
-            <input type="color" id="selected-object-color-picker" style="display: none; width: 40px; height: 30px; border: 1px solid #ccc; padding: 2px; cursor: pointer;">
-            <button id="toggle-object-visibility" style="display: none; padding: 4px 8px; font-size: 12px;">Hide</button> 
-        </div>
-        
-        <div class="controls">
-            <h4>Customize Materials:</h4>
-                    <div class="material-controls">
-                        <div class="material-control">
-                            <label for="glb-shoe-color">Shoe Color:</label>
-                            <input type="color" id="glb-shoe-color" value="#FFFFFF">
-                        </div>
-                    </div>
-                    
-                    <label for="glb-zoom-input">Zoom:</label>
-                    <button id="glb-zoom-out">-</button>
-                    <input type="number" id="glb-zoom-input" min="1" max="100" value="25" step="1">
-                    <button id="glb-zoom-in">+</button>
-                    
-                    <button id="glb-rotate-left">Rotate Left</button>
-                    <button id="glb-rotate-right">Rotate Right</button>
-                    <button id="glb-pause-rotation">Pause</button>
-                </div>
-        <div class="viewer-instructions">
-            <div class="interactive-note">Mouse: Click & drag to rotate. Scroll to zoom. Right-click or Shift + drag to pan.</div>
-            <div class="interactive-note">Touch: One finger to rotate. Pinch to zoom. Two fingers to pan.</div>
-        </div>
-
-        <style>
-            .threejs-container {
-                width: 100%;
-                max-width: 1200px;
-                margin: 30px auto 0 auto; /* Adjust margin */
-                padding: 0;
-                background: transparent;
-                aspect-ratio: 16 / 12; /* Keep aspect ratio for the viewer box */
-            }
-
-            #threejs-viewer, #glb-viewer {
-                width: 100%;
-                height: 100%;
-                display: block;
-                margin: 0 auto;
-                border: 4px solid #FFD700;
-                border-radius: 10px;
-                box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-                outline: 4px solid #ec128c;
-                overflow: hidden;
-            }
-
-            #glb-viewer {
-                /* No specific margin needed here anymore */
-            }
-
-            .controls {
-                max-width: 1200px; /* Match container width */
-                margin: 20px auto 10px auto; /* Spacing below viewer, above instructions */
-                text-align: center;
-                width: 95%; /* Slightly less than 100% for padding */
-                display: flex;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                align-items: center;
-                    gap: 10px;
-                }
-                
-            .material-controls {
-                display: flex;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                gap: 15px;
-                margin-bottom: 15px;
-                width: 100%;
-            }
-            
-            .material-control {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 10px;
-                background-color: rgba(240, 240, 240, 0.7);
-                border: 1px solid #ccc;
-                border-radius: 8px;
-            }
-
-            .viewer-instructions {
-                max-width: 1200px; /* Match container width */
-                margin: 10px auto 30px auto; /* Spacing below controls */
-                    padding: 10px;
-                background-color: rgba(240, 240, 240, 0.9);
-                border-radius: 8px;
-                border: 1px solid #ccc;
-                width: 95%; /* Slightly less than 100% for padding */
-            }
-            
-            .interactive-note {
-                text-align: center;
-                font-family: 'Oswald', sans-serif;
-                font-size: 18px;
-                color: #000080;
-                margin: 5px 0;
-            }
-        </style>
-
-        <script type="module">
-            import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
-            import { OrbitControls } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/controls/OrbitControls.js';
-            import { MTLLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/MTLLoader.js';
-            import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
-            import { EffectComposer } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/EffectComposer.js';
-            import { RenderPass } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/RenderPass.js';
-            import { OutlinePass } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/postprocessing/OutlinePass.js';
-
-            // Keep GLB viewer variables and functions
-            let glbScene, glbCamera, glbRenderer, glbControls, glbCurrentModel; // Added for GLB viewer
-            let glbIsRotating = false; // Added for GLB viewer
-            let glbRotationDirection = 0; // Added for GLB viewer
-            
-            // Store references to GLB materials
-            let glbMaterials = {
-                'shoe': null
-            };
-
-            // Removed OBJ specific variables: materials, currentFloorTexture, textureLoader, allLights, initialIntensities, raycaster, mouse, selectedMaterialForEditing, selectedMeshForEditing, composer, outlinePass
-
-            // Removed OBJ init() function
-
-            // Removed OBJ changeMaterialKd() function
-
-            // Removed OBJ setRotation() function
-
-            // Removed OBJ pauseRotation() function
-
-            // Removed OBJ animate() function
-
-            // Removed OBJ loadOBJFile() function
-
-            // Removed OBJ changeZoom() function
-
-            // Removed OBJ zoomIn() function
-
-            // Removed OBJ zoomOut() function
-
-            function initGLBViewer() {
-                // Create scene
-                glbScene = new THREE.Scene();
-                glbScene.background = new THREE.Color(0x000000); // Changed to black background
-
-                // Create camera with matching aspect ratio
-                const container = document.getElementById('glb-viewer');
-                const aspect = 16 / 12; // Match the container's aspect ratio
-                glbCamera = new THREE.PerspectiveCamera(30, aspect, 0.1, 1000);
-                // Don't set initial position here, set it after model loads
-
-                // Create renderer with responsive sizing
-                glbRenderer = new THREE.WebGLRenderer({ antialias: true });
-                glbRenderer.setSize(container.clientWidth, container.clientWidth / aspect);
-                glbRenderer.physicallyCorrectLights = true; // Enable physically correct lighting
-                glbRenderer.shadowMap.enabled = true; // Enable shadow mapping
-                glbRenderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
-                container.appendChild(glbRenderer.domElement);
-
-                // Add enhanced lighting setup with increased brightness
-                const ambientLightGLB = new THREE.AmbientLight(0xffffff, 1.5); // Increased from 0.8 to 1.5
-                glbScene.add(ambientLightGLB);
-                
-                // Main directional light (like sunlight)
-                const directionalLightGLB = new THREE.DirectionalLight(0xffffff, 2.5); // Increased from 1.5 to 2.5
-                directionalLightGLB.position.set(1, 1, 1);
-                directionalLightGLB.castShadow = true;
-                glbScene.add(directionalLightGLB);
-                
-                // Add a second directional light from opposite direction
-                const backLightGLB = new THREE.DirectionalLight(0xffffff, 1.5); // Increased from 0.8 to 1.5
-                backLightGLB.position.set(-1, 0.5, -1);
-                glbScene.add(backLightGLB);
-                
-                // Add point lights to enhance reflections
-                const pointLight1GLB = new THREE.PointLight(0xffffff, 2.0, 50); // Increased from 1.2 to 2.0
-                pointLight1GLB.position.set(5, 5, 5);
-                glbScene.add(pointLight1GLB);
-                
-                const pointLight2GLB = new THREE.PointLight(0xffffff, 1.5, 50); // Increased from 1.0 to 1.5
-                pointLight2GLB.position.set(-5, 3, -5);
-                glbScene.add(pointLight2GLB);
-                
-                // Add additional point light from below
-                const pointLight3GLB = new THREE.PointLight(0xffffff, 1.5, 50);
-                pointLight3GLB.position.set(0, -5, 0);
-                glbScene.add(pointLight3GLB);
-
-                // Add controls
-                glbControls = new OrbitControls(glbCamera, glbRenderer.domElement);
-                glbControls.enableDamping = true;
-                glbControls.dampingFactor = 0.05;
-                glbControls.screenSpacePanning = true;
-
-                // Load GLB file
-                loadGLBFile('/assets/currentsneaks.glb');
-
-                // Start animation loop
-                animateGLB();
-
-                // Add event listeners for controls
-                document.getElementById('glb-zoom-input').addEventListener('input', changeGLBZoom);
-                document.getElementById('glb-zoom-in').addEventListener('click', zoomGLBIn);
-                document.getElementById('glb-zoom-out').addEventListener('click', zoomGLBOut);
-                document.getElementById('glb-rotate-left').addEventListener('click', () => setGLBRotation(-1));
-                document.getElementById('glb-rotate-right').addEventListener('click', () => setGLBRotation(1));
-                document.getElementById('glb-pause-rotation').addEventListener('click', pauseGLBRotation);
-                
-                // Add color change listeners for GLB model
-                document.getElementById('glb-shoe-color').addEventListener('input', (e) => changeGLBMaterialColor('shoe', e.target.value));
-            }
-
-            function animateGLB() {
-                requestAnimationFrame(animateGLB);
-                if (glbIsRotating && glbCurrentModel) {
-                    glbCurrentModel.rotation.y += glbRotationDirection * 0.01;
-                }
-                glbControls.update();
-                glbRenderer.render(glbScene, glbCamera);
-            }
-
-            function loadGLBFile(path) {
-                const gltfLoader = new GLTFLoader();
-                gltfLoader.load(path, function(gltf) {
-                    const object = gltf.scene;
-
-                        // Center and scale the model
-                        const box = new THREE.Box3().setFromObject(object);
-                        const center = box.getCenter(new THREE.Vector3());
-                        const size = box.getSize(new THREE.Vector3());
-
-                        const maxDim = Math.max(size.x, size.y, size.z);
-                        const scale = 7 / maxDim;
-                        object.scale.multiplyScalar(scale);
-
-                        object.position.sub(center.multiplyScalar(scale));
-
-                    // Store references to materials for color changing
-                    object.traverse((node) => {
-                        if (node.isMesh) {
-                            // Assign all meshes to 'shoe' material for uniform coloring
-                            if (node.material && node.material.color) {
-                                glbMaterials.shoe = node.material;
-                            }
-                            
-                            // Make all materials responsive to lighting
-                            if (node.material) {
-                                if (Array.isArray(node.material)) {
-                                    node.material.forEach(mat => {
-                                        mat.metalness = 0.3;
-                                        mat.roughness = 0.7;
-                                    });
-                    } else {
-                                    node.material.metalness = 0.3;
-                                    node.material.roughness = 0.7;
-                                }
-                            }
-                        }
-                    });
-
-                    glbScene.add(object);
-                    glbCurrentModel = object;
-
-                    // Set default camera position AFTER model loads
-                    glbCamera.position.set(0, 0, 25.0);
-                    glbControls.target.set(0, 0, 0);
-                    glbControls.update();
-                });
-            }
-
-            function changeGLBMaterialColor(materialName, colorHex) {
-                const material = glbMaterials[materialName];
-                if (material) {
-                    const color = new THREE.Color(colorHex);
-                    
-                    // Update the material's color
-                    material.color = color;
-                    material.needsUpdate = true;
-                    console.log(`Changed ${materialName} color to ${colorHex}`);
-                            } else {
-                    console.warn(`Material '${materialName}' not found for color change`);
-                }
-            }
-
-            function changeGLBZoom(event) {
-                const zoomLevel = parseFloat(event.target.value);
-                console.log('GLB zoom level changed to:', zoomLevel);
-                glbCamera.position.z = zoomLevel;
-                glbControls.update();
-            }
-
-            function zoomGLBIn() {
-                const input = document.getElementById('glb-zoom-input');
-                let currentZoom = parseFloat(input.value);
-                let newZoom = Math.max(parseFloat(input.min), currentZoom - 2); // Decrease z for zoom in
-                input.value = newZoom;
-                glbCamera.position.z = newZoom;
-                glbControls.update();
-                console.log('GLB Zoom In clicked, new zoom:', newZoom);
-            }
-
-            function zoomGLBOut() {
-                const input = document.getElementById('glb-zoom-input');
-                let currentZoom = parseFloat(input.value);
-                let newZoom = Math.min(parseFloat(input.max), currentZoom + 2); // Increase z for zoom out
-                input.value = newZoom;
-                glbCamera.position.z = newZoom;
-                glbControls.update();
-                console.log('GLB Zoom Out clicked, new zoom:', newZoom);
-            }
-
-            function setGLBRotation(direction) {
-                glbRotationDirection = direction;
-                glbIsRotating = true;
-            }
-
-            function pauseGLBRotation() {
-                glbIsRotating = false;
-            }
-
-            // Initialize ONLY the GLB viewer when the DOM is loaded
-            document.addEventListener('DOMContentLoaded', function() {
-            // init(); // Removed OBJ init call
-            initGLBViewer(); // Keep GLB init call
-                
-                // Add window resize event listener for ONLY the GLB viewer
-                window.addEventListener('resize', function() {
-                    // Removed OBJ viewer resize handling
-                    
-                    // Handle GLB viewer resize if it exists
-                    const glbContainer = document.getElementById('glb-viewer');
-                    if (glbContainer && glbRenderer) {
-                        const aspect = 16 / 12;
-                        if (glbCamera) { // Check if glbCamera is initialized
-                            glbCamera.aspect = aspect;
-                            glbCamera.updateProjectionMatrix();
-                        }
-                        glbRenderer.setSize(glbContainer.clientWidth, glbContainer.clientWidth / aspect);
-                    }
-                });
-            });
-        </script>
 
         <div class="footer">
             <div class="footer-content">
