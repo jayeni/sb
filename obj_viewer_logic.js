@@ -343,6 +343,9 @@ function initViewer() {
          }, { passive: false });
      }
 
+     // Apply mobile-specific styles for buttons and controls
+     applyMobileStyles();
+
      // Add listener for fullscreen change events (browser prefix handling)
      document.addEventListener('fullscreenchange', handleFullscreenChange);
      document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
@@ -395,6 +398,87 @@ function initViewer() {
     // Log device type for debugging
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     console.log(`Device initialized: ${isMobile ? 'Mobile' : 'Desktop'}`);
+}
+
+// Function to apply mobile-specific styles
+function applyMobileStyles() {
+    // Check if we're on a mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (!isMobile) return;
+    
+    console.log("Applying mobile-specific styles");
+    
+    // Make fullscreen button bigger on mobile
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    if (fullscreenBtn) {
+        // Increase button size and padding for easier tapping
+        fullscreenBtn.style.width = '44px';
+        fullscreenBtn.style.height = '44px';
+        fullscreenBtn.style.fontSize = '24px';
+        fullscreenBtn.style.padding = '8px';
+        fullscreenBtn.style.margin = '5px';
+        fullscreenBtn.style.zIndex = '9999'; // Ensure it's on top
+        
+        // Position the button at the top-right for better visibility
+        fullscreenBtn.style.position = 'absolute';
+        fullscreenBtn.style.top = '10px';
+        fullscreenBtn.style.right = '10px';
+        
+        // Make the icon bigger
+        const icon = fullscreenBtn.querySelector('i');
+        if (icon) {
+            icon.style.fontSize = '24px';
+        }
+        
+        // Add a slight background for better visibility
+        fullscreenBtn.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+        fullscreenBtn.style.borderRadius = '50%'; // Round button
+        fullscreenBtn.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+        
+        // Improve touch area with custom hover/touch effect
+        fullscreenBtn.style.transition = 'all 0.2s ease-in-out';
+        fullscreenBtn.addEventListener('touchstart', function() {
+            this.style.transform = 'scale(1.1)';
+            this.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        }, { passive: true });
+        
+        fullscreenBtn.addEventListener('touchend', function() {
+            this.style.transform = 'scale(1.0)';
+            this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+        }, { passive: true });
+    }
+    
+    // Enlarge other control buttons as well
+    const controlButtons = document.querySelectorAll('.control-btn');
+    controlButtons.forEach(btn => {
+        btn.style.width = '40px';
+        btn.style.height = '40px';
+        btn.style.margin = '5px';
+        btn.style.fontSize = '20px';
+        btn.style.padding = '8px';
+    });
+    
+    // Increase the size of the object toolbar buttons
+    const toolButtons = document.querySelectorAll('.tool-btn');
+    toolButtons.forEach(btn => {
+        btn.style.width = '40px';
+        btn.style.height = '40px';
+        btn.style.margin = '4px';
+        btn.style.fontSize = '18px';
+    });
+    
+    // Increase the size of menu toggles and buttons
+    const menuButtons = document.querySelectorAll('#right-menu-tabs button');
+    menuButtons.forEach(btn => {
+        btn.style.padding = '12px 8px';
+        btn.style.fontSize = '14px';
+    });
+    
+    // Ensure the viewer container has proper positioning for absolute elements
+    const viewerContainer = document.getElementById('threejs-viewer');
+    if (viewerContainer) {
+        viewerContainer.style.position = 'relative';
+    }
 }
 
 // Touch event handlers
@@ -477,7 +561,7 @@ function onTouchMove(event) {
             objectToTransform.getWorldPosition(objectWorldPos);
             const objectScreenPos = objectWorldPos.clone().project(camera);
             
-            // Calculate movement
+            // Calculate movement based on transform type
             if (transformType === 'move') {
                 const deltaX = currentX - mouse.x;
                 const deltaY = currentY - mouse.y;
@@ -498,9 +582,34 @@ function onTouchMove(event) {
                     selectObjectFromMenu(objectToTransform);
                     isActiveMovement = true;
                 }
+            } else if (transformType === 'surfaceMove') {
+                // Cast a ray from the camera through the touch position
+                raycaster.setFromCamera({ x: currentX, y: currentY }, camera);
+                
+                // Get all objects except the one being moved
+                const objectsToIntersect = scene.children.filter(obj => 
+                    obj !== objectToTransform && 
+                    obj.visible && 
+                    obj.type !== 'AxesHelper' &&
+                    !isChildOf(obj, objectToTransform)
+                );
+                
+                const intersects = raycaster.intersectObjects(objectsToIntersect, true);
+                
+                if (intersects.length > 0) {
+                    // Move the object to the intersection point
+                    const intersectionPoint = intersects[0].point;
+                    objectToTransform.position.copy(intersectionPoint);
+                    
+                    // Ensure selection
+                    if (!isActiveMovement) {
+                        selectObjectFromMenu(objectToTransform);
+                        isActiveMovement = true;
+                    }
+                }
             }
             
-            // Update mouse position for next move
+            // Update mouse/touch position for next move
             mouse.x = currentX;
             mouse.y = currentY;
         } else {
@@ -2466,6 +2575,9 @@ function isChildOf(child, parent) {
     document.getElementById('tool-move-y')?.addEventListener('click', () => startTransform('move', 'y'));
     document.getElementById('tool-move-z')?.addEventListener('click', () => startTransform('move', 'z'));
     
+    // Surface Move tool
+    document.getElementById('tool-surface-move')?.addEventListener('click', () => startTransform('surfaceMove', null));
+    
     // Delete tool - use a more direct approach without an event handler function
     const deleteBtn = document.getElementById('tool-delete');
     console.log("Delete button element:", deleteBtn);
@@ -2557,14 +2669,14 @@ function isChildOf(child, parent) {
     transformStartPosition.set(mouse.x, mouse.y);
     
     // Highlight the active tool button
-    const buttonId = `tool-${type}-${axis}`;
+    const buttonId = type === 'surfaceMove' ? `tool-surface-move` : `tool-${type}-${axis}`;
     const button = document.getElementById(buttonId);
     if (button) button.classList.add('active');
     
     // Change cursor
     renderer.domElement.style.cursor = 'move';
     
-    console.log(`Started ${type} on ${axis} axis`);
+    console.log(`Started ${type} on ${axis || 'surface'} axis`);
 }
 
  // Handle mouse movement for transformation
@@ -2584,7 +2696,7 @@ function isChildOf(child, parent) {
          objectToTransform = selectedMeshForEditing.parent;
      }
      
-     // Get object screen position for rotation tools
+     // Get object screen position for proximity checks
      const objectWorldPos = new THREE.Vector3();
      objectToTransform.getWorldPosition(objectWorldPos);
      const objectScreenPos = objectWorldPos.clone().project(camera);
@@ -2657,6 +2769,41 @@ function isChildOf(child, parent) {
          } else {
              // Cursor is too far from the object
              isActiveMovement = false;
+         }
+     } else if (transformType === 'surfaceMove') {
+         // Cast a ray from the camera through the mouse position
+         raycaster.setFromCamera({ x: currentX, y: currentY }, camera);
+         
+         // Get all objects except the one being moved
+         const objectsToIntersect = scene.children.filter(obj => 
+             obj !== objectToTransform && 
+             obj.visible && 
+             obj.type !== 'AxesHelper' && // Ignore helpers
+             !isChildOf(obj, objectToTransform) // Ignore children of the moved object
+         );
+         
+         const intersects = raycaster.intersectObjects(objectsToIntersect, true); // Check recursively
+         
+         if (intersects.length > 0) {
+             // Move the object to the intersection point
+             const intersectionPoint = intersects[0].point;
+             
+             // Optional: Add an offset based on the object's bounding box to sit on top
+             // For simplicity, we'll just move to the point for now
+             // const box = new THREE.Box3().setFromObject(objectToTransform);
+             // const size = box.getSize(new THREE.Vector3());
+             // const offset = new THREE.Vector3(0, size.y / 2, 0); // Adjust based on orientation/normal if needed
+             
+             objectToTransform.position.copy(intersectionPoint);
+             
+             // Ensure selection
+             if (!isActiveMovement) {
+                 selectObjectFromMenu(objectToTransform);
+                 isActiveMovement = true;
+             }
+             
+             // Update start position for the next frame
+             transformStartPosition.set(currentX, currentY);
          }
      }
  }
