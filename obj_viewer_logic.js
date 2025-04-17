@@ -416,40 +416,40 @@ function applyMobileStyles() {
     // Make fullscreen button bigger on mobile
     const fullscreenBtn = document.getElementById('fullscreen-btn');
     if (fullscreenBtn) {
-        // Increase button size and padding for easier tapping
-        fullscreenBtn.style.width = '44px';
-        fullscreenBtn.style.height = '44px';
-        fullscreenBtn.style.fontSize = '24px';
-        fullscreenBtn.style.padding = '8px';
-        fullscreenBtn.style.margin = '5px';
+        // Increase button size and padding for easier tapping - Make it even larger
+        fullscreenBtn.style.width = '65px'; 
+        fullscreenBtn.style.height = '65px';
+        fullscreenBtn.style.fontSize = '34px'; // Increase icon size substantially
+        fullscreenBtn.style.padding = '12px'; // Increase padding
+        fullscreenBtn.style.margin = '10px'; // Add more margin
         fullscreenBtn.style.zIndex = '9999'; // Ensure it's on top
         
         // Position the button at the top-right for better visibility
         fullscreenBtn.style.position = 'absolute';
-        fullscreenBtn.style.top = '10px';
-        fullscreenBtn.style.right = '10px';
+        fullscreenBtn.style.top = '15px'; // Keep position from top
+        fullscreenBtn.style.right = '15px'; // Keep position from right
         
         // Make the icon bigger
         const icon = fullscreenBtn.querySelector('i');
         if (icon) {
-            icon.style.fontSize = '24px';
+            icon.style.fontSize = '34px'; // Match button font size
         }
         
         // Add a slight background for better visibility
-        fullscreenBtn.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+        fullscreenBtn.style.backgroundColor = 'rgba(0, 0, 0, 0.4)'; // Slightly darker background
         fullscreenBtn.style.borderRadius = '50%'; // Round button
-        fullscreenBtn.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+        fullscreenBtn.style.border = '2px solid rgba(255, 255, 255, 0.6)'; // Slightly more visible border
         
         // Improve touch area with custom hover/touch effect
         fullscreenBtn.style.transition = 'all 0.2s ease-in-out';
         fullscreenBtn.addEventListener('touchstart', function() {
             this.style.transform = 'scale(1.1)';
-            this.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            this.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'; // Darker on touch
         }, { passive: true });
         
         fullscreenBtn.addEventListener('touchend', function() {
             this.style.transform = 'scale(1.0)';
-            this.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+            this.style.backgroundColor = 'rgba(0, 0, 0, 0.4)'; // Back to normal background
         }, { passive: true });
     }
     
@@ -2151,11 +2151,13 @@ function isChildOf(child, parent) {
      // Clear existing items
      objectsList.innerHTML = '';
      
+     // Check if mobile for touch-based drag
+     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
      // Add each object as a draggable item
      availableObjects.forEach(obj => {
          const item = document.createElement('div');
          item.className = 'draggable-object-item';
-         item.draggable = true;
          item.dataset.objectName = obj.name;
          item.dataset.objectType = obj.type;
          item.dataset.objectColor = obj.color;
@@ -2176,24 +2178,162 @@ function isChildOf(child, parent) {
          item.appendChild(iconDiv);
          item.appendChild(nameDiv);
          
-         // Add drag event listeners
-         item.addEventListener('dragstart', handleDragStart);
-         item.addEventListener('dragend', handleDragEnd);
+         if (isMobile) {
+             // Use touch events for faster drag initiation on mobile
+             item.addEventListener('touchstart', handleLibraryTouchStart, { passive: false });
+             // Add move/end listeners to the document to capture drag outside the item
+         } else {
+             // Use standard HTML drag-and-drop for desktop
+             item.draggable = true;
+             item.addEventListener('dragstart', handleDragStart);
+             item.addEventListener('dragend', handleDragEnd);
+         }
          
          objectsList.appendChild(item);
      });
      
-     // Add events to the viewer for drop functionality
+     // Add events to the viewer for drop functionality (standard D&D)
      const viewer = document.getElementById('threejs-viewer');
      if (viewer) {
          viewer.addEventListener('dragover', handleDragOver);
          viewer.addEventListener('dragleave', handleDragLeave);
          viewer.addEventListener('drop', handleDrop);
+         
+         // Add touch end listener to viewer for mobile drop detection
+         if (isMobile) {
+             document.addEventListener('touchmove', handleLibraryTouchMove, { passive: false });
+             document.addEventListener('touchend', handleLibraryTouchEnd, { passive: false });
+         }
      }
  }
-
- // Handle drag start
+ 
+ // --- Mobile Touch Drag for Library ---
+ let isTouchDraggingLibraryItem = false;
+ let draggedLibraryItemData = null;
+ let touchDragStartX = 0;
+ let touchDragStartY = 0;
+ let touchDragGhostElement = null;
+ const touchDragThreshold = 10; // Pixels to move before starting drag
+ 
+ function handleLibraryTouchStart(event) {
+     if (event.touches.length !== 1) return;
+     // Don't prevent default here yet, allow potential scroll until drag starts
+     
+     const item = event.currentTarget; // The library item touched
+     const objectName = item.dataset.objectName;
+     draggedLibraryItemData = availableObjects.find(obj => obj.name === objectName);
+     
+     if (!draggedLibraryItemData) return;
+     
+     isTouchDraggingLibraryItem = true; // Tentatively start
+     const touch = event.touches[0];
+     touchDragStartX = touch.clientX;
+     touchDragStartY = touch.clientY;
+     
+     //console.log("Library Touch Start:", draggedLibraryItemData.name);
+ }
+ 
+ function handleLibraryTouchMove(event) {
+     if (!isTouchDraggingLibraryItem || event.touches.length !== 1) return;
+     
+     const touch = event.touches[0];
+     const currentX = touch.clientX;
+     const currentY = touch.clientY;
+     const deltaX = currentX - touchDragStartX;
+     const deltaY = currentY - touchDragStartY;
+ 
+     if (!touchDragGhostElement) { // Only create ghost once drag threshold is met
+         if (Math.abs(deltaX) > touchDragThreshold || Math.abs(deltaY) > touchDragThreshold) {
+             // Drag threshold exceeded, create ghost element
+             //console.log("Touch drag initiated");
+             event.preventDefault(); // Now prevent scroll
+             
+             // Find the original item to clone its appearance
+             const originalItem = document.querySelector(`.draggable-object-item[data-object-name="${draggedLibraryItemData.name}"]`);
+             if (originalItem) {
+                 touchDragGhostElement = originalItem.cloneNode(true);
+                 touchDragGhostElement.style.position = 'absolute';
+                 touchDragGhostElement.style.zIndex = '10000'; // Make sure it's on top
+                 touchDragGhostElement.style.opacity = '0.7';
+                 touchDragGhostElement.style.pointerEvents = 'none'; // Don't interfere with other events
+                 touchDragGhostElement.style.transition = 'none'; // No transition during drag
+                 document.body.appendChild(touchDragGhostElement);
+                 // Position ghost initially
+                 touchDragGhostElement.style.left = `${currentX - touchDragGhostElement.offsetWidth / 2}px`;
+                 touchDragGhostElement.style.top = `${currentY - touchDragGhostElement.offsetHeight / 2}px`;
+             }
+         }
+     } else {
+         // Ghost exists, update its position
+         event.preventDefault(); // Continue preventing scroll
+         touchDragGhostElement.style.left = `${currentX - touchDragGhostElement.offsetWidth / 2}px`;
+         touchDragGhostElement.style.top = `${currentY - touchDragGhostElement.offsetHeight / 2}px`;
+     }
+ }
+ 
+ function handleLibraryTouchEnd(event) {
+     if (!isTouchDraggingLibraryItem) return;
+     
+     const viewer = document.getElementById('threejs-viewer');
+     const touch = event.changedTouches[0]; // Get the touch that ended
+     let droppedOnViewer = false;
+     
+     if (viewer && touch) {
+         const viewerRect = viewer.getBoundingClientRect();
+         // Check if the touch ended within the viewer bounds
+         if (touch.clientX >= viewerRect.left && touch.clientX <= viewerRect.right &&
+             touch.clientY >= viewerRect.top && touch.clientY <= viewerRect.bottom) {
+             droppedOnViewer = true;
+         }
+     }
+ 
+     if (droppedOnViewer && touchDragGhostElement) { // Only drop if drag actually started (ghost exists)
+         //console.log("Touch dropped on viewer:", draggedLibraryItemData.name);
+         // Calculate drop position (similar to getDropPosition but using touch coords)
+         const rect = viewer.getBoundingClientRect();
+         const normalizedX = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+         const normalizedY = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+         
+         raycaster.setFromCamera({ x: normalizedX, y: normalizedY }, camera);
+         const intersects = raycaster.intersectObjects(scene.children, true);
+         let dropPosition = new THREE.Vector3();
+         
+         if (intersects.length > 0) {
+             dropPosition = intersects[0].point;
+         } else {
+             // Fallback position if no intersection (project onto ground plane)
+             const defaultDistance = 5;
+             const direction = new THREE.Vector3(normalizedX, normalizedY, 0.5).unproject(camera).sub(camera.position).normalize();
+             const distanceToGround = -camera.position.y / direction.y;
+             dropPosition = camera.position.clone().add(direction.multiplyScalar(distanceToGround > 0 ? distanceToGround : defaultDistance));
+         }
+         
+         // Create and place the object
+         createAndPlaceShape(draggedLibraryItemData, dropPosition);
+     } else {
+         //console.log("Touch ended outside viewer or drag didn't start");
+     }
+ 
+     // Cleanup
+     if (touchDragGhostElement) {
+         document.body.removeChild(touchDragGhostElement);
+     }
+     isTouchDraggingLibraryItem = false;
+     draggedLibraryItemData = null;
+     touchDragStartX = 0;
+     touchDragStartY = 0;
+     touchDragGhostElement = null;
+ }
+ // --- End Mobile Touch Drag ---
+ 
+ // Handle drag start (Standard Desktop D&D)
  function handleDragStart(event) {
+     // Only run if not touch dragging (redundant check, but safe)
+     if (isTouchDraggingLibraryItem) {
+         event.preventDefault();
+         return;
+     }
+     
      isDragging = true;
      draggedObject = event.target;
      
@@ -2208,9 +2348,10 @@ function isChildOf(child, parent) {
      if (event.dataTransfer.setDragImage) {
          const dragIcon = draggedObject.querySelector('.draggable-object-icon');
          if (dragIcon) {
-             event.dataTransfer.setDragImage(dragIcon, 32, 32);
+             event.dataTransfer.setDragImage(dragIcon, 16, 16); // Adjust offset if needed
          }
      }
+     console.log("Standard Drag Start");
  }
 
  // Handle drag end

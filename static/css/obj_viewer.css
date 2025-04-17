@@ -616,6 +616,33 @@ body {
      .model-group-controls select {
           font-size: 11px;
      }
+     
+     /* Object Toolbar adjustments for Mobile */
+     .object-toolbar {
+         padding: 10px; /* Match JS */
+         bottom: 15px; /* Match JS */
+         max-width: 90vw; /* Match JS */
+         /* width: auto; left: 50%; transform: translateX(-50%); are default or handled */
+     }
+     
+     .toolbar-title {
+         font-size: 16px; /* Match JS */
+         margin-bottom: 8px; /* Match JS */
+     }
+     
+     .tool-btn {
+         width: 44px; /* Match JS */
+         height: 44px; /* Match JS */
+         margin: 5px; /* Match JS */
+         font-size: 20px; /* Match JS */
+         padding: 8px; /* Match JS */
+         line-height: 1; /* Match JS */
+     }
+     
+     .toolbar-divider {
+         height: 35px; /* Match JS */
+         margin: 0 10px; /* Match JS */
+     }
 } 
 
 /* Right Controls Menu Styling - Moved to the LEFT */
