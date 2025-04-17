@@ -1782,23 +1782,23 @@ function isChildOf(child, parent) {
 
  // Handle drop
  function handleDrop(event) {
-     // Prevent default browser behavior
-     event.preventDefault();
-     
-     // Get the dropped object name
-     const objectName = event.dataTransfer.getData('text/plain');
-     if (!objectName) return;
-     
-     // Get object details
-     const objectData = availableObjects.find(obj => obj.name === objectName);
-     if (!objectData) return;
-     
-     // Get drop position in 3D space
-     const dropPosition = getDropPosition(event);
-     
-     // Create and place the object
-     createAndPlaceShape(objectData, dropPosition);
- }
+    // Prevent default browser behavior
+    event.preventDefault();
+    
+    // Get the dropped object name
+    const objectName = event.dataTransfer.getData('text/plain');
+    if (!objectName) return;
+    
+    // Get object details
+    const objectData = availableObjects.find(obj => obj.name === objectName);
+    if (!objectData) return;
+    
+    // Get drop position in 3D space
+    const dropPosition = getDropPosition(event);
+    
+    // Create and place the object
+    createAndPlaceShape(objectData, dropPosition);
+}
 
  // Function to create and place a 3D shape in the scene
  function createAndPlaceShape(objectData, position) {
@@ -1872,8 +1872,30 @@ function isChildOf(child, parent) {
             // Update room toggles to include the new object
             populateRoomToggles();
             
-            // Select the newly added object
-            selectObjectFromMenu(object);
+            // Explicitly select the newly added object and ensure the object toolbar is shown
+            // Try to select the first mesh child if it exists
+            let meshToSelect = object;
+            object.traverse(child => {
+                if (child instanceof THREE.Mesh && !meshToSelect.isMesh) {
+                    meshToSelect = child;
+                    return false; // Stop traversing once we find a mesh
+                }
+            });
+            
+            // Force clear previous selection first
+            clearSelection();
+            
+            // Select the new object
+            selectObjectFromMenu(meshToSelect);
+            showObjectToolbar();
+            
+            // Switch to model groups panel to show the newly added object
+            switchRightPanel('model-groups');
+            
+            // Highlight the menu item for the new object
+            setTimeout(() => {
+                highlightMenuItem(getHierarchicalName(meshToSelect));
+            }, 100);
         },
         // onProgress callback
         function(xhr) {
@@ -1953,8 +1975,20 @@ function isChildOf(child, parent) {
         // Update room toggles to include the new object
         populateRoomToggles();
         
-        // Select the newly added object
+        // Force clear previous selection first
+        clearSelection();
+        
+        // Explicitly select the newly added object and ensure the object toolbar is shown
         selectObjectFromMenu(mesh);
+        showObjectToolbar();
+        
+        // Switch to model groups panel to show the newly added object
+        switchRightPanel('model-groups');
+        
+        // Highlight the menu item for the new object
+        setTimeout(() => {
+            highlightMenuItem(getHierarchicalName(mesh));
+        }, 100);
     }
 }
 
@@ -2235,6 +2269,12 @@ function isChildOf(child, parent) {
              let rotationDelta = (currentAngle - prevAngle) * 2.0;
              rotateObject(objectToTransform, transformAxis, rotationDelta);
              
+             // Ensure the object remains selected during transformation
+             if (!isActiveMovement) {
+                 selectObjectFromMenu(objectToTransform);
+                 isActiveMovement = true;
+             }
+             
              // Update start position for next rotation
              transformStartPosition.set(currentX, currentY);
          }
@@ -2265,6 +2305,12 @@ function isChildOf(child, parent) {
              
              // Apply the movement to the appropriate object
              moveObject(objectToTransform, transformAxis, moveDelta);
+             
+             // Ensure the object remains selected during transformation
+             if (!isActiveMovement) {
+                 selectObjectFromMenu(objectToTransform);
+                 isActiveMovement = true;
+             }
              
              // Update start position for next movement
              transformStartPosition.set(currentX, currentY);
@@ -2366,3 +2412,45 @@ function isChildOf(child, parent) {
 
  // Initialize when the DOM is ready
  document.addEventListener('DOMContentLoaded', initViewer); 
+
+ // Add a new function to detect which object is being dragged in the scene
+ function detectDraggedObject(event) {
+     // Get mouse coordinates
+     const rect = renderer.domElement.getBoundingClientRect();
+     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+     
+     // Set up raycaster
+     raycaster.setFromCamera(mouse, camera);
+     
+     // Get selectable objects
+     const selectableObjects = getSelectableObjects();
+     const intersects = raycaster.intersectObjects(selectableObjects, false);
+     
+     if (intersects.length > 0) {
+         const intersectedObject = intersects[0].object;
+         // Select the object
+         selectObjectFromMenu(intersectedObject);
+         return intersectedObject;
+     }
+     
+     return null;
+ }
+
+ // Add mouse down listener to detect object at the beginning of drag
+ renderer.domElement.addEventListener('mousedown', function(event) {
+     // Only capture left mouse button
+     if (event.button !== 0) return;
+     
+     // Detect if an object is under the cursor
+     const draggedObj = detectDraggedObject(event);
+     if (draggedObj) {
+         // If we're starting a drag on a placed object, automatically start the move transform
+         if (draggedObj.name && draggedObj.name.startsWith("placed_")) {
+             startTransform('move', 'x'); // Default to x-axis movement
+             
+             // Store the mouse position for the transform
+             transformStartPosition.set(mouse.x, mouse.y);
+         }
+     }
+ });
