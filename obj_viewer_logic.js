@@ -478,9 +478,13 @@ function applyMobileStyles() {
     const objectToolbar = document.getElementById('object-toolbar');
     if (objectToolbar) {
         objectToolbar.style.padding = '10px';
-        objectToolbar.style.bottom = '15px'; // Adjust position slightly
-        objectToolbar.style.left = '15px';
-        objectToolbar.style.borderRadius = '8px'; // Slightly rounder corners
+        objectToolbar.style.bottom = '15px'; // Keep position from bottom
+        // Center the toolbar horizontally
+        objectToolbar.style.left = '50%'; 
+        objectToolbar.style.transform = 'translateX(-50%)'; // Center align trick
+        objectToolbar.style.width = 'auto'; // Allow width to adjust to content
+        objectToolbar.style.maxWidth = '90vw'; // Prevent it from being too wide
+        objectToolbar.style.borderRadius = '8px';
         
         // Make the toolbar title larger
         const toolbarTitle = objectToolbar.querySelector('.toolbar-title');
@@ -603,7 +607,9 @@ function onTouchMove(event) {
                 } else if (transformAxis === 'x') {
                     moveDelta = deltaX * 3; // Amplified for touch
                 } else { // z-axis
-                    moveDelta = -deltaX * 3; // Inverted for z-axis, amplified for touch
+                    // Corrected: Use deltaY for Z-axis movement
+                    // Moving finger UP (negative deltaY) should move object BACKWARD (positive Z)
+                    moveDelta = -deltaY * 3; // Inverted deltaY
                 }
                 
                 moveObject(objectToTransform, transformAxis, moveDelta);
@@ -695,125 +701,90 @@ function detectTouchedObject() {
     return null;
 }
 
-// Toggle Fullscreen Function
+// Toggle Fullscreen Function (Revised Logic)
 function toggleFullscreen() {
     const viewerElement = document.getElementById('threejs-viewer');
     if (!viewerElement) return;
-    
-    // Check if we're in fullscreen mode (with all possible browser prefixes)
-    const isFullscreen = Boolean(
+
+    const isStandardFullscreen = Boolean(
         document.fullscreenElement || 
         document.webkitFullscreenElement || 
         document.mozFullScreenElement || 
         document.msFullscreenElement
     );
-    
-    // Mobile detection
+    const isCustomFullscreenActive = viewerElement.classList.contains('mobile-fullscreen');
+    const isEffectivelyFullscreen = isStandardFullscreen || isCustomFullscreenActive;
+
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    console.log(`Device detected: ${isMobile ? 'Mobile' : 'Desktop'}, Currently in fullscreen: ${isFullscreen}`);
-    
-    if (!isFullscreen) {
-        // Enter fullscreen - try all possible methods
+    console.log(`Toggle Fullscreen: Mobile=${isMobile}, StandardFS=${isStandardFullscreen}, CustomFS=${isCustomFullscreenActive}`);
+
+    if (!isEffectivelyFullscreen) {
+        // --- ENTER FULLSCREEN --- 
         console.log("Attempting to enter fullscreen mode");
-        
-        // For mobile devices, use our custom fullscreen approach first
         if (isMobile) {
             console.log("Mobile device detected, using custom fullscreen approach");
-            
-            viewerElement.style.position = 'fixed';
-            viewerElement.style.top = '0';
-            viewerElement.style.left = '0';
-            viewerElement.style.width = '100%';
-            viewerElement.style.height = '100%';
-            viewerElement.style.zIndex = '9999';
-            
-            // Add a custom class for mobile fullscreen
-            viewerElement.classList.add('mobile-fullscreen');
-            
-            // Update fullscreen button
-            const fullscreenBtnIcon = document.querySelector('#fullscreen-btn i');
-            if (fullscreenBtnIcon) {
-                fullscreenBtnIcon.classList.remove('fa-expand');
-                fullscreenBtnIcon.classList.add('fa-compress');
+            useCustomFullscreen(viewerElement); // Use helper
+        } else {
+            // --- Try standard API for Desktop --- 
+            try {
+                if (viewerElement.requestFullscreen) {
+                    viewerElement.requestFullscreen().catch(err => {
+                        console.error("Error attempting standard fullscreen:", err);
+                    });
+                } else if (viewerElement.webkitRequestFullscreen) {
+                    viewerElement.webkitRequestFullscreen().catch(err => {
+                        console.error("Error attempting webkit fullscreen:", err);
+                    });
+                } else if (viewerElement.mozRequestFullScreen) {
+                    viewerElement.mozRequestFullScreen().catch(err => {
+                        console.error("Error attempting moz fullscreen:", err);
+                    });
+                } else if (viewerElement.msRequestFullscreen) {
+                    viewerElement.msRequestFullscreen().catch(err => {
+                        console.error("Error attempting ms fullscreen:", err);
+                    });
+                } else {
+                    console.warn("Standard Fullscreen API not supported.");
+                }
+            } catch (error) {
+                console.error("Error requesting fullscreen:", error);
             }
-            
-            // Hide scrollbars and prevent body scrolling
-            document.body.style.overflow = 'hidden';
-            document.documentElement.style.overflow = 'hidden';
-            
-            // Force resize
-            setTimeout(onWindowResize, 100);
-            return; // Don't try standard fullscreen API on mobile
-        }
-        
-        // Use the appropriate request method (for non-mobile or as fallback)
-        try {
-            if (viewerElement.requestFullscreen) {
-                viewerElement.requestFullscreen().catch(err => {
-                    console.error("Error attempting to enable fullscreen:", err);
-                    useCustomFullscreen(viewerElement);
-                });
-            } else if (viewerElement.webkitRequestFullscreen) { /* Safari & Chrome */
-                viewerElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT).catch(err => {
-                    console.error("Error attempting to enable webkit fullscreen:", err);
-                    useCustomFullscreen(viewerElement);
-                });
-            } else if (viewerElement.mozRequestFullScreen) { /* Firefox */
-                viewerElement.mozRequestFullScreen().catch(err => {
-                    console.error("Error attempting to enable moz fullscreen:", err);
-                    useCustomFullscreen(viewerElement);
-                });
-            } else if (viewerElement.msRequestFullscreen) { /* IE/Edge */
-                viewerElement.msRequestFullscreen().catch(err => {
-                    console.error("Error attempting to enable ms fullscreen:", err);
-                    useCustomFullscreen(viewerElement);
-                });
-            } else {
-                // No standard fullscreen API, use custom approach
-                useCustomFullscreen(viewerElement);
-            }
-        } catch (error) {
-            console.error("Error in fullscreen request:", error);
-            // Fallback to custom fullscreen
-            useCustomFullscreen(viewerElement);
         }
     } else {
-        // Exit fullscreen - try all possible methods
+        // --- EXIT FULLSCREEN --- 
         console.log("Attempting to exit fullscreen mode");
-        
-        // Exit custom fullscreen if active
-        if (viewerElement.classList.contains('mobile-fullscreen')) {
+        if (isCustomFullscreenActive) {
+            // Exit Custom Mobile Fullscreen FIRST
             console.log("Exiting custom fullscreen mode");
-            exitCustomFullscreen(viewerElement);
-            return;
-        }
-        
-        // Try standard fullscreen API methods
-        try {
-            if (document.exitFullscreen) {
-                document.exitFullscreen().catch(err => {
-                    console.error("Error attempting to exit fullscreen:", err);
-                });
-            } else if (document.webkitExitFullscreen) { /* Safari */
-                document.webkitExitFullscreen().catch(err => {
-                    console.error("Error attempting to exit webkit fullscreen:", err);
-                });
-            } else if (document.mozCancelFullScreen) { /* Firefox */
-                document.mozCancelFullScreen().catch(err => {
-                    console.error("Error attempting to exit moz fullscreen:", err);
-                });
-            } else if (document.msExitFullscreen) { /* IE/Edge */
-                document.msExitFullscreen().catch(err => {
-                    console.error("Error attempting to exit ms fullscreen:", err);
-                });
+            exitCustomFullscreen(viewerElement); // Use helper
+        } else if (isStandardFullscreen) {
+            // Try standard API exit if custom wasn't active
+            try {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(err => {
+                        console.error("Error attempting standard exit fullscreen:", err);
+                    });
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen().catch(err => {
+                        console.error("Error attempting webkit exit fullscreen:", err);
+                    });
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen().catch(err => {
+                        console.error("Error attempting moz exit fullscreen:", err);
+                    });
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen().catch(err => {
+                        console.error("Error attempting ms exit fullscreen:", err);
+                    });
+                }
+            } catch (error) {
+                console.error("Error exiting fullscreen:", error);
             }
-        } catch (error) {
-            console.error("Error in exit fullscreen:", error);
+        } else {
+             console.warn("Attempting to exit fullscreen, but no active mode detected?");
         }
     }
-    
-    // Trigger resize to update canvas dimensions
-    setTimeout(onWindowResize, 100);
+    // Note: Resizing is handled within the helper functions or by the browser event
 }
 
 // Helper function to use custom fullscreen approach when standard API fails
@@ -2161,12 +2132,12 @@ function isChildOf(child, parent) {
     // Always hide the object toolbar when selection is cleared
     hideObjectToolbar();
     
-    // Reset transform state
-    isTransforming = false;
-    transformType = null;
-    transformAxis = null;
+    // REMOVED: Reset transform state here - let endTransform handle it fully
+    // isTransforming = false;
+    // transformType = null;
+    // transformAxis = null;
     
-    console.log('Selection cleared');
+    console.log('Selection cleared (visuals only)');
 }
 
  // Function to populate the objects library with draggable items
@@ -2679,7 +2650,7 @@ function isChildOf(child, parent) {
 
  // Start object transformation
  function startTransform(type, axis) {
-    if (!selectedMeshForEditing) return;
+    if (!selectedMeshForEditing || !controls) return; // Add controls check
     
     // If already transforming the same way, end it (toggle behavior)
     if (isTransforming && transformType === type && transformAxis === axis) {
@@ -2689,6 +2660,10 @@ function isChildOf(child, parent) {
     
     // End any previous transformation
     endTransform();
+    
+    // Disable OrbitControls during transformation
+    controls.enabled = false;
+    console.log("OrbitControls disabled");
     
     // Set new transformation state
     isTransforming = true;
@@ -2768,7 +2743,9 @@ function isChildOf(child, parent) {
          } else if (transformAxis === 'x') {
              moveDelta = deltaX * 2; // Match cursor direction for X axis, amplified
          } else { // z-axis
-             moveDelta = -deltaX * 2; // Invert Z axis movement again
+             // Corrected: Use deltaY for Z-axis movement
+             // Moving mouse/finger UP (negative deltaY) should move object FORWARD (negative Z)
+             moveDelta = -deltaY * 2; // Inverted deltaY
          }
          
          // Apply the movement to the appropriate object
@@ -2855,23 +2832,42 @@ function isChildOf(child, parent) {
 
  // End the current transformation
  function endTransform() {
-     if (!isTransforming) return;
-     
-     // Reset transformation state
-     isTransforming = false;
-     isActiveMovement = false; // Reset active movement flag
-     transformType = null;
-     transformAxis = null;
-     
-     // Reset cursor
-     renderer.domElement.style.cursor = 'auto';
-     
-     // Reset all tool buttons
-     document.querySelectorAll('.tool-btn').forEach(btn => {
-         btn.classList.remove('active');
-     });
-     
-     console.log('Ended transformation');
+    // Check if we need to do anything (robust check for controls)
+    if (!isTransforming && controls && controls.enabled) {
+        // If not transforming and controls are already enabled, nothing to do.
+        return; 
+    }
+
+    // If controls exist, ensure they are enabled. This is the primary goal.
+    if(controls) {
+        if (!controls.enabled) {
+             controls.enabled = true;
+             console.log("OrbitControls explicitly re-enabled by endTransform");
+        }
+    } else {
+         console.warn("Attempted to manage controls in endTransform, but controls object is missing.");
+    }
+    
+    // Only reset state if we were actually transforming
+    if (isTransforming) {
+        isTransforming = false;
+        isActiveMovement = false; // Reset active movement flag
+        transformType = null;
+        transformAxis = null;
+        
+        // Reset cursor
+        renderer.domElement.style.cursor = 'auto';
+        
+        // Reset all tool buttons
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        console.log('Transformation state reset');
+    } else {
+         // If endTransform was called but wasn't transforming, log it.
+         console.log('endTransform called, but was not transforming. Ensured controls enabled.');
+    }
  }
 
  // Delete the selected object
