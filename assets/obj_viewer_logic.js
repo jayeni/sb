@@ -156,13 +156,13 @@ const MISC_CATEGORY = "Misc"; // Category for objects not matching any room pref
 
 // List of available objects for the library
 const availableObjects = [
-    { name: 'Cube', type: 'shape', icon: 'fas fa-cube', color: 0x3366FF },
-    { name: 'Sphere', type: 'shape', icon: 'fas fa-globe', color: 0xFF6633 },
-    { name: 'Cylinder', type: 'shape', icon: 'fas fa-battery-full fa-rotate-90', color: 0x66CC33 },
-    { name: 'Cone', type: 'shape', icon: 'fas fa-chess-pawn', color: 0xFF3366 },
-    { name: 'Torus', type: 'shape', icon: 'fas fa-circle-notch', color: 0xFFCC33 },
-    { name: 'Pyramid', type: 'shape', icon: 'fas fa-triangle', color: 0x33CCFF },
-    { name: 'Trapezoid', type: 'shape', icon: 'fas fa-draw-polygon', color: 0xCC33FF }
+    { name: 'Desk', type: 'model', icon: 'fas fa-table', color: 0x8B4513, filePath: '/assets/3d_objects/desk.obj' },
+    { name: 'Couch', type: 'model', icon: 'fas fa-couch', color: 0x964B00, filePath: '/assets/3d_objects/couch.obj' },
+    { name: 'Chair', type: 'model', icon: 'fas fa-chair', color: 0x663300, filePath: '/assets/3d_objects/chair.obj' },
+    { name: 'Fridge', type: 'model', icon: 'fas fa-kitchen-set', color: 0xCCCCCC, filePath: '/assets/3d_objects/fridge.obj' },
+    { name: 'Library Shelf', type: 'model', icon: 'fas fa-book-open', color: 0x8B4513, filePath: '/assets/3d_objects/library_shelf.obj' },
+    { name: 'Table', type: 'model', icon: 'fas fa-border-all', color: 0x8B5A2B, filePath: '/assets/3d_objects/table.obj' },
+    { name: 'Bed', type: 'model', icon: 'fas fa-bed', color: 0x6B8E23, filePath: '/assets/3d_objects/bed.obj' }
 ];
 
 // Drag and drop variables
@@ -288,6 +288,9 @@ function initViewer() {
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = true; // Use true for better panning
 
+    // Create axes helper for XYZ legend
+    addAxesHelper();
+
     // Load OBJ file
     loadOBJFile('/assets/pk4.obj'); // Assumes assets folder is served correctly
 
@@ -371,11 +374,105 @@ function initViewer() {
     populateRoomToggles();
     // --- End Room Visibility Functions ---
 
-    // Initialize object tools only - remove non-existent function calls
-    // initMenus();
-    // initLoadButton(); 
-    // initSliceControls();
-    initObjectTools(); // Initialize object manipulation tools
+    // Initialize object tools
+    initObjectTools();
+}
+
+// Create and position XYZ axes helper
+function addAxesHelper() {
+    // Create a div container for the axes helper overlay
+    const axesContainer = document.createElement('div');
+    axesContainer.id = 'axes-helper-container';
+    axesContainer.style.cssText = `
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        width: 100px;
+        height: 100px;
+        pointer-events: none;
+        z-index: 1000;
+    `;
+    
+    // Create a canvas for the WebGL renderer
+    const axesCanvas = document.createElement('canvas');
+    axesCanvas.width = 100;
+    axesCanvas.height = 100;
+    axesCanvas.style.cssText = `
+        width: 100%;
+        height: 100%;
+        display: block;
+        background-color: transparent;
+    `;
+    axesContainer.appendChild(axesCanvas);
+    
+    // Add the container to the viewer
+    const viewerContainer = document.getElementById('threejs-viewer');
+    if (viewerContainer) {
+        viewerContainer.style.position = 'relative'; // Ensure container has relative positioning
+        viewerContainer.appendChild(axesContainer);
+    }
+    
+    // Create a separate renderer for the axes
+    const axesRenderer = new THREE.WebGLRenderer({
+        canvas: axesCanvas,
+        alpha: true, // Enable transparency
+        antialias: true
+    });
+    axesRenderer.setClearColor(0x000000, 0); // Transparent background
+    axesRenderer.setSize(100, 100);
+    
+    // Create a scene for the axes
+    const axesScene = new THREE.Scene();
+    
+    // Add axes helper
+    const axesHelper = new THREE.AxesHelper(1);
+    axesScene.add(axesHelper);
+    
+    // Create a camera
+    const axesCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 10);
+    axesCamera.position.set(2, 2, 2);
+    axesCamera.lookAt(0, 0, 0);
+    
+    // Add coordinate labels
+    const xLabel = createTextLabel('X', 0xff0000);
+    const yLabel = createTextLabel('Y', 0x00ff00);
+    const zLabel = createTextLabel('Z', 0x0000ff);
+    
+    xLabel.position.set(1.2, 0, 0);
+    yLabel.position.set(0, 1.2, 0);
+    zLabel.position.set(0, 0, 1.2);
+    
+    axesScene.add(xLabel);
+    axesScene.add(yLabel);
+    axesScene.add(zLabel);
+    
+    // Store references
+    window.axesHelper = {
+        renderer: axesRenderer,
+        scene: axesScene,
+        camera: axesCamera
+    };
+}
+
+// Create a text label for axes
+function createTextLabel(text, color) {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = 64;
+    canvas.height = 64;
+    
+    context.fillStyle = `rgb(${color >> 16 & 255}, ${color >> 8 & 255}, ${color & 255})`;
+    context.font = 'Bold 48px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(text, 32, 32);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    const material = new THREE.SpriteMaterial({ map: texture });
+    const sprite = new THREE.Sprite(material);
+    sprite.scale.set(0.5, 0.5, 0.5);
+    
+    return sprite;
 }
 
 function setRotation(direction) {
@@ -393,8 +490,15 @@ function animate() {
         currentModel.rotation.y += rotationDirection * 0.01;
     }
     controls.update(); // Required if damping or auto-rotation is enabled
+    
     // RESTORE composer rendering
     composer.render(); 
+    
+    // Render axes helper using its own renderer
+    if (window.axesHelper) {
+        const { renderer: axesRenderer, scene: axesScene, camera: axesCamera } = window.axesHelper;
+        axesRenderer.render(axesScene, axesCamera);
+    }
 }
 
 function loadOBJFile(objPath) {
@@ -881,77 +985,82 @@ function isChildOf(child, parent) {
  
  // Function to programmatically select an object (e.g., when clicked in the menu)
  function selectObjectFromMenu(node) {
-      if (!(node instanceof THREE.Mesh)) return;
+     if (!(node instanceof THREE.Mesh)) return;
 
-      // Reset previous selection visuals ONLY in side menu
-      document.querySelectorAll('#right-menu-model-groups-content .model-group-item').forEach(item => { 
-          item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)';
-          // Reset text color
-          const nameEl = item.querySelector('.model-group-name');
-          if (nameEl) nameEl.style.color = '#eee'; // Default/reset color
-      });
-      // REMOVED: Querying/resetting .material-control items
+     // Reset previous selection visuals ONLY in side menu
+     document.querySelectorAll('#right-menu-model-groups-content .model-group-item').forEach(item => { 
+         item.style.backgroundColor = 'rgba(60, 60, 60, 0.7)';
+         // Reset text color
+         const nameEl = item.querySelector('.model-group-name');
+         if (nameEl) nameEl.style.color = '#eee'; // Default/reset color
+     });
+     // REMOVED: Querying/resetting .material-control items
 
-      // Set new selection
-      // Reset previous highlight (OutlinePass handles this implicitly)
-      selectedMeshForEditing = node;
-      outlinePass.selectedObjects = [node]; // Use OutlinePass again
+     // Set new selection
+     // Reset previous highlight (OutlinePass handles this implicitly)
+     selectedMeshForEditing = node;
+     outlinePass.selectedObjects = [node]; // Use OutlinePass again
 
-      // Determine material (use primary if multi-material)
-      const primaryMaterial = Array.isArray(node.material) ? node.material[0] : node.material;
-      selectedMaterialForEditing = primaryMaterial || null;
+     // Determine material (use primary if multi-material)
+     const primaryMaterial = Array.isArray(node.material) ? node.material[0] : node.material;
+     selectedMaterialForEditing = primaryMaterial || null;
 
-      const objectName = getHierarchicalName(node);
+     const objectName = getHierarchicalName(node);
 
-      // Update main interaction area display (still needed)
-      const displayElement = document.querySelector('#right-menu-control-settings-content #clicked-object-display');
-      const colorPicker = document.getElementById('selected-object-color-picker');
-      const visibilityButton = document.getElementById('toggle-object-visibility');
+     // Update main interaction area display (still needed)
+     const displayElement = document.querySelector('#right-menu-control-settings-content #clicked-object-display');
+     const colorPicker = document.getElementById('selected-object-color-picker');
+     const visibilityButton = document.getElementById('toggle-object-visibility');
 
-      if(displayElement) displayElement.textContent = `Selected: ${objectName}`;
+     if(displayElement) displayElement.textContent = `Selected: ${objectName}`;
 
-      if (selectedMaterialForEditing) {
-          if(colorPicker) {
-              colorPicker.value = '#' + selectedMaterialForEditing.color.getHexString();
-              colorPicker.style.display = 'inline-block';
+     if (selectedMaterialForEditing) {
+         if(colorPicker) {
+             colorPicker.value = '#' + selectedMaterialForEditing.color.getHexString();
+             colorPicker.style.display = 'inline-block';
+         }
+     } else {
+         if(colorPicker) colorPicker.style.display = 'none';
+     }
+
+     if(visibilityButton) {
+        visibilityButton.textContent = node.visible ? 'Hide' : 'Show';
+        visibilityButton.style.display = 'inline-block';
+     }
+
+     // Highlight the item ONLY in the side menu (now the right menu)
+     // Ensure ID prefix matches the new target container ID ('right-menu-model-groups-content')
+     const menuItem = document.getElementById(`right-menu-model-groups-content-color-${node.uuid}`)?.closest('.model-group-item');
+     if (menuItem) {
+          menuItem.style.backgroundColor = 'rgba(80, 80, 80, 0.9)'; // Highlight color
+          // Highlight text color
+          const nameEl = menuItem.querySelector('.model-group-name');
+          if (nameEl) nameEl.style.color = 'yellow';
+          
+          // Scroll the content area of the right menu
+          const menuContainer = document.getElementById('right-menu-content-area');
+          if (menuContainer) {
+               // Calculate offset relative to the scrollable container
+               const containerRect = menuContainer.getBoundingClientRect();
+               const itemRect = menuItem.getBoundingClientRect();
+               const offset = itemRect.top - containerRect.top + menuContainer.scrollTop;
+               menuContainer.scrollTo({ top: offset, behavior: 'smooth' });
           }
-      } else {
-          if(colorPicker) colorPicker.style.display = 'none';
-      }
-
-      if(visibilityButton) {
-         visibilityButton.textContent = node.visible ? 'Hide' : 'Show';
-         visibilityButton.style.display = 'inline-block';
-      }
-
-      // Highlight the item ONLY in the side menu (now the right menu)
-      // Ensure ID prefix matches the new target container ID ('right-menu-model-groups-content')
-      const menuItem = document.getElementById(`right-menu-model-groups-content-color-${node.uuid}`)?.closest('.model-group-item');
-      if (menuItem) {
-           menuItem.style.backgroundColor = 'rgba(80, 80, 80, 0.9)'; // Highlight color
-           // Highlight text color
-           const nameEl = menuItem.querySelector('.model-group-name');
-           if (nameEl) nameEl.style.color = 'yellow';
-           
-           // Scroll the content area of the right menu
-           const menuContainer = document.getElementById('right-menu-content-area');
-           if (menuContainer) {
-                // Calculate offset relative to the scrollable container
-                const containerRect = menuContainer.getBoundingClientRect();
-                const itemRect = menuItem.getBoundingClientRect();
-                const offset = itemRect.top - containerRect.top + menuContainer.scrollTop;
-                menuContainer.scrollTo({ top: offset, behavior: 'smooth' });
-           }
-      }
-      // REMOVED: Highlighting/scrolling in the removed main controls area
-      
-      // Only show the object toolbar if the object was added from the objects library
-      // Objects added from the library have names that start with "placed_"
-      if (node.name && node.name.startsWith("placed_")) {
-          showObjectToolbar();
-      } else {
-          hideObjectToolbar();
-      }
+     }
+     // REMOVED: Highlighting/scrolling in the removed main controls area
+     
+     // Only show object toolbar for objects added from the library
+     const isLibraryObject = node.name && node.name.startsWith("placed_");
+     if (isLibraryObject) {
+         showObjectToolbar();
+         console.log("Showing object toolbar for library object:", node.name);
+     } else {
+         hideObjectToolbar();
+         console.log("Object toolbar hidden for non-library object:", node.name);
+     }
+     
+     // Log for debugging
+     console.log(`Selected: ${objectName}, Library object: ${isLibraryObject}`, node);
  }
  
   // Handle window resize AND fullscreen changes
@@ -1693,78 +1802,161 @@ function isChildOf(child, parent) {
 
  // Function to create and place a 3D shape in the scene
  function createAndPlaceShape(objectData, position) {
-     // Create geometry based on shape type
-     let geometry;
-     const name = objectData.name.toLowerCase();
-     
-     // Reduce size by 75% - make shapes much smaller
-     const scaleFactor = 0.25; // 25% of original size
-     
-     switch (name) {
-         case 'cube':
-             geometry = new THREE.BoxGeometry(scaleFactor, scaleFactor, scaleFactor);
-             break;
-         case 'sphere':
-             geometry = new THREE.SphereGeometry(0.5 * scaleFactor, 32, 32);
-             break;
-         case 'cylinder':
-             geometry = new THREE.CylinderGeometry(0.5 * scaleFactor, 0.5 * scaleFactor, 1 * scaleFactor, 32);
-             break;
-         case 'cone':
-             geometry = new THREE.ConeGeometry(0.5 * scaleFactor, 1 * scaleFactor, 32);
-             break;
-         case 'torus':
-             geometry = new THREE.TorusGeometry(0.5 * scaleFactor, 0.2 * scaleFactor, 16, 32);
-             break;
-         case 'pyramid':
-             geometry = new THREE.ConeGeometry(0.5 * scaleFactor, 1 * scaleFactor, 4);
-             break;
-         case 'trapezoid':
-             // Create a custom trapezoid geometry
-             geometry = createTrapezoidGeometry(1 * scaleFactor, 0.6 * scaleFactor, 0.5 * scaleFactor, 1 * scaleFactor);
-             break;
-         default:
-             geometry = new THREE.BoxGeometry(scaleFactor, scaleFactor, scaleFactor);
-             break;
-     }
-     
-     // Create material with the color
-     const material = new THREE.MeshStandardMaterial({
-         color: objectData.color,
-         metalness: 0.3,
-         roughness: 0.6
-     });
-     
-     // Create mesh
-     const mesh = new THREE.Mesh(geometry, material);
-     mesh.name = `placed_${name}_${Date.now()}`;
-     
-     // Enable shadows
-     mesh.castShadow = true;
-     mesh.receiveShadow = true;
-     
-     // Position the mesh
-     mesh.position.copy(position);
-     
-     // Add to scene
-     scene.add(mesh);
-     
-     // Add to the Misc category for room visibility
-     if (roomMeshesMap.has(MISC_CATEGORY)) {
-         roomMeshesMap.get(MISC_CATEGORY).add(mesh);
-     }
-     
-     console.log(`Shape ${name} added to scene at position:`, position);
-     
-     // Update the model groups menu to include the new shape
-     populateModelGroupsMenu();
-     
-     // Update room toggles to include the new object
-     populateRoomToggles();
-     
-     // Select the newly added object
-     selectObjectFromMenu(mesh);
- }
+    // Check if it's a 3D model file
+    if (objectData.type === 'model' && objectData.filePath) {
+        // Load the 3D model using OBJLoader
+        const objLoader = new OBJLoader();
+        objLoader.load(objectData.filePath, function(object) {
+            // Success - model loaded
+            console.log(`Model loaded: ${objectData.name}`);
+            
+            // Set position
+            object.position.copy(position);
+            
+            // Generate a unique name
+            object.name = `placed_${objectData.name.toLowerCase()}_${Date.now()}`;
+            
+            // Scale the model appropriately
+            let scaleFactor = 0.05; // Default scale for models
+            
+            // Apply specific scaling based on model type
+            if (objectData.name.toLowerCase() === 'desk') {
+                scaleFactor = 0.003; // Small scale for desk
+            } else if (objectData.name.toLowerCase() === 'couch') {
+                scaleFactor = 0.005; // Very large scale for couch
+            } else if (objectData.name.toLowerCase() === 'chair') {
+                scaleFactor = 0.005; // Larger scale for chair - same as couch
+            } else if (objectData.name.toLowerCase() === 'fridge') {
+                scaleFactor = 0.005; // Scale for fridge - same as couch
+            } else if (objectData.name.toLowerCase() === 'library shelf') {
+                scaleFactor = 0.005; // Scale for library shelf as requested
+            } else if (objectData.name.toLowerCase() === 'table') {
+                scaleFactor = 0.005; // Scale for table as requested
+            } else if (objectData.name.toLowerCase() === 'bed') {
+                scaleFactor = 0.005; // Scale for bed as requested
+            }
+            
+            object.scale.set(scaleFactor, scaleFactor, scaleFactor);
+            
+            // Apply material to all meshes in the model
+            object.traverse(function(child) {
+                if (child instanceof THREE.Mesh) {
+                    // Give each child mesh the same name as the parent for selection purposes
+                    child.name = object.name;
+                    
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: objectData.color,
+                        metalness: 0.3,
+                        roughness: 0.6
+                    });
+                    
+                    // Enable shadows
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+            
+            // Add to scene
+            scene.add(object);
+            
+            // Add to the Misc category for room visibility
+            if (roomMeshesMap.has(MISC_CATEGORY)) {
+                roomMeshesMap.get(MISC_CATEGORY).add(object);
+            }
+            
+            console.log(`Model ${objectData.name} added to scene at position:`, position);
+            
+            // Update the model groups menu to include the new shape
+            populateModelGroupsMenu();
+            
+            // Update room toggles to include the new object
+            populateRoomToggles();
+            
+            // Select the newly added object
+            selectObjectFromMenu(object);
+        },
+        // onProgress callback
+        function(xhr) {
+            console.log(`Loading ${objectData.name}: ${(xhr.loaded / xhr.total * 100).toFixed(2)}%`);
+        },
+        // onError callback
+        function(error) {
+            console.error(`Error loading ${objectData.name}:`, error);
+        });
+    } else {
+        // Create geometry based on shape type
+        let geometry;
+        const name = objectData.name.toLowerCase();
+        
+        // Reduce size by 75% - make shapes much smaller
+        const scaleFactor = 0.25; // 25% of original size
+        
+        switch (name) {
+            case 'cube':
+                geometry = new THREE.BoxGeometry(scaleFactor, scaleFactor, scaleFactor);
+                break;
+            case 'sphere':
+                geometry = new THREE.SphereGeometry(0.5 * scaleFactor, 32, 32);
+                break;
+            case 'cylinder':
+                geometry = new THREE.CylinderGeometry(0.5 * scaleFactor, 0.5 * scaleFactor, 1 * scaleFactor, 32);
+                break;
+            case 'cone':
+                geometry = new THREE.ConeGeometry(0.5 * scaleFactor, 1 * scaleFactor, 32);
+                break;
+            case 'torus':
+                geometry = new THREE.TorusGeometry(0.5 * scaleFactor, 0.2 * scaleFactor, 16, 32);
+                break;
+            case 'pyramid':
+                geometry = new THREE.ConeGeometry(0.5 * scaleFactor, 1 * scaleFactor, 4);
+                break;
+            case 'trapezoid':
+                // Create a custom trapezoid geometry
+                geometry = createTrapezoidGeometry(1 * scaleFactor, 0.6 * scaleFactor, 0.5 * scaleFactor, 1 * scaleFactor);
+                break;
+            default:
+                geometry = new THREE.BoxGeometry(scaleFactor, scaleFactor, scaleFactor);
+                break;
+        }
+        
+        // Create material with the color
+        const material = new THREE.MeshStandardMaterial({
+            color: objectData.color,
+            metalness: 0.3,
+            roughness: 0.6
+        });
+        
+        // Create mesh
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.name = `placed_${name}_${Date.now()}`;
+        
+        // Enable shadows
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        
+        // Position the mesh
+        mesh.position.copy(position);
+        
+        // Add to scene
+        scene.add(mesh);
+        
+        // Add to the Misc category for room visibility
+        if (roomMeshesMap.has(MISC_CATEGORY)) {
+            roomMeshesMap.get(MISC_CATEGORY).add(mesh);
+        }
+        
+        console.log(`Shape ${name} added to scene at position:`, position);
+        
+        // Update the model groups menu to include the new shape
+        populateModelGroupsMenu();
+        
+        // Update room toggles to include the new object
+        populateRoomToggles();
+        
+        // Select the newly added object
+        selectObjectFromMenu(mesh);
+    }
+}
 
  // Custom function to create a trapezoid geometry
  function createTrapezoidGeometry(topWidth, bottomWidth, height, depth) {
@@ -1915,21 +2107,32 @@ function isChildOf(child, parent) {
             console.log("Delete button clicked directly");
             if (selectedMeshForEditing) {
                 console.log("Deleting selected object:", selectedMeshForEditing.name);
-                scene.remove(selectedMeshForEditing);
+                
+                // Determine which object to delete - use parent for complex objects like the desk
+                let objectToDelete = selectedMeshForEditing;
+                if (selectedMeshForEditing.parent && 
+                    selectedMeshForEditing.parent !== scene && 
+                    selectedMeshForEditing.name.includes('placed_')) {
+                    objectToDelete = selectedMeshForEditing.parent;
+                    console.log("Deleting parent object:", objectToDelete.name);
+                }
+                
+                // Remove from scene
+                scene.remove(objectToDelete);
                 
                 // Remove from roomMeshesMap if it exists there
                 roomPrefixes.forEach(prefix => {
                     if (roomMeshesMap.has(prefix)) {
-                        roomMeshesMap.get(prefix).delete(selectedMeshForEditing);
+                        roomMeshesMap.get(prefix).delete(objectToDelete);
                     }
                 });
                 
                 // Also check Misc category
                 if (roomMeshesMap.has(MISC_CATEGORY)) {
-                    roomMeshesMap.get(MISC_CATEGORY).delete(selectedMeshForEditing);
+                    roomMeshesMap.get(MISC_CATEGORY).delete(objectToDelete);
                 }
                 
-                console.log(`Deleted object: ${selectedMeshForEditing.name}`);
+                console.log(`Deleted object: ${objectToDelete.name}`);
                 
                 // Clear selection
                 clearSelection();
@@ -1999,9 +2202,17 @@ function isChildOf(child, parent) {
      const currentX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
      const currentY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
      
+     // Determine which object to transform - use parent for complex objects like the desk
+     let objectToTransform = selectedMeshForEditing;
+     if (selectedMeshForEditing.parent && 
+         selectedMeshForEditing.parent !== scene && 
+         selectedMeshForEditing.name.includes('placed_')) {
+         objectToTransform = selectedMeshForEditing.parent;
+     }
+     
      // Get object screen position for rotation tools
      const objectWorldPos = new THREE.Vector3();
-     selectedMeshForEditing.getWorldPosition(objectWorldPos);
+     objectToTransform.getWorldPosition(objectWorldPos);
      const objectScreenPos = objectWorldPos.clone().project(camera);
      
      // Different handling based on transformation type
@@ -2022,7 +2233,7 @@ function isChildOf(child, parent) {
                                            currentX - objectScreenPos.x);
              
              let rotationDelta = (currentAngle - prevAngle) * 2.0;
-             rotateObject(selectedMeshForEditing, transformAxis, rotationDelta);
+             rotateObject(objectToTransform, transformAxis, rotationDelta);
              
              // Update start position for next rotation
              transformStartPosition.set(currentX, currentY);
@@ -2052,8 +2263,8 @@ function isChildOf(child, parent) {
                  moveDelta = -deltaX * 2; // Invert Z axis movement again
              }
              
-             // Apply the movement
-             moveObject(selectedMeshForEditing, transformAxis, moveDelta);
+             // Apply the movement to the appropriate object
+             moveObject(objectToTransform, transformAxis, moveDelta);
              
              // Update start position for next movement
              transformStartPosition.set(currentX, currentY);
@@ -2124,6 +2335,12 @@ function isChildOf(child, parent) {
     
     // Remove from scene
     scene.remove(selectedMeshForEditing);
+    
+    // For 3D models loaded from OBJ files, we also need to check for parent objects
+    if (selectedMeshForEditing.parent && selectedMeshForEditing.parent !== scene) {
+        scene.remove(selectedMeshForEditing.parent);
+        console.log(`Deleted parent object of ${selectedMeshForEditing.name}`);
+    }
     
     // Remove from roomMeshesMap if it exists there
     roomPrefixes.forEach(prefix => {

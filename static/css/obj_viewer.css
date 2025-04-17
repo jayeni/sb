@@ -1068,17 +1068,18 @@ body {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(40, 40, 40, 0.85);
+    background-color: rgba(40, 40, 40, 0.95);
     border-radius: 8px;
     padding: 10px 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.7);
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s;
+    border: 2px solid #FFD700; /* Gold border for visibility */
 }
 
 .object-toolbar.visible {
