@@ -96,8 +96,7 @@ function loadFlooringTextures() {
                 'porcelain_flooring.jpg',
                 'epoxy_flooring.jpg',
                 'concrete_flooring.jpg',
-                'wooden_flooring_1.jpg',
-                'wooden_flooring_4.jpg',
+
                 'asphalt.jpg' // Not flooring but included if used
             ];
             
@@ -311,6 +310,11 @@ function initViewer() {
 
     // Add click listener for object identification and selection
     renderer.domElement.addEventListener('click', onModelClick);
+    
+    // Add touch events for mobile devices
+    renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
+    renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
+    renderer.domElement.addEventListener('touchend', onTouchEnd, { passive: false });
 
     // Add listener for the selected object color picker
     document.getElementById('selected-object-color-picker')?.addEventListener('input', onSelectedColorChange);
@@ -326,7 +330,18 @@ function initViewer() {
      onWindowResize(); // Call once initially to set size
      
      // Add listener for fullscreen button
-     document.getElementById('fullscreen-btn')?.addEventListener('click', toggleFullscreen);
+     const fullscreenBtn = document.getElementById('fullscreen-btn');
+     if (fullscreenBtn) {
+         // Remove any existing listeners first to prevent duplicates
+         fullscreenBtn.removeEventListener('click', toggleFullscreen);
+         // Add click listener
+         fullscreenBtn.addEventListener('click', toggleFullscreen);
+         // Add touch listener specifically for mobile
+         fullscreenBtn.addEventListener('touchend', function(e) {
+             e.preventDefault(); // Prevent default touch behavior
+             toggleFullscreen();
+         }, { passive: false });
+     }
 
      // Add listener for fullscreen change events (browser prefix handling)
      document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -376,6 +391,343 @@ function initViewer() {
 
     // Initialize object tools
     initObjectTools();
+    
+    // Log device type for debugging
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log(`Device initialized: ${isMobile ? 'Mobile' : 'Desktop'}`);
+}
+
+// Touch event handlers
+let touchStartX = 0;
+let touchStartY = 0;
+let touchMoved = false;
+let lastTouchTime = 0;
+const TOUCH_DELAY = 300; // ms between touches to consider as double tap
+
+// Handle touch start
+function onTouchStart(event) {
+    event.preventDefault(); // Prevent default touch behavior like scrolling
+    
+    // Store touch start position
+    if (event.touches.length === 1) {
+        const touch = event.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchMoved = false;
+        
+        // Convert touch to mouse coordinates for raycasting
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        // Check for double tap
+        const now = new Date().getTime();
+        const timeSince = now - lastTouchTime;
+        
+        if (timeSince < TOUCH_DELAY) {
+            // Double tap detected - toggle fullscreen
+            console.log("Double tap detected - toggling fullscreen");
+            toggleFullscreen();
+        }
+        
+        lastTouchTime = now;
+        
+        // Detect if we touched an object
+        const touchedObject = detectTouchedObject();
+        if (touchedObject && touchedObject.name.startsWith("placed_")) {
+            // If we touch a placed object, start movement automatically
+            startTransform('move', 'x');
+            transformStartPosition.set(mouse.x, mouse.y);
+        }
+    }
+}
+
+// Handle touch move
+function onTouchMove(event) {
+    event.preventDefault();
+    
+    if (event.touches.length === 1) {
+        const touch = event.touches[0];
+        
+        // Check if touch moved significantly (to distinguish from tap)
+        const deltaX = Math.abs(touch.clientX - touchStartX);
+        const deltaY = Math.abs(touch.clientY - touchStartY);
+        
+        if (deltaX > 5 || deltaY > 5) {
+            touchMoved = true;
+        }
+        
+        // Update mouse coordinates for raycasting
+        const rect = renderer.domElement.getBoundingClientRect();
+        const currentX = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+        const currentY = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        // If transforming, handle object movement
+        if (isTransforming && selectedMeshForEditing) {
+            // Similar logic to handleTransformMouseMove but for touch
+            let objectToTransform = selectedMeshForEditing;
+            if (selectedMeshForEditing.parent && 
+                selectedMeshForEditing.parent !== scene && 
+                selectedMeshForEditing.name.includes('placed_')) {
+                objectToTransform = selectedMeshForEditing.parent;
+            }
+            
+            // Get object screen position
+            const objectWorldPos = new THREE.Vector3();
+            objectToTransform.getWorldPosition(objectWorldPos);
+            const objectScreenPos = objectWorldPos.clone().project(camera);
+            
+            // Calculate movement
+            if (transformType === 'move') {
+                const deltaX = currentX - mouse.x;
+                const deltaY = currentY - mouse.y;
+                
+                let moveDelta = 0;
+                if (transformAxis === 'y') {
+                    moveDelta = deltaY * 3; // Amplified for touch
+                } else if (transformAxis === 'x') {
+                    moveDelta = deltaX * 3; // Amplified for touch
+                } else { // z-axis
+                    moveDelta = -deltaX * 3; // Inverted for z-axis, amplified for touch
+                }
+                
+                moveObject(objectToTransform, transformAxis, moveDelta);
+                
+                // Ensure selection
+                if (!isActiveMovement) {
+                    selectObjectFromMenu(objectToTransform);
+                    isActiveMovement = true;
+                }
+            }
+            
+            // Update mouse position for next move
+            mouse.x = currentX;
+            mouse.y = currentY;
+        } else {
+            // Use OrbitControls for camera movement if not transforming objects
+            controls.enabled = true;
+        }
+    }
+}
+
+// Handle touch end
+function onTouchEnd(event) {
+    event.preventDefault();
+    
+    // Only handle selection if the touch didn't move much (tap vs drag)
+    if (!touchMoved) {
+        // This was a tap - select the object
+        const touchedObject = detectTouchedObject();
+        if (touchedObject) {
+            selectObjectFromMenu(touchedObject);
+            
+            // If this is a placed object, show the object toolbar
+            if (touchedObject.name && touchedObject.name.startsWith("placed_")) {
+                showObjectToolbar();
+            }
+        } else {
+            // Tap on empty space - deselect
+            clearSelection();
+        }
+    }
+    
+    // End any transformation
+    if (isTransforming) {
+        endTransform();
+    }
+    
+    // Reset touch tracking
+    touchMoved = false;
+}
+
+// Detect which object was touched
+function detectTouchedObject() {
+    raycaster.setFromCamera(mouse, camera);
+    
+    // Get selectable objects
+    const selectableObjects = getSelectableObjects();
+    const intersects = raycaster.intersectObjects(selectableObjects, false);
+    
+    if (intersects.length > 0) {
+        return intersects[0].object;
+    }
+    
+    return null;
+}
+
+// Toggle Fullscreen Function
+function toggleFullscreen() {
+    const viewerElement = document.getElementById('threejs-viewer');
+    if (!viewerElement) return;
+    
+    // Check if we're in fullscreen mode (with all possible browser prefixes)
+    const isFullscreen = Boolean(
+        document.fullscreenElement || 
+        document.webkitFullscreenElement || 
+        document.mozFullScreenElement || 
+        document.msFullscreenElement
+    );
+    
+    // Mobile detection
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log(`Device detected: ${isMobile ? 'Mobile' : 'Desktop'}, Currently in fullscreen: ${isFullscreen}`);
+    
+    if (!isFullscreen) {
+        // Enter fullscreen - try all possible methods
+        console.log("Attempting to enter fullscreen mode");
+        
+        // For mobile devices, use our custom fullscreen approach first
+        if (isMobile) {
+            console.log("Mobile device detected, using custom fullscreen approach");
+            
+            viewerElement.style.position = 'fixed';
+            viewerElement.style.top = '0';
+            viewerElement.style.left = '0';
+            viewerElement.style.width = '100%';
+            viewerElement.style.height = '100%';
+            viewerElement.style.zIndex = '9999';
+            
+            // Add a custom class for mobile fullscreen
+            viewerElement.classList.add('mobile-fullscreen');
+            
+            // Update fullscreen button
+            const fullscreenBtnIcon = document.querySelector('#fullscreen-btn i');
+            if (fullscreenBtnIcon) {
+                fullscreenBtnIcon.classList.remove('fa-expand');
+                fullscreenBtnIcon.classList.add('fa-compress');
+            }
+            
+            // Hide scrollbars and prevent body scrolling
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+            
+            // Force resize
+            setTimeout(onWindowResize, 100);
+            return; // Don't try standard fullscreen API on mobile
+        }
+        
+        // Use the appropriate request method (for non-mobile or as fallback)
+        try {
+            if (viewerElement.requestFullscreen) {
+                viewerElement.requestFullscreen().catch(err => {
+                    console.error("Error attempting to enable fullscreen:", err);
+                    useCustomFullscreen(viewerElement);
+                });
+            } else if (viewerElement.webkitRequestFullscreen) { /* Safari & Chrome */
+                viewerElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT).catch(err => {
+                    console.error("Error attempting to enable webkit fullscreen:", err);
+                    useCustomFullscreen(viewerElement);
+                });
+            } else if (viewerElement.mozRequestFullScreen) { /* Firefox */
+                viewerElement.mozRequestFullScreen().catch(err => {
+                    console.error("Error attempting to enable moz fullscreen:", err);
+                    useCustomFullscreen(viewerElement);
+                });
+            } else if (viewerElement.msRequestFullscreen) { /* IE/Edge */
+                viewerElement.msRequestFullscreen().catch(err => {
+                    console.error("Error attempting to enable ms fullscreen:", err);
+                    useCustomFullscreen(viewerElement);
+                });
+            } else {
+                // No standard fullscreen API, use custom approach
+                useCustomFullscreen(viewerElement);
+            }
+        } catch (error) {
+            console.error("Error in fullscreen request:", error);
+            // Fallback to custom fullscreen
+            useCustomFullscreen(viewerElement);
+        }
+    } else {
+        // Exit fullscreen - try all possible methods
+        console.log("Attempting to exit fullscreen mode");
+        
+        // Exit custom fullscreen if active
+        if (viewerElement.classList.contains('mobile-fullscreen')) {
+            console.log("Exiting custom fullscreen mode");
+            exitCustomFullscreen(viewerElement);
+            return;
+        }
+        
+        // Try standard fullscreen API methods
+        try {
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(err => {
+                    console.error("Error attempting to exit fullscreen:", err);
+                });
+            } else if (document.webkitExitFullscreen) { /* Safari */
+                document.webkitExitFullscreen().catch(err => {
+                    console.error("Error attempting to exit webkit fullscreen:", err);
+                });
+            } else if (document.mozCancelFullScreen) { /* Firefox */
+                document.mozCancelFullScreen().catch(err => {
+                    console.error("Error attempting to exit moz fullscreen:", err);
+                });
+            } else if (document.msExitFullscreen) { /* IE/Edge */
+                document.msExitFullscreen().catch(err => {
+                    console.error("Error attempting to exit ms fullscreen:", err);
+                });
+            }
+        } catch (error) {
+            console.error("Error in exit fullscreen:", error);
+        }
+    }
+    
+    // Trigger resize to update canvas dimensions
+    setTimeout(onWindowResize, 100);
+}
+
+// Helper function to use custom fullscreen approach when standard API fails
+function useCustomFullscreen(element) {
+    console.log("Using custom fullscreen approach");
+    element.style.position = 'fixed';
+    element.style.top = '0';
+    element.style.left = '0';
+    element.style.width = '100%';
+    element.style.height = '100%';
+    element.style.zIndex = '9999';
+    
+    // Add a custom class for tracking
+    element.classList.add('mobile-fullscreen');
+    
+    // Update fullscreen button
+    const fullscreenBtnIcon = document.querySelector('#fullscreen-btn i');
+    if (fullscreenBtnIcon) {
+        fullscreenBtnIcon.classList.remove('fa-expand');
+        fullscreenBtnIcon.classList.add('fa-compress');
+    }
+    
+    // Hide scrollbars and prevent body scrolling
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    
+    // Force resize
+    setTimeout(onWindowResize, 100);
+}
+
+// Helper function to exit custom fullscreen mode
+function exitCustomFullscreen(element) {
+    element.style.position = '';
+    element.style.top = '';
+    element.style.left = '';
+    element.style.width = '';
+    element.style.height = '';
+    element.style.zIndex = '';
+    
+    element.classList.remove('mobile-fullscreen');
+    
+    // Update fullscreen button
+    const fullscreenBtnIcon = document.querySelector('#fullscreen-btn i');
+    if (fullscreenBtnIcon) {
+        fullscreenBtnIcon.classList.remove('fa-compress');
+        fullscreenBtnIcon.classList.add('fa-expand');
+    }
+    
+    // Restore scrollbars
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    
+    // Force resize
+    setTimeout(onWindowResize, 100);
 }
 
 // Create and position XYZ axes helper
@@ -1068,13 +1420,22 @@ function isChildOf(child, parent) {
      const container = document.getElementById('threejs-viewer');
      if (!container) return;
      
-     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+     // Check both standard fullscreen and our custom mobile fullscreen
+     const isFullscreen = Boolean(
+         document.fullscreenElement || 
+         document.webkitFullscreenElement || 
+         document.mozFullScreenElement || 
+         document.msFullscreenElement
+     );
+     
+     const isCustomFullscreen = container.classList.contains('mobile-fullscreen');
      let newWidth, newHeight;
 
-     if (isFullscreen) {
+     if (isFullscreen || isCustomFullscreen) {
          // Use full window dimensions when fullscreen
          newWidth = window.innerWidth;
          newHeight = window.innerHeight;
+         console.log(`Fullscreen dimensions: ${newWidth}x${newHeight}`);
      } else {
          // Use container dimensions when not fullscreen
          newWidth = container.clientWidth;
@@ -1098,54 +1459,37 @@ function isChildOf(child, parent) {
      composer.setSize(newWidth, newHeight);
      outlinePass.resolution.set(newWidth, newHeight);
 
-     console.log(`Resized to: ${newWidth}x${newHeight}, Fullscreen: ${!!isFullscreen}`);
- }
- 
- // Toggle Fullscreen Function
- function toggleFullscreen() {
-     const viewerElement = document.getElementById('threejs-viewer');
-     if (!viewerElement) return;
-     
-     if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
-         // Enter fullscreen
-         if (viewerElement.requestFullscreen) {
-             viewerElement.requestFullscreen();
-         } else if (viewerElement.webkitRequestFullscreen) { /* Safari */
-             viewerElement.webkitRequestFullscreen();
-         } else if (viewerElement.mozRequestFullScreen) { /* Firefox */
-             viewerElement.mozRequestFullScreen();
-         } else if (viewerElement.msRequestFullscreen) { /* IE11 */
-             viewerElement.msRequestFullscreen();
-         }
-     } else {
-         // Exit fullscreen
-         if (document.exitFullscreen) {
-             document.exitFullscreen();
-         } else if (document.webkitExitFullscreen) { /* Safari */
-             document.webkitExitFullscreen();
-         } else if (document.mozCancelFullScreen) { /* Firefox */
-             document.mozCancelFullScreen();
-         } else if (document.msExitFullscreen) { /* IE11 */
-             document.msExitFullscreen();
-         }
-     }
+     console.log(`Resized to: ${newWidth}x${newHeight}, Fullscreen: ${!!(isFullscreen || isCustomFullscreen)}`);
  }
  
  // Function to update button icon based on fullscreen state
  function handleFullscreenChange() {
      const fullscreenBtnIcon = document.querySelector('#fullscreen-btn i');
      if (!fullscreenBtnIcon) return;
-
-     if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+     
+     // Check both standard fullscreen and our custom mobile fullscreen
+     const isFullscreen = Boolean(
+         document.fullscreenElement || 
+         document.webkitFullscreenElement || 
+         document.mozFullScreenElement || 
+         document.msFullscreenElement
+     );
+     
+     const viewerElement = document.getElementById('threejs-viewer');
+     const isCustomFullscreen = viewerElement && viewerElement.classList.contains('mobile-fullscreen');
+     
+     if (isFullscreen || isCustomFullscreen) {
+         // In fullscreen: Show compress icon
          fullscreenBtnIcon.classList.remove('fa-expand');
          fullscreenBtnIcon.classList.add('fa-compress');
      } else {
          // Not fullscreen: Show expand icon
          fullscreenBtnIcon.classList.remove('fa-compress');
-         fullscreenBtnIcon.classList.add('fa-expand'); // Use correct variable
+         fullscreenBtnIcon.classList.add('fa-expand');
      }
+     
      // Trigger resize explicitly after fullscreen change
-     setTimeout(onWindowResize, 50); // Small delay often helps rendering
+     setTimeout(onWindowResize, 100); // Small delay often helps rendering
  }
  
  // Function to switch panels in the RIGHT menu
@@ -1889,10 +2233,8 @@ function isChildOf(child, parent) {
             selectObjectFromMenu(meshToSelect);
             showObjectToolbar();
             
-            // Switch to model groups panel to show the newly added object
-            switchRightPanel('model-groups');
-            
-            // Highlight the menu item for the new object
+            // REMOVED: Don't automatically switch panels when adding objects
+            // Instead, just highlight the item in case the user switches to model groups later
             setTimeout(() => {
                 highlightMenuItem(getHierarchicalName(meshToSelect));
             }, 100);
@@ -1982,10 +2324,8 @@ function isChildOf(child, parent) {
         selectObjectFromMenu(mesh);
         showObjectToolbar();
         
-        // Switch to model groups panel to show the newly added object
-        switchRightPanel('model-groups');
-        
-        // Highlight the menu item for the new object
+        // REMOVED: Don't automatically switch panels when adding objects
+        // Instead, just highlight the item in case the user switches to model groups later
         setTimeout(() => {
             highlightMenuItem(getHierarchicalName(mesh));
         }, 100);
