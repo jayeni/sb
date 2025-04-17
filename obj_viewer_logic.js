@@ -374,10 +374,11 @@ function initViewer() {
          } else {
              // Collapse: Slide to the left
              const menuWidth = menu.offsetWidth;
-             const hiddenWidth = Math.max(0, menuWidth - 30);
+             const visibleWidth = 45; // Keep this much visible (adjust as needed for button size + padding)
+             const hiddenWidth = Math.max(0, menuWidth - visibleWidth);
              menu.style.transform = `translateX(-${hiddenWidth}px)`; // Negative value for left slide
                menu.dataset.collapsed = 'true';
-             btn.innerHTML = '&plus;';
+             btn.innerHTML = '&plus;'; // Or use an arrow like '&rarr;' or '&#9654;'
          }
      });
 
@@ -644,7 +645,7 @@ function onTouchMove(event) {
                 } else { // z-axis
                     // Corrected: Use deltaY for Z-axis movement
                     // Moving finger UP (negative deltaY) should move object BACKWARD (positive Z)
-                    moveDelta = -deltaY * 3; // Inverted deltaY
+                    moveDelta = -deltaY * 8; // Increased multiplier for Z-axis sensitivity on touch
                 }
                 
                 moveObject(objectToTransform, transformAxis, moveDelta);
@@ -974,19 +975,38 @@ function createTextLabel(text, color) {
 }
 
 function setRotation(direction) {
-    rotationDirection = direction;
-    isRotating = true;
+    // Direction determines speed/direction for OrbitControls
+    // Use a fixed speed for simplicity, direction just toggles it on
+    if (controls) {
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = direction * 2.0; // Set speed and direction
+        console.log("Camera auto-rotation enabled");
+    } else {
+        console.warn("OrbitControls not available to set rotation.");
+    }
+    // Remove the incorrect isRotating flag set
+    // isRotating = true; 
 }
 
 function pauseRotation() {
-    isRotating = false;
+    if (controls) {
+        controls.autoRotate = false;
+        console.log("Camera auto-rotation paused");
+    } else {
+        console.warn("OrbitControls not available to pause rotation.");
+    }
+    // Remove the incorrect isRotating flag set
+    // isRotating = false;
 }
 
 function animate() {
     requestAnimationFrame(animate);
+    // Remove the incorrect model rotation logic
+    /*
     if (isRotating && currentModel) {
         currentModel.rotation.y += rotationDirection * 0.01;
     }
+    */
     controls.update(); // Required if damping or auto-rotation is enabled
     
     // RESTORE composer rendering
@@ -2049,6 +2069,125 @@ function isChildOf(child, parent) {
  }
  // --- End Room Visibility Functions ---
 
+ // --- NEW FUNCTION: Add toggle checkbox for a newly added misc object ---
+ function addMiscObjectToggle(obj) {
+     const contentDiv = document.getElementById('right-menu-show-rooms-content');
+     const miscContainerId = `objects-${MISC_CATEGORY}`;
+     let objectsContainer = document.getElementById(miscContainerId);
+     if (!contentDiv) {
+         console.error("Room toggles container not found.");
+         return;
+     }
+
+     // Check if Misc category header exists, create if not
+     let miscHeaderCheckbox = document.getElementById(`toggle-${MISC_CATEGORY}`);
+     if (!miscHeaderCheckbox) {
+         console.log("Creating Misc category UI elements.");
+         // Create main misc toggle item
+         const miscDiv = document.createElement('div');
+         miscDiv.className = 'room-toggle-item';
+
+         // Create checkbox
+         const newMiscCheckbox = document.createElement('input');
+         newMiscCheckbox.type = 'checkbox';
+         newMiscCheckbox.id = `toggle-${MISC_CATEGORY}`;
+         newMiscCheckbox.dataset.roomPrefix = MISC_CATEGORY;
+         newMiscCheckbox.checked = true; // Default to checked when created
+         newMiscCheckbox.addEventListener('change', e => {
+             const container = document.getElementById(miscContainerId);
+             if (container) {
+                 container.querySelectorAll('input[type="checkbox"]')
+                          .forEach(cb => cb.checked = e.target.checked);
+             }
+             handleRoomToggleChange(e);
+         });
+         miscHeaderCheckbox = newMiscCheckbox; // Assign to outer scope variable
+
+         // Create label
+         const miscLabel = document.createElement('label');
+         miscLabel.htmlFor = newMiscCheckbox.id;
+         miscLabel.textContent = MISC_CATEGORY;
+
+         // Create dropdown toggle button
+         const dropdownBtn = document.createElement('button');
+         dropdownBtn.className = 'dropdown-toggle';
+         dropdownBtn.innerHTML = '▶';
+         dropdownBtn.addEventListener('click', () => {
+             const container = document.getElementById(miscContainerId);
+             if (container) {
+                 const isVisible = container.classList.toggle('visible');
+                 dropdownBtn.classList.toggle('expanded', isVisible);
+             }
+         });
+
+         miscDiv.appendChild(newMiscCheckbox);
+         miscDiv.appendChild(miscLabel);
+         miscDiv.appendChild(dropdownBtn);
+         contentDiv.appendChild(miscDiv);
+
+         // Create container for misc objects (since header didn't exist, container won't either)
+         objectsContainer = document.createElement('div');
+         objectsContainer.className = 'room-objects-container';
+         objectsContainer.id = miscContainerId;
+         contentDiv.appendChild(objectsContainer); // Append after the new header
+
+     } else if (!objectsContainer) {
+         // Header exists, but container doesn't (edge case)
+         console.warn("Misc header exists, but object container missing. Creating container.");
+         objectsContainer = document.createElement('div');
+         objectsContainer.className = 'room-objects-container';
+         objectsContainer.id = miscContainerId;
+         const miscHeaderItem = miscHeaderCheckbox.closest('.room-toggle-item');
+         miscHeaderItem?.insertAdjacentElement('afterend', objectsContainer);
+     }
+
+     if (!objectsContainer) {
+         console.error("Failed to find or create Misc objects container after checks.");
+         return;
+     }
+
+     // --- Create and Add the Object Toggle Item ---
+     const objDiv = document.createElement('div');
+     objDiv.className = 'object-toggle-item';
+
+     const objCheckbox = document.createElement('input');
+     objCheckbox.type = 'checkbox';
+     objCheckbox.id = `toggle-object-${obj.uuid}`;
+     objCheckbox.dataset.objectId = obj.uuid;
+     objCheckbox.dataset.roomPrefix = MISC_CATEGORY;
+     objCheckbox.checked = obj.visible; // Should be true by default
+     objCheckbox.addEventListener('change', e => {
+         // Update object visibility directly
+         const targetObj = scene.getObjectByProperty('uuid', obj.uuid);
+         if(targetObj) targetObj.visible = e.target.checked;
+         
+         // Update parent checkboxes
+         updateRoomCheckboxState(MISC_CATEGORY);
+         updateAllCheckboxState();
+     });
+
+     const objLabel = document.createElement('label');
+     objLabel.htmlFor = objCheckbox.id;
+     objLabel.textContent = getObjectDisplayName(obj, MISC_CATEGORY);
+     objLabel.title = obj.name || 'Unnamed Object';
+
+     objDiv.appendChild(objCheckbox);
+     objDiv.appendChild(objLabel);
+     objectsContainer.appendChild(objDiv);
+
+     // Make the container visible if it wasn't already
+     objectsContainer.classList.add('visible');
+     // Ensure dropdown arrow is expanded
+     const dropdown = miscHeaderCheckbox?.closest('.room-toggle-item')?.querySelector('.dropdown-toggle');
+     if(dropdown) dropdown.classList.add('expanded');
+
+     // --- Update Parent Checkboxes --- 
+     updateRoomCheckboxState(MISC_CATEGORY); // Ensure Misc header checkbox is checked
+     updateAllCheckboxState(); // Ensure 'All' checkbox is checked
+
+     console.log(`Added toggle for misc object: ${obj.name || obj.uuid}`);
+ }
+
  // Helper function to set up the model once loaded
  function setupLoadedModel(object, modelName) {
      console.log(`Setting up model: ${modelName}`);
@@ -2501,7 +2640,8 @@ function isChildOf(child, parent) {
             populateModelGroupsMenu();
             
             // Update room toggles to include the new object
-            populateRoomToggles();
+            // REMOVED: populateRoomToggles();
+            addMiscObjectToggle(object); // Add toggle for the parent group
             
             // Explicitly select the newly added object and ensure the object toolbar is shown
             // Try to select the first mesh child if it exists
@@ -2602,7 +2742,8 @@ function isChildOf(child, parent) {
         populateModelGroupsMenu();
         
         // Update room toggles to include the new object
-        populateRoomToggles();
+        // REMOVED: populateRoomToggles();
+        addMiscObjectToggle(mesh); // Add toggle for the single mesh
         
         // Force clear previous selection first
         clearSelection();
@@ -2921,7 +3062,7 @@ function isChildOf(child, parent) {
          } else { // z-axis
              // Corrected: Use deltaY for Z-axis movement
              // Moving mouse/finger UP (negative deltaY) should move object FORWARD (negative Z)
-             moveDelta = -deltaY * 2; // Inverted deltaY
+             moveDelta = -deltaY * 5; // Increased multiplier for Z-axis sensitivity
          }
          
          // Apply the movement to the appropriate object
