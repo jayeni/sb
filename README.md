@@ -11,3 +11,6 @@ A custom blog built with Flask and HTML to document my learnings and experiments
 ```bash
 pip install -r requirements.txt
 flask run
+
+## Live Site
+https://jayeni13.pythonanywhere.com/
